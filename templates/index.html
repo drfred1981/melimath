@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeliMath</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --timer-color: #0d6efd;
+        }
+        body {
+            background: #f0f4ff;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+        }
+        .nav-tabs .nav-link {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .game-area {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        /* Timer */
+        .timer-bar-container {
+            height: 18px;
+            background: #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .timer-bar {
+            height: 100%;
+            background: var(--timer-color);
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+        .timer-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Calcul */
+        .calcul-display {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .answer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            min-height: 70px;
+            border-bottom: 4px solid #333;
+            min-width: 100px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Feedback */
+        .feedback {
+            font-size: 2rem;
+            font-weight: 800;
+            min-height: 60px;
+        }
+        .feedback-correct { color: #198754; }
+        .feedback-wrong { color: #dc3545; }
+
+        /* Numeric keypad */
+        .keypad { max-width: 320px; margin: 0 auto; }
+        .keypad .btn {
+            font-size: 1.8rem;
+            font-weight: 700;
+            height: 64px;
+            border-radius: 12px;
+        }
+        @media (max-width: 400px) {
+            .keypad .btn { font-size: 1.4rem; height: 54px; }
+            .calcul-display { font-size: 2.5rem; }
+            .answer-display { font-size: 2.2rem; }
+        }
+
+        /* Score */
+        .score-bar {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .btn-validate {
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-radius: 12px;
+            height: 58px;
+        }
+        .btn-next {
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 12px;
+            height: 58px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand navbar-dark bg-primary">
+    <div class="container">
+        <span class="navbar-brand">&#x1F9EE; MeliMath</span>
+    </div>
+</nav>
+
+<div class="container mt-3">
+    <!-- Onglets -->
+    <ul class="nav nav-tabs justify-content-center" id="modeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-mode="addition"
+                    type="button" role="tab">Addition</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="soustraction"
+                    type="button" role="tab">Soustraction</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="multiplication"
+                    type="button" role="tab">Multiplication</button>
+        </li>
+    </ul>
+
+    <div class="game-area mt-3">
+        <!-- Score -->
+        <div class="score-bar d-flex justify-content-between mb-2 px-1">
+            <span>Score : <span id="score">0</span> / <span id="total">0</span></span>
+            <span id="streak"></span>
+        </div>
+
+        <!-- Timer -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="timer-label">&#x23F3;</span>
+            <div class="timer-bar-container flex-grow-1">
+                <div class="timer-bar" id="timerBar" style="width:100%"></div>
+            </div>
+        </div>
+
+        <!-- Calcul -->
+        <div class="text-center mb-2">
+            <div class="calcul-display" id="calcul"></div>
+        </div>
+
+        <!-- Reponse -->
+        <div class="text-center mb-3">
+            <span class="answer-display" id="answerDisplay">&nbsp;</span>
+        </div>
+
+        <!-- Feedback -->
+        <div class="text-center feedback mb-2" id="feedback"></div>
+
+        <!-- Keypad -->
+        <div class="keypad mb-3" id="keypadArea">
+            <div class="row g-2 mb-2">
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="7">7</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="8">8</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="9">9</button></div>
+            </div>
+            <div class="row g-2 mb-2">
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="4">4</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="5">5</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="6">6</button></div>
+            </div>
+            <div class="row g-2 mb-2">
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="1">1</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="2">2</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="3">3</button></div>
+            </div>
+            <div class="row g-2">
+                <div class="col-4"><button class="btn btn-warning w-100" data-key="clear">&#x232B;</button></div>
+                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="0">0</button></div>
+                <div class="col-4"><button class="btn btn-warning w-100" data-key="back">&#x2190;</button></div>
+            </div>
+        </div>
+
+        <!-- Validate / Next buttons -->
+        <div id="btnValidateArea" class="mb-3">
+            <button class="btn btn-primary btn-validate w-100" id="btnValidate" disabled>Valider</button>
+        </div>
+        <div id="btnNextArea" class="mb-3 d-none">
+            <button class="btn btn-success btn-next w-100" id="btnNext">Suivant &#x27A1;</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    // --- State ---
+    let mode = 'addition';
+    let a = 0, b = 0, correctAnswer = 0;
+    let userAnswer = '';
+    let score = 0, total = 0;
+    let timerDuration = 15; // seconds
+    let timerRemaining = timerDuration;
+    let timerInterval = null;
+    let answered = false;
+
+    // --- DOM refs ---
+    const elCalc = document.getElementById('calcul');
+    const elAnswer = document.getElementById('answerDisplay');
+    const elFeedback = document.getElementById('feedback');
+    const elTimerBar = document.getElementById('timerBar');
+    const elScore = document.getElementById('score');
+    const elTotal = document.getElementById('total');
+    const elStreak = document.getElementById('streak');
+    const btnValidate = document.getElementById('btnValidate');
+    const btnNext = document.getElementById('btnNext');
+    const btnValidateArea = document.getElementById('btnValidateArea');
+    const btnNextArea = document.getElementById('btnNextArea');
+
+    // --- Tabs ---
+    document.querySelectorAll('[data-mode]').forEach(tab => {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('[data-mode]').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            mode = this.dataset.mode;
+            score = 0; total = 0;
+            updateScore();
+            newRound();
+        });
+    });
+
+    // --- Generate question ---
+    function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateQuestion() {
+        if (mode === 'addition') {
+            a = randInt(0, 10);
+            b = randInt(0, 10);
+            correctAnswer = a + b;
+            elCalc.textContent = a + ' + ' + b + ' = ?';
+        } else if (mode === 'soustraction') {
+            a = randInt(0, 10);
+            b = randInt(0, a); // b <= a so result >= 0
+            correctAnswer = a - b;
+            elCalc.textContent = a + ' \u2212 ' + b + ' = ?';
+        } else if (mode === 'multiplication') {
+            a = randInt(0, 10);
+            b = randInt(0, 10);
+            correctAnswer = a * b;
+            elCalc.textContent = a + ' \u00D7 ' + b + ' = ?';
+        }
+    }
+
+    // --- Timer ---
+    function startTimer() {
+        timerRemaining = timerDuration;
+        elTimerBar.style.width = '100%';
+        elTimerBar.style.background = '#0d6efd';
+
+        const startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            timerRemaining = timerDuration - elapsed;
+            if (timerRemaining <= 0) {
+                timerRemaining = 0;
+                clearInterval(timerInterval);
+                timeUp();
+            }
+            const pct = Math.max(0, (timerRemaining / timerDuration) * 100);
+            elTimerBar.style.width = pct + '%';
+            if (pct < 30) {
+                elTimerBar.style.background = '#dc3545';
+            } else if (pct < 60) {
+                elTimerBar.style.background = '#ffc107';
+            }
+        }, 50);
+    }
+
+    function stopTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function timeUp() {
+        if (answered) return;
+        answered = true;
+        showFeedback(false, true);
+        showNext();
+    }
+
+    // --- Answer input ---
+    function setAnswer(val) {
+        userAnswer = val;
+        elAnswer.textContent = val || '\u00A0';
+        btnValidate.disabled = val.length === 0;
+    }
+
+    // Keypad clicks
+    document.getElementById('keypadArea').addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-key]');
+        if (!btn || answered) return;
+        const key = btn.dataset.key;
+        if (key === 'clear') {
+            setAnswer('');
+        } else if (key === 'back') {
+            setAnswer(userAnswer.slice(0, -1));
+        } else {
+            if (userAnswer.length < 3) {
+                setAnswer(userAnswer + key);
+            }
+        }
+    });
+
+    // Keyboard support
+    document.addEventListener('keydown', function (e) {
+        if (answered && e.key === 'Enter') {
+            btnNext.click();
+            return;
+        }
+        if (answered) return;
+        if (e.key >= '0' && e.key <= '9') {
+            if (userAnswer.length < 3) setAnswer(userAnswer + e.key);
+        } else if (e.key === 'Backspace') {
+            setAnswer(userAnswer.slice(0, -1));
+        } else if (e.key === 'Enter' && userAnswer.length > 0) {
+            validateAnswer();
+        }
+    });
+
+    // --- Validate ---
+    btnValidate.addEventListener('click', validateAnswer);
+
+    function validateAnswer() {
+        if (answered || userAnswer.length === 0) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
+        if (isCorrect) score++;
+        updateScore();
+        showFeedback(isCorrect, false);
+        showNext();
+    }
+
+    // --- Feedback ---
+    function showFeedback(correct, timeout) {
+        if (timeout) {
+            elFeedback.className = 'text-center feedback feedback-wrong';
+            elFeedback.textContent = 'Temps \u00E9coul\u00E9 ! R\u00E9ponse : ' + correctAnswer;
+            total++;
+            updateScore();
+        } else if (correct) {
+            elFeedback.className = 'text-center feedback feedback-correct';
+            elFeedback.textContent = 'Bravo ! \u2705';
+        } else {
+            elFeedback.className = 'text-center feedback feedback-wrong';
+            elFeedback.textContent = 'Raté ! R\u00E9ponse : ' + correctAnswer + ' \u274C';
+        }
+    }
+
+    function showNext() {
+        btnValidateArea.classList.add('d-none');
+        btnNextArea.classList.remove('d-none');
+        btnNext.focus();
+    }
+
+    // --- Next ---
+    btnNext.addEventListener('click', newRound);
+
+    function newRound() {
+        answered = false;
+        userAnswer = '';
+        elAnswer.textContent = '\u00A0';
+        elFeedback.textContent = '';
+        elFeedback.className = 'text-center feedback';
+        btnValidate.disabled = true;
+        btnValidateArea.classList.remove('d-none');
+        btnNextArea.classList.add('d-none');
+        generateQuestion();
+        startTimer();
+    }
+
+    function updateScore() {
+        elScore.textContent = score;
+        elTotal.textContent = total;
+    }
+
+    // --- Init ---
+    newRound();
+})();
+</script>
+</body>
+</html>

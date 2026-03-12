@@ -1,6 +1,2 @@
-pyyaml
-ruamel.yaml
-flask
-gunicorn
-GitPython
-kubernetes
+flask==3.1.*
+gunicorn==23.*
