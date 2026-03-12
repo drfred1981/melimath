@@ -1,0 +1,6 @@
+pyyaml
+ruamel.yaml
+flask
+gunicorn
+GitPython
+kubernetes
