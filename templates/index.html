@@ -19,12 +19,16 @@
             font-size: 1.6rem;
             letter-spacing: 1px;
         }
+        .nav-tabs {
+            flex-wrap: wrap;
+        }
         .nav-tabs .nav-link {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
+            padding: 0.4rem 0.7rem;
         }
         .game-area {
-            max-width: 420px;
+            max-width: 500px;
             margin: 0 auto;
         }
 
@@ -34,7 +38,6 @@
             background: #dee2e6;
             border-radius: 10px;
             overflow: hidden;
-            position: relative;
         }
         .timer-bar {
             height: 100%;
@@ -49,18 +52,18 @@
 
         /* Calcul */
         .calcul-display {
-            font-size: 3.5rem;
+            font-size: 2.8rem;
             font-weight: 800;
             letter-spacing: 2px;
-            min-height: 90px;
+            min-height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .answer-display {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 700;
-            min-height: 70px;
+            min-height: 60px;
             border-bottom: 4px solid #333;
             min-width: 100px;
             text-align: center;
@@ -69,9 +72,9 @@
 
         /* Feedback */
         .feedback {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            min-height: 60px;
+            min-height: 50px;
         }
         .feedback-correct { color: #198754; }
         .feedback-wrong { color: #dc3545; }
@@ -86,8 +89,8 @@
         }
         @media (max-width: 400px) {
             .keypad .btn { font-size: 1.4rem; height: 54px; }
-            .calcul-display { font-size: 2.5rem; }
-            .answer-display { font-size: 2.2rem; }
+            .calcul-display { font-size: 2rem; }
+            .answer-display { font-size: 2rem; }
         }
 
         /* Score */
@@ -107,6 +110,112 @@
             font-weight: 700;
             border-radius: 12px;
             height: 58px;
+        }
+
+        /* Fractions */
+        .fraction-visual {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        .fraction-input-group {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+        .fraction-input-group input {
+            width: 70px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .fraction-line {
+            width: 70px;
+            height: 4px;
+            background: #333;
+            margin: 4px 0;
+        }
+        .vf-btn {
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 40px;
+        }
+
+        /* Number line */
+        .number-line-container {
+            margin: 1.5rem 0;
+        }
+
+        /* Problemes */
+        .problem-text {
+            font-size: 1.3rem;
+            font-weight: 500;
+            line-height: 1.6;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            text-align: left;
+        }
+        .problem-question {
+            font-weight: 700;
+            color: #0d6efd;
+            margin-top: 0.5rem;
+        }
+
+        /* Diagrammes */
+        .chart-container {
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+            height: 200px;
+            padding: 0 10px;
+        }
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 70px;
+        }
+        .bar-rect {
+            width: 100%;
+            border-radius: 6px 6px 0 0;
+            transition: height 0.5s ease;
+        }
+        .bar-value {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .bar-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 6px;
+            text-align: center;
+            word-break: break-word;
+        }
+        .diagram-question {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.8rem;
+            background: #e8f0fe;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -133,6 +242,22 @@
             <button class="nav-link" data-bs-toggle="tab" data-mode="multiplication"
                     type="button" role="tab">Multiplication</button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="calcul_ligne"
+                    type="button" role="tab">Calcul en ligne</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="fractions"
+                    type="button" role="tab">Fractions</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="problemes"
+                    type="button" role="tab">Probl&egrave;mes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="diagrammes"
+                    type="button" role="tab">Diagrammes</button>
+        </li>
     </ul>
 
     <div class="game-area mt-3">
@@ -150,49 +275,140 @@
             </div>
         </div>
 
-        <!-- Calcul -->
-        <div class="text-center mb-2">
-            <div class="calcul-display" id="calcul"></div>
+        <!-- ====== ZONE KEYPAD (addition, soustraction, multiplication, calcul_ligne, problemes) ====== -->
+        <div id="keypadMode">
+            <!-- Calcul -->
+            <div class="text-center mb-2" id="calculArea">
+                <div class="calcul-display" id="calcul"></div>
+            </div>
+
+            <!-- Probleme text (hidden by default) -->
+            <div class="d-none mb-3" id="problemArea">
+                <div class="problem-text" id="problemText"></div>
+            </div>
+
+            <!-- Reponse -->
+            <div class="text-center mb-3">
+                <span class="answer-display" id="answerDisplay">&nbsp;</span>
+            </div>
+
+            <!-- Feedback -->
+            <div class="text-center feedback mb-2" id="feedback"></div>
+
+            <!-- Keypad -->
+            <div class="keypad mb-3" id="keypadArea">
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="7">7</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="8">8</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="9">9</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="4">4</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="5">5</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="6">6</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="1">1</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="2">2</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="3">3</button></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4"><button class="btn btn-warning w-100" data-key="clear">&#x232B;</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="0">0</button></div>
+                    <div class="col-4"><button class="btn btn-warning w-100" data-key="back">&#x2190;</button></div>
+                </div>
+            </div>
+
+            <!-- Validate / Next buttons (keypad modes) -->
+            <div id="btnValidateArea" class="mb-3">
+                <button class="btn btn-primary btn-validate w-100" id="btnValidate" disabled>Valider</button>
+            </div>
+            <div id="btnNextArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNext">Suivant &#x27A1;</button>
+            </div>
         </div>
 
-        <!-- Reponse -->
-        <div class="text-center mb-3">
-            <span class="answer-display" id="answerDisplay">&nbsp;</span>
+        <!-- ====== ZONE FRACTIONS ====== -->
+        <div id="fractionsMode" class="d-none">
+            <div class="text-center mb-2">
+                <div class="calcul-display" id="fractionTitle" style="font-size:1.6rem;min-height:50px;"></div>
+            </div>
+
+            <!-- Visual area for shapes / number line -->
+            <div class="fraction-visual" id="fractionVisual"></div>
+
+            <!-- Fraction input (numerator/denominator) -->
+            <div class="text-center mb-3 d-none" id="fractionInputArea">
+                <div class="fraction-input-group">
+                    <input type="number" id="fracNum" min="0" max="20" placeholder="?" aria-label="Num\u00e9rateur">
+                    <div class="fraction-line"></div>
+                    <input type="number" id="fracDen" min="1" max="20" placeholder="?" aria-label="D\u00e9nominateur">
+                </div>
+            </div>
+
+            <!-- Vrai / Faux buttons -->
+            <div class="text-center mb-3 d-none" id="vraisFauxArea">
+                <button class="btn btn-success vf-btn me-3" id="btnVrai">Vrai &#x2705;</button>
+                <button class="btn btn-danger vf-btn" id="btnFaux">Faux &#x274C;</button>
+            </div>
+
+            <!-- Feedback fractions -->
+            <div class="text-center feedback mb-2" id="fractionFeedback"></div>
+
+            <!-- Next button fractions -->
+            <div id="btnNextFractionArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextFraction">Suivant &#x27A1;</button>
+            </div>
         </div>
 
-        <!-- Feedback -->
-        <div class="text-center feedback mb-2" id="feedback"></div>
+        <!-- ====== ZONE DIAGRAMMES ====== -->
+        <div id="diagrammesMode" class="d-none">
+            <!-- Chart -->
+            <div class="chart-container" id="chartContainer">
+                <div class="bar-chart" id="barChart"></div>
+            </div>
 
-        <!-- Keypad -->
-        <div class="keypad mb-3" id="keypadArea">
-            <div class="row g-2 mb-2">
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="7">7</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="8">8</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="9">9</button></div>
-            </div>
-            <div class="row g-2 mb-2">
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="4">4</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="5">5</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="6">6</button></div>
-            </div>
-            <div class="row g-2 mb-2">
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="1">1</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="2">2</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="3">3</button></div>
-            </div>
-            <div class="row g-2">
-                <div class="col-4"><button class="btn btn-warning w-100" data-key="clear">&#x232B;</button></div>
-                <div class="col-4"><button class="btn btn-outline-dark w-100" data-key="0">0</button></div>
-                <div class="col-4"><button class="btn btn-warning w-100" data-key="back">&#x2190;</button></div>
-            </div>
-        </div>
+            <!-- Question -->
+            <div class="diagram-question mb-3" id="diagramQuestion"></div>
 
-        <!-- Validate / Next buttons -->
-        <div id="btnValidateArea" class="mb-3">
-            <button class="btn btn-primary btn-validate w-100" id="btnValidate" disabled>Valider</button>
-        </div>
-        <div id="btnNextArea" class="mb-3 d-none">
-            <button class="btn btn-success btn-next w-100" id="btnNext">Suivant &#x27A1;</button>
+            <!-- Answer input for diagram -->
+            <div class="text-center mb-3">
+                <span class="answer-display" id="diagramAnswer" style="font-size:2.2rem;">&nbsp;</span>
+            </div>
+
+            <!-- Feedback diagram -->
+            <div class="text-center feedback mb-2" id="diagramFeedback"></div>
+
+            <!-- Keypad for diagram -->
+            <div class="keypad mb-3" id="diagramKeypad">
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="7">7</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="8">8</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="9">9</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="4">4</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="5">5</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="6">6</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="1">1</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="2">2</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="3">3</button></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4"><button class="btn btn-warning w-100" data-dkey="clear">&#x232B;</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-dkey="0">0</button></div>
+                    <div class="col-4"><button class="btn btn-warning w-100" data-dkey="back">&#x2190;</button></div>
+                </div>
+            </div>
+
+            <div id="btnValidateDiagramArea" class="mb-3">
+                <button class="btn btn-primary btn-validate w-100" id="btnValidateDiagram" disabled>Valider</button>
+            </div>
+            <div id="btnNextDiagramArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextDiagram">Suivant &#x27A1;</button>
+            </div>
         </div>
     </div>
 </div>
@@ -200,17 +416,25 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function () {
-    // --- State ---
+    // ===================== STATE =====================
     let mode = 'addition';
     let a = 0, b = 0, correctAnswer = 0;
     let userAnswer = '';
     let score = 0, total = 0;
-    let timerDuration = 15; // seconds
+    let timerDuration = 15;
     let timerRemaining = timerDuration;
     let timerInterval = null;
     let answered = false;
 
-    // --- DOM refs ---
+    // Fractions state
+    let fractionType = '';    // 'colored', 'whole', 'numberline'
+    let fractionCorrect = null; // true/false for vrai/faux, or {num, den} for input
+
+    // Diagram state
+    let diagramData = [];
+    let diagramUserAnswer = '';
+
+    // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
     const elAnswer = document.getElementById('answerDisplay');
     const elFeedback = document.getElementById('feedback');
@@ -223,7 +447,68 @@
     const btnValidateArea = document.getElementById('btnValidateArea');
     const btnNextArea = document.getElementById('btnNextArea');
 
-    // --- Tabs ---
+    const keypadMode = document.getElementById('keypadMode');
+    const fractionsMode = document.getElementById('fractionsMode');
+    const diagrammesMode = document.getElementById('diagrammesMode');
+    const calculArea = document.getElementById('calculArea');
+    const problemArea = document.getElementById('problemArea');
+    const problemText = document.getElementById('problemText');
+
+    // Fractions DOM
+    const fractionTitle = document.getElementById('fractionTitle');
+    const fractionVisual = document.getElementById('fractionVisual');
+    const fractionInputArea = document.getElementById('fractionInputArea');
+    const vraisFauxArea = document.getElementById('vraisFauxArea');
+    const fractionFeedback = document.getElementById('fractionFeedback');
+    const btnNextFractionArea = document.getElementById('btnNextFractionArea');
+    const btnNextFraction = document.getElementById('btnNextFraction');
+    const fracNum = document.getElementById('fracNum');
+    const fracDen = document.getElementById('fracDen');
+
+    // Diagram DOM
+    const barChart = document.getElementById('barChart');
+    const diagramQuestion = document.getElementById('diagramQuestion');
+    const diagramAnswerEl = document.getElementById('diagramAnswer');
+    const diagramFeedbackEl = document.getElementById('diagramFeedback');
+    const btnValidateDiagram = document.getElementById('btnValidateDiagram');
+    const btnValidateDiagramArea = document.getElementById('btnValidateDiagramArea');
+    const btnNextDiagramArea = document.getElementById('btnNextDiagramArea');
+    const btnNextDiagram = document.getElementById('btnNextDiagram');
+
+    // ===================== UTILS =====================
+    function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+    // ===================== TABS =====================
+    function showMode() {
+        keypadMode.classList.add('d-none');
+        fractionsMode.classList.add('d-none');
+        diagrammesMode.classList.add('d-none');
+        calculArea.classList.remove('d-none');
+        problemArea.classList.add('d-none');
+
+        if (mode === 'fractions') {
+            fractionsMode.classList.remove('d-none');
+            timerDuration = 30;
+        } else if (mode === 'diagrammes') {
+            diagrammesMode.classList.remove('d-none');
+            timerDuration = 30;
+        } else if (mode === 'problemes') {
+            keypadMode.classList.remove('d-none');
+            calculArea.classList.add('d-none');
+            problemArea.classList.remove('d-none');
+            timerDuration = 45;
+        } else if (mode === 'calcul_ligne') {
+            keypadMode.classList.remove('d-none');
+            timerDuration = 30;
+        } else {
+            keypadMode.classList.remove('d-none');
+            timerDuration = 15;
+        }
+    }
+
     document.querySelectorAll('[data-mode]').forEach(tab => {
         tab.addEventListener('click', function () {
             document.querySelectorAll('[data-mode]').forEach(t => t.classList.remove('active'));
@@ -231,40 +516,16 @@
             mode = this.dataset.mode;
             score = 0; total = 0;
             updateScore();
+            showMode();
             newRound();
         });
     });
 
-    // --- Generate question ---
-    function randInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function generateQuestion() {
-        if (mode === 'addition') {
-            a = randInt(0, 10);
-            b = randInt(0, 10);
-            correctAnswer = a + b;
-            elCalc.textContent = a + ' + ' + b + ' = ?';
-        } else if (mode === 'soustraction') {
-            a = randInt(0, 10);
-            b = randInt(0, a); // b <= a so result >= 0
-            correctAnswer = a - b;
-            elCalc.textContent = a + ' \u2212 ' + b + ' = ?';
-        } else if (mode === 'multiplication') {
-            a = randInt(0, 10);
-            b = randInt(0, 10);
-            correctAnswer = a * b;
-            elCalc.textContent = a + ' \u00D7 ' + b + ' = ?';
-        }
-    }
-
-    // --- Timer ---
+    // ===================== TIMER =====================
     function startTimer() {
         timerRemaining = timerDuration;
         elTimerBar.style.width = '100%';
         elTimerBar.style.background = '#0d6efd';
-
         const startTime = Date.now();
         timerInterval = setInterval(() => {
             const elapsed = (Date.now() - startTime) / 1000;
@@ -276,23 +537,98 @@
             }
             const pct = Math.max(0, (timerRemaining / timerDuration) * 100);
             elTimerBar.style.width = pct + '%';
-            if (pct < 30) {
-                elTimerBar.style.background = '#dc3545';
-            } else if (pct < 60) {
-                elTimerBar.style.background = '#ffc107';
-            }
+            if (pct < 30) elTimerBar.style.background = '#dc3545';
+            else if (pct < 60) elTimerBar.style.background = '#ffc107';
         }, 50);
     }
-
-    function stopTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-    }
+    function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
 
     function timeUp() {
         if (answered) return;
         answered = true;
-        showFeedback(false, true);
-        showNext();
+        total++;
+        updateScore();
+        if (mode === 'fractions') {
+            showFractionFeedback(false, true);
+        } else if (mode === 'diagrammes') {
+            showDiagramFeedback(false, true);
+        } else {
+            showFeedback(false, true);
+            showNext();
+        }
+    }
+
+    // ===================== SCORE =====================
+    function updateScore() {
+        elScore.textContent = score;
+        elTotal.textContent = total;
+    }
+
+    // ====================================================================
+    //                    KEYPAD MODES (add, sub, mul, calcul_ligne, problemes)
+    // ====================================================================
+
+    function generateQuestion() {
+        if (mode === 'addition') {
+            a = randInt(0, 10); b = randInt(0, 10);
+            correctAnswer = a + b;
+            elCalc.textContent = a + ' + ' + b + ' = ?';
+        } else if (mode === 'soustraction') {
+            a = randInt(0, 10); b = randInt(0, a);
+            correctAnswer = a - b;
+            elCalc.textContent = a + ' \u2212 ' + b + ' = ?';
+        } else if (mode === 'multiplication') {
+            a = randInt(0, 10); b = randInt(0, 10);
+            correctAnswer = a * b;
+            elCalc.textContent = a + ' \u00D7 ' + b + ' = ?';
+        } else if (mode === 'calcul_ligne') {
+            generateCalculLigne();
+        } else if (mode === 'problemes') {
+            generateProbleme();
+        }
+    }
+
+    function generateCalculLigne() {
+        // CE2: additions de 2 nombres (dizaines/centaines)
+        const level = randInt(0, 2);
+        if (level === 0) {
+            // dizaines simples
+            a = randInt(10, 50); b = randInt(10, 50);
+        } else if (level === 1) {
+            // avec retenue
+            a = randInt(20, 99); b = randInt(10, 99);
+        } else {
+            // centaines
+            a = randInt(100, 500); b = randInt(100, 499);
+        }
+        correctAnswer = a + b;
+        elCalc.textContent = a + ' + ' + b + ' = ?';
+    }
+
+    function generateProbleme() {
+        const templates = [
+            { text: (a, b) => `${pick(['Marie','Lucas','Emma','Hugo'])} a ${a} billes. ${pick(['Son ami','Sa copine','Paul','Léa'])} lui donne ${b} billes de plus.`,
+              q: 'Combien de billes a-t-il maintenant ?', op: '+', minA: 15, maxA: 80, minB: 10, maxB: 50 },
+            { text: (a, b) => `Dans la classe, il y a ${a} \u00e9l\u00e8ves. ${b} \u00e9l\u00e8ves partent \u00e0 la cantine.`,
+              q: 'Combien d\'\u00e9l\u00e8ves restent dans la classe ?', op: '-', minA: 20, maxA: 35, minB: 5, maxB: 15 },
+            { text: (a, b) => `Un fermier r\u00e9colte ${a} pommes le matin et ${b} pommes l'apr\u00e8s-midi.`,
+              q: 'Combien de pommes a-t-il r\u00e9colt\u00e9 en tout ?', op: '+', minA: 30, maxA: 150, minB: 20, maxB: 100 },
+            { text: (a, b) => `Un magasin a ${a} jouets. Il en vend ${b} pendant la journ\u00e9e.`,
+              q: 'Combien de jouets reste-t-il ?', op: '-', minA: 50, maxA: 200, minB: 10, maxB: 80 },
+            { text: (a, b) => `La biblioth\u00e8que re\u00e7oit ${a} nouveaux livres lundi et ${b} livres mardi.`,
+              q: 'Combien de nouveaux livres en tout ?', op: '+', minA: 20, maxA: 120, minB: 15, maxB: 80 },
+            { text: (a, b) => `${pick(['Léo','Manon','Jade','Nathan'])} avait ${a} images. Il en donne ${b} \u00e0 son fr\u00e8re.`,
+              q: 'Combien d\'images lui reste-t-il ?', op: '-', minA: 30, maxA: 100, minB: 5, maxB: 40 },
+            { text: (a, b) => `Un car transporte ${a} passagers. Au prochain arr\u00eat, ${b} passagers montent.`,
+              q: 'Combien de passagers y a-t-il maintenant ?', op: '+', minA: 15, maxA: 45, minB: 5, maxB: 20 },
+            { text: (a, b) => `Il y a ${a} g\u00e2teaux pour la f\u00eate. Les enfants en mangent ${b}.`,
+              q: 'Combien de g\u00e2teaux reste-t-il ?', op: '-', minA: 20, maxA: 60, minB: 5, maxB: 30 },
+        ];
+        const t = pick(templates);
+        a = randInt(t.minA, t.maxA);
+        b = randInt(t.minB, Math.min(t.maxB, t.op === '-' ? a - 1 : t.maxB));
+        correctAnswer = t.op === '+' ? a + b : a - b;
+        problemText.innerHTML = '<p>' + t.text(a, b) + '</p><p class="problem-question">' + t.q + '</p>';
     }
 
     // --- Answer input ---
@@ -302,31 +638,24 @@
         btnValidate.disabled = val.length === 0;
     }
 
-    // Keypad clicks
     document.getElementById('keypadArea').addEventListener('click', function (e) {
         const btn = e.target.closest('[data-key]');
         if (!btn || answered) return;
         const key = btn.dataset.key;
-        if (key === 'clear') {
-            setAnswer('');
-        } else if (key === 'back') {
-            setAnswer(userAnswer.slice(0, -1));
-        } else {
-            if (userAnswer.length < 3) {
-                setAnswer(userAnswer + key);
-            }
-        }
+        if (key === 'clear') setAnswer('');
+        else if (key === 'back') setAnswer(userAnswer.slice(0, -1));
+        else if (userAnswer.length < 4) setAnswer(userAnswer + key);
     });
 
-    // Keyboard support
     document.addEventListener('keydown', function (e) {
-        if (answered && e.key === 'Enter') {
-            btnNext.click();
+        if (mode === 'fractions' || mode === 'diagrammes') {
+            if (mode === 'diagrammes') handleDiagramKey(e);
             return;
         }
+        if (answered && e.key === 'Enter') { btnNext.click(); return; }
         if (answered) return;
         if (e.key >= '0' && e.key <= '9') {
-            if (userAnswer.length < 3) setAnswer(userAnswer + e.key);
+            if (userAnswer.length < 4) setAnswer(userAnswer + e.key);
         } else if (e.key === 'Backspace') {
             setAnswer(userAnswer.slice(0, -1));
         } else if (e.key === 'Enter' && userAnswer.length > 0) {
@@ -334,7 +663,6 @@
         }
     });
 
-    // --- Validate ---
     btnValidate.addEventListener('click', validateAnswer);
 
     function validateAnswer() {
@@ -349,19 +677,16 @@
         showNext();
     }
 
-    // --- Feedback ---
     function showFeedback(correct, timeout) {
         if (timeout) {
             elFeedback.className = 'text-center feedback feedback-wrong';
-            elFeedback.textContent = 'Temps \u00E9coul\u00E9 ! R\u00E9ponse : ' + correctAnswer;
-            total++;
-            updateScore();
+            elFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + correctAnswer;
         } else if (correct) {
             elFeedback.className = 'text-center feedback feedback-correct';
             elFeedback.textContent = 'Bravo ! \u2705';
         } else {
             elFeedback.className = 'text-center feedback feedback-wrong';
-            elFeedback.textContent = 'Raté ! R\u00E9ponse : ' + correctAnswer + ' \u274C';
+            elFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + correctAnswer + ' \u274C';
         }
     }
 
@@ -371,28 +696,356 @@
         btnNext.focus();
     }
 
-    // --- Next ---
     btnNext.addEventListener('click', newRound);
+
+    // ====================================================================
+    //                    FRACTIONS MODE
+    // ====================================================================
+
+    function generateFraction() {
+        fractionFeedback.textContent = '';
+        fractionFeedback.className = 'text-center feedback';
+        fractionInputArea.classList.add('d-none');
+        vraisFauxArea.classList.add('d-none');
+        btnNextFractionArea.classList.add('d-none');
+        fracNum.value = '';
+        fracDen.value = '';
+        enableFractionInputs(true);
+
+        const types = ['colored', 'whole', 'numberline'];
+        fractionType = pick(types);
+
+        if (fractionType === 'colored') generateFractionColored();
+        else if (fractionType === 'whole') generateFractionWhole();
+        else generateFractionNumberLine();
+    }
+
+    function enableFractionInputs(enabled) {
+        fracNum.disabled = !enabled;
+        fracDen.disabled = !enabled;
+        document.getElementById('btnVrai').disabled = !enabled;
+        document.getElementById('btnFaux').disabled = !enabled;
+    }
+
+    // --- Type 1: Quelle fraction est coloriée ? ---
+    function generateFractionColored() {
+        fractionTitle.textContent = 'Quelle fraction est colori\u00e9e ?';
+        const den = pick([2, 3, 4, 5, 6, 8]);
+        const num = randInt(1, den - 1);
+        fractionCorrect = { num, den };
+
+        // Draw rectangle divided into parts
+        const w = 300, h = 80, gap = 2;
+        const partW = (w - gap * (den - 1)) / den;
+        let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+        for (let i = 0; i < den; i++) {
+            const x = i * (partW + gap);
+            const fill = i < num ? '#4CAF50' : '#e0e0e0';
+            const stroke = '#333';
+            svg += `<rect x="${x}" y="0" width="${partW}" height="${h}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+        }
+        svg += '</svg>';
+        fractionVisual.innerHTML = svg;
+        fractionInputArea.classList.remove('d-none');
+    }
+
+    // --- Type 2: Fraction = entier ? Vrai ou Faux ---
+    function generateFractionWhole() {
+        const den = pick([2, 3, 4, 5, 6]);
+        const isTrue = Math.random() < 0.5;
+        let num, wholeNum;
+        if (isTrue) {
+            wholeNum = randInt(1, 3);
+            num = wholeNum * den;
+        } else {
+            wholeNum = randInt(1, 3);
+            num = wholeNum * den + randInt(1, den - 1);
+        }
+        fractionCorrect = isTrue;
+
+        fractionTitle.innerHTML = `Est-ce que <b>${num}/${den} = ${wholeNum}</b> entier${wholeNum > 1 ? 's' : ''} ?`;
+
+        // Visual: show the fraction as colored shapes
+        const total = num > 12 ? Math.min(num, 18) : num;
+        const displayDen = den;
+        const w = 320, partH = 30, rowGap = 8;
+        const rows = Math.ceil(total / displayDen);
+        const svgH = rows * (partH + rowGap);
+        const partW = (w - 2 * (displayDen - 1)) / displayDen;
+
+        let svg = `<svg width="${w}" height="${svgH}" viewBox="0 0 ${w} ${svgH}">`;
+        for (let i = 0; i < total; i++) {
+            const row = Math.floor(i / displayDen);
+            const col = i % displayDen;
+            const x = col * (partW + 2);
+            const y = row * (partH + rowGap);
+            svg += `<rect x="${x}" y="${y}" width="${partW}" height="${partH}" rx="4" fill="#4CAF50" stroke="#333" stroke-width="1.5"/>`;
+        }
+        svg += '</svg>';
+        fractionVisual.innerHTML = svg;
+        vraisFauxArea.classList.remove('d-none');
+    }
+
+    // --- Type 3: Fraction sur ligne numérique ---
+    function generateFractionNumberLine() {
+        const den = pick([2, 3, 4, 5, 6, 8, 10]);
+        const actualNum = randInt(1, den - 1);
+        const isTrue = Math.random() < 0.5;
+        let shownNum;
+        if (isTrue) {
+            shownNum = actualNum;
+        } else {
+            do { shownNum = randInt(1, den - 1); } while (shownNum === actualNum);
+        }
+        fractionCorrect = isTrue;
+
+        fractionTitle.innerHTML = `La fl\u00e8che montre-t-elle <b>${shownNum}/${den}</b> ?`;
+
+        // Draw number line from 0 to 1
+        const w = 340, h = 80;
+        const margin = 30;
+        const lineY = 50;
+        const lineW = w - 2 * margin;
+
+        let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+        // Main line
+        svg += `<line x1="${margin}" y1="${lineY}" x2="${w - margin}" y2="${lineY}" stroke="#333" stroke-width="3"/>`;
+        // Ticks and labels
+        for (let i = 0; i <= den; i++) {
+            const x = margin + (i / den) * lineW;
+            svg += `<line x1="${x}" y1="${lineY - 10}" x2="${x}" y2="${lineY + 10}" stroke="#333" stroke-width="2"/>`;
+            if (i === 0) svg += `<text x="${x}" y="${lineY + 28}" text-anchor="middle" font-size="14" font-weight="600">0</text>`;
+            else if (i === den) svg += `<text x="${x}" y="${lineY + 28}" text-anchor="middle" font-size="14" font-weight="600">1</text>`;
+        }
+        // Arrow at actual position
+        const arrowX = margin + (actualNum / den) * lineW;
+        svg += `<polygon points="${arrowX - 8},18 ${arrowX + 8},18 ${arrowX},${lineY - 12}" fill="#dc3545"/>`;
+        svg += `<line x1="${arrowX}" y1="0" x2="${arrowX}" y2="18" stroke="#dc3545" stroke-width="3"/>`;
+        svg += '</svg>';
+
+        fractionVisual.innerHTML = svg;
+        vraisFauxArea.classList.remove('d-none');
+    }
+
+    // --- Fraction validation ---
+    function validateFractionInput() {
+        if (answered) return;
+        const numVal = parseInt(fracNum.value, 10);
+        const denVal = parseInt(fracDen.value, 10);
+        if (isNaN(numVal) || isNaN(denVal) || denVal === 0) return;
+
+        answered = true;
+        stopTimer();
+        total++;
+        enableFractionInputs(false);
+
+        const isCorrect = numVal === fractionCorrect.num && denVal === fractionCorrect.den;
+        if (isCorrect) score++;
+        updateScore();
+        showFractionFeedback(isCorrect, false);
+    }
+
+    function validateFractionVF(userSaysTrue) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        enableFractionInputs(false);
+
+        const isCorrect = userSaysTrue === fractionCorrect;
+        if (isCorrect) score++;
+        updateScore();
+        showFractionFeedback(isCorrect, false);
+    }
+
+    function showFractionFeedback(correct, timeout) {
+        if (timeout) {
+            fractionFeedback.className = 'text-center feedback feedback-wrong';
+            if (fractionType === 'colored') {
+                fractionFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + fractionCorrect.num + '/' + fractionCorrect.den;
+            } else {
+                fractionFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + (fractionCorrect ? 'Vrai' : 'Faux');
+            }
+        } else if (correct) {
+            fractionFeedback.className = 'text-center feedback feedback-correct';
+            fractionFeedback.textContent = 'Bravo ! \u2705';
+        } else {
+            fractionFeedback.className = 'text-center feedback feedback-wrong';
+            if (fractionType === 'colored') {
+                fractionFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + fractionCorrect.num + '/' + fractionCorrect.den + ' \u274C';
+            } else {
+                fractionFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + (fractionCorrect ? 'Vrai' : 'Faux') + ' \u274C';
+            }
+        }
+        btnNextFractionArea.classList.remove('d-none');
+        btnNextFraction.focus();
+    }
+
+    // Fraction input validation on Enter
+    fracNum.addEventListener('keydown', e => { if (e.key === 'Enter') validateFractionInput(); });
+    fracDen.addEventListener('keydown', e => { if (e.key === 'Enter') validateFractionInput(); });
+
+    // Vrai / Faux buttons
+    document.getElementById('btnVrai').addEventListener('click', () => validateFractionVF(true));
+    document.getElementById('btnFaux').addEventListener('click', () => validateFractionVF(false));
+
+    btnNextFraction.addEventListener('click', newRound);
+
+    // ====================================================================
+    //                    DIAGRAMMES MODE
+    // ====================================================================
+
+    const barColors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4'];
+    const diagramThemes = [
+        { title: 'Animaux pr\u00e9f\u00e9r\u00e9s', cats: ['Chien', 'Chat', 'Lapin', 'Hamster', 'Poisson'] },
+        { title: 'Fruits pr\u00e9f\u00e9r\u00e9s', cats: ['Pomme', 'Banane', 'Fraise', 'Orange', 'Raisin'] },
+        { title: 'Sports pratiqu\u00e9s', cats: ['Foot', 'Basket', 'Natation', 'Judo', 'Tennis'] },
+        { title: 'Couleurs pr\u00e9f\u00e9r\u00e9es', cats: ['Bleu', 'Rouge', 'Vert', 'Rose', 'Jaune'] },
+        { title: 'Go\u00fbters pr\u00e9f\u00e9r\u00e9s', cats: ['G\u00e2teau', 'Bonbon', 'Glace', 'Cr\u00eape', 'Compote'] },
+    ];
+
+    function generateDiagram() {
+        diagramFeedbackEl.textContent = '';
+        diagramFeedbackEl.className = 'text-center feedback';
+        diagramUserAnswer = '';
+        diagramAnswerEl.textContent = '\u00A0';
+        btnValidateDiagram.disabled = true;
+        btnValidateDiagramArea.classList.remove('d-none');
+        btnNextDiagramArea.classList.add('d-none');
+
+        // Pick theme and generate data
+        const theme = pick(diagramThemes);
+        const numBars = randInt(3, 5);
+        const cats = theme.cats.slice(0, numBars);
+        diagramData = cats.map(c => ({ label: c, value: randInt(2, 20) }));
+
+        // Draw bars
+        const maxVal = Math.max(...diagramData.map(d => d.value));
+        const maxH = 160;
+        barChart.innerHTML = '';
+        diagramData.forEach((d, i) => {
+            const barH = (d.value / maxVal) * maxH;
+            const div = document.createElement('div');
+            div.className = 'bar-item';
+            div.innerHTML = `
+                <div class="bar-value">${d.value}</div>
+                <div class="bar-rect" style="height:${barH}px;background:${barColors[i % barColors.length]}"></div>
+                <div class="bar-label">${d.label}</div>
+            `;
+            barChart.appendChild(div);
+        });
+
+        // Generate question
+        const qTypes = ['diff', 'total', 'sum_two'];
+        const qType = pick(qTypes);
+
+        if (qType === 'diff') {
+            const i1 = randInt(0, diagramData.length - 1);
+            let i2;
+            do { i2 = randInt(0, diagramData.length - 1); } while (i2 === i1);
+            const bigger = diagramData[i1].value >= diagramData[i2].value ? i1 : i2;
+            const smaller = bigger === i1 ? i2 : i1;
+            correctAnswer = diagramData[bigger].value - diagramData[smaller].value;
+            diagramQuestion.textContent = `Combien de plus y a-t-il de ${diagramData[bigger].label} que de ${diagramData[smaller].label} ?`;
+        } else if (qType === 'total') {
+            correctAnswer = diagramData.reduce((s, d) => s + d.value, 0);
+            diagramQuestion.textContent = 'Quel est le total de toutes les cat\u00e9gories ?';
+        } else {
+            const i1 = randInt(0, diagramData.length - 1);
+            let i2;
+            do { i2 = randInt(0, diagramData.length - 1); } while (i2 === i1);
+            correctAnswer = diagramData[i1].value + diagramData[i2].value;
+            diagramQuestion.textContent = `Combien y a-t-il de ${diagramData[i1].label} et de ${diagramData[i2].label} en tout ?`;
+        }
+    }
+
+    // Diagram keypad
+    document.getElementById('diagramKeypad').addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-dkey]');
+        if (!btn || answered) return;
+        const key = btn.dataset.dkey;
+        if (key === 'clear') setDiagramAnswer('');
+        else if (key === 'back') setDiagramAnswer(diagramUserAnswer.slice(0, -1));
+        else if (diagramUserAnswer.length < 4) setDiagramAnswer(diagramUserAnswer + key);
+    });
+
+    function handleDiagramKey(e) {
+        if (answered && e.key === 'Enter') { btnNextDiagram.click(); return; }
+        if (answered) return;
+        if (e.key >= '0' && e.key <= '9') {
+            if (diagramUserAnswer.length < 4) setDiagramAnswer(diagramUserAnswer + e.key);
+        } else if (e.key === 'Backspace') {
+            setDiagramAnswer(diagramUserAnswer.slice(0, -1));
+        } else if (e.key === 'Enter' && diagramUserAnswer.length > 0) {
+            validateDiagram();
+        }
+    }
+
+    function setDiagramAnswer(val) {
+        diagramUserAnswer = val;
+        diagramAnswerEl.textContent = val || '\u00A0';
+        btnValidateDiagram.disabled = val.length === 0;
+    }
+
+    btnValidateDiagram.addEventListener('click', validateDiagram);
+
+    function validateDiagram() {
+        if (answered || diagramUserAnswer.length === 0) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = parseInt(diagramUserAnswer, 10) === correctAnswer;
+        if (isCorrect) score++;
+        updateScore();
+        showDiagramFeedback(isCorrect, false);
+    }
+
+    function showDiagramFeedback(correct, timeout) {
+        if (timeout) {
+            diagramFeedbackEl.className = 'text-center feedback feedback-wrong';
+            diagramFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + correctAnswer;
+        } else if (correct) {
+            diagramFeedbackEl.className = 'text-center feedback feedback-correct';
+            diagramFeedbackEl.textContent = 'Bravo ! \u2705';
+        } else {
+            diagramFeedbackEl.className = 'text-center feedback feedback-wrong';
+            diagramFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + correctAnswer + ' \u274C';
+        }
+        btnValidateDiagramArea.classList.add('d-none');
+        btnNextDiagramArea.classList.remove('d-none');
+        btnNextDiagram.focus();
+    }
+
+    btnNextDiagram.addEventListener('click', newRound);
+
+    // ====================================================================
+    //                    MAIN ROUND LOGIC
+    // ====================================================================
 
     function newRound() {
         answered = false;
-        userAnswer = '';
-        elAnswer.textContent = '\u00A0';
-        elFeedback.textContent = '';
-        elFeedback.className = 'text-center feedback';
-        btnValidate.disabled = true;
-        btnValidateArea.classList.remove('d-none');
-        btnNextArea.classList.add('d-none');
-        generateQuestion();
+        stopTimer();
+
+        if (mode === 'fractions') {
+            generateFraction();
+        } else if (mode === 'diagrammes') {
+            generateDiagram();
+        } else {
+            // Keypad modes
+            userAnswer = '';
+            elAnswer.textContent = '\u00A0';
+            elFeedback.textContent = '';
+            elFeedback.className = 'text-center feedback';
+            btnValidate.disabled = true;
+            btnValidateArea.classList.remove('d-none');
+            btnNextArea.classList.add('d-none');
+            generateQuestion();
+        }
         startTimer();
     }
 
-    function updateScore() {
-        elScore.textContent = score;
-        elTotal.textContent = total;
-    }
-
     // --- Init ---
+    showMode();
     newRound();
 })();
 </script>
