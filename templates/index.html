@@ -217,6 +217,104 @@
             background: #e8f0fe;
             border-radius: 10px;
         }
+
+        /* Addition en colonne */
+        .column-add {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 2.4rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            margin: 0 auto;
+            max-width: 280px;
+            padding: 0.5rem 1rem;
+        }
+        .column-add .row-num {
+            display: flex;
+            letter-spacing: 8px;
+        }
+        .column-add .row-op {
+            display: flex;
+            width: 100%;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .column-add .op-sign {
+            position: absolute;
+            left: 0;
+        }
+        .column-add .separator {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin: 4px 0;
+        }
+        .column-add .answer-row {
+            display: flex;
+            letter-spacing: 0;
+        }
+        .column-add .answer-row input {
+            width: 42px;
+            height: 48px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #999;
+            border-radius: 8px;
+            margin: 0 2px;
+            padding: 0;
+        }
+        .column-add .answer-row input:focus {
+            border-color: #0d6efd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.25);
+        }
+        .column-add .answer-row input.correct-digit { background: #d4edda; border-color: #198754; }
+        .column-add .answer-row input.wrong-digit { background: #f8d7da; border-color: #dc3545; }
+        .column-add .carry-row {
+            display: flex;
+            font-size: 1.1rem;
+            color: #999;
+            height: 24px;
+        }
+        .column-add .carry-row span {
+            width: 42px;
+            text-align: center;
+            margin: 0 2px;
+        }
+
+        /* Conversions */
+        .conversion-container {
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .conversion-question { font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; }
+        .conversion-hint { font-size: 0.95rem; color: #6c757d; margin-bottom: 0.5rem; }
+        .unit-ruler {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            margin: 1rem 0;
+        }
+        .unit-box {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid #dee2e6;
+            background: #f8f9fa;
+        }
+        .unit-box.active-unit { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+        .unit-box.target-unit { background: #198754; color: #fff; border-color: #198754; }
+        .unit-arrow { font-size: 1.2rem; color: #6c757d; }
     </style>
 </head>
 <body>
@@ -245,6 +343,14 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="calcul_ligne"
                     type="button" role="tab">Calcul en ligne</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="addition_colonne"
+                    type="button" role="tab">Addition pos&eacute;e</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="conversions"
+                    type="button" role="tab">Conversions</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="fractions"
@@ -361,6 +467,68 @@
             </div>
         </div>
 
+        <!-- ====== ZONE ADDITION EN COLONNE ====== -->
+        <div id="addColMode" class="d-none">
+            <div class="text-center mb-2">
+                <div class="calcul-display" id="addColTitle" style="font-size:1.4rem;min-height:40px;">Pose et calcule l'addition</div>
+            </div>
+            <div class="column-add" id="columnAddArea">
+                <div class="carry-row" id="carryRow"></div>
+                <div class="row-num" id="numRow1"></div>
+                <div class="row-op" id="numRow2"></div>
+                <div class="separator"></div>
+                <div class="answer-row" id="answerRowCol"></div>
+            </div>
+            <div class="text-center feedback mb-2 mt-3" id="addColFeedback"></div>
+            <div id="btnValidateAddColArea" class="mb-3 mt-2">
+                <button class="btn btn-primary btn-validate w-100" id="btnValidateAddCol" disabled>Valider</button>
+            </div>
+            <div id="btnNextAddColArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextAddCol">Suivant &#x27A1;</button>
+            </div>
+        </div>
+
+        <!-- ====== ZONE CONVERSIONS ====== -->
+        <div id="conversionsMode" class="d-none">
+            <div class="conversion-container">
+                <div class="unit-ruler" id="unitRuler"></div>
+                <div class="conversion-question" id="conversionQ"></div>
+                <div class="conversion-hint" id="conversionHint"></div>
+            </div>
+            <div class="text-center mb-3">
+                <span class="answer-display" id="conversionAnswer" style="font-size:2.2rem;">&nbsp;</span>
+            </div>
+            <div class="text-center feedback mb-2" id="conversionFeedback"></div>
+            <div class="keypad mb-3" id="conversionKeypad">
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="7">7</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="8">8</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="9">9</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="4">4</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="5">5</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="6">6</button></div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="1">1</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="2">2</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="3">3</button></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4"><button class="btn btn-warning w-100" data-ckey="clear">&#x232B;</button></div>
+                    <div class="col-4"><button class="btn btn-outline-dark w-100" data-ckey="0">0</button></div>
+                    <div class="col-4"><button class="btn btn-warning w-100" data-ckey="back">&#x2190;</button></div>
+                </div>
+            </div>
+            <div id="btnValidateConvArea" class="mb-3">
+                <button class="btn btn-primary btn-validate w-100" id="btnValidateConv" disabled>Valider</button>
+            </div>
+            <div id="btnNextConvArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextConv">Suivant &#x27A1;</button>
+            </div>
+        </div>
+
         <!-- ====== ZONE DIAGRAMMES ====== -->
         <div id="diagrammesMode" class="d-none">
             <!-- Chart -->
@@ -434,6 +602,13 @@
     let diagramData = [];
     let diagramUserAnswer = '';
 
+    // Addition colonne state
+    let colA = 0, colB = 0, colAnswer = 0, colDigits = 0;
+
+    // Conversion state
+    let conversionUserAnswer = '';
+    let conversionCorrectAnswer = 0;
+
     // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
     const elAnswer = document.getElementById('answerDisplay');
@@ -465,6 +640,30 @@
     const fracNum = document.getElementById('fracNum');
     const fracDen = document.getElementById('fracDen');
 
+    // Addition colonne DOM
+    const addColMode = document.getElementById('addColMode');
+    const addColFeedback = document.getElementById('addColFeedback');
+    const carryRow = document.getElementById('carryRow');
+    const numRow1 = document.getElementById('numRow1');
+    const numRow2 = document.getElementById('numRow2');
+    const answerRowCol = document.getElementById('answerRowCol');
+    const btnValidateAddCol = document.getElementById('btnValidateAddCol');
+    const btnValidateAddColArea = document.getElementById('btnValidateAddColArea');
+    const btnNextAddColArea = document.getElementById('btnNextAddColArea');
+    const btnNextAddCol = document.getElementById('btnNextAddCol');
+
+    // Conversions DOM
+    const conversionsMode = document.getElementById('conversionsMode');
+    const conversionQ = document.getElementById('conversionQ');
+    const conversionHint = document.getElementById('conversionHint');
+    const conversionAnswerEl = document.getElementById('conversionAnswer');
+    const conversionFeedbackEl = document.getElementById('conversionFeedback');
+    const unitRuler = document.getElementById('unitRuler');
+    const btnValidateConv = document.getElementById('btnValidateConv');
+    const btnValidateConvArea = document.getElementById('btnValidateConvArea');
+    const btnNextConvArea = document.getElementById('btnNextConvArea');
+    const btnNextConv = document.getElementById('btnNextConv');
+
     // Diagram DOM
     const barChart = document.getElementById('barChart');
     const diagramQuestion = document.getElementById('diagramQuestion');
@@ -486,6 +685,8 @@
         keypadMode.classList.add('d-none');
         fractionsMode.classList.add('d-none');
         diagrammesMode.classList.add('d-none');
+        addColMode.classList.add('d-none');
+        conversionsMode.classList.add('d-none');
         calculArea.classList.remove('d-none');
         problemArea.classList.add('d-none');
 
@@ -495,6 +696,12 @@
         } else if (mode === 'diagrammes') {
             diagrammesMode.classList.remove('d-none');
             timerDuration = 30;
+        } else if (mode === 'addition_colonne') {
+            addColMode.classList.remove('d-none');
+            timerDuration = 40;
+        } else if (mode === 'conversions') {
+            conversionsMode.classList.remove('d-none');
+            timerDuration = 25;
         } else if (mode === 'problemes') {
             keypadMode.classList.remove('d-none');
             calculArea.classList.add('d-none');
@@ -552,6 +759,10 @@
             showFractionFeedback(false, true);
         } else if (mode === 'diagrammes') {
             showDiagramFeedback(false, true);
+        } else if (mode === 'addition_colonne') {
+            showAddColFeedback(false, true);
+        } else if (mode === 'conversions') {
+            showConversionFeedback(false, true);
         } else {
             showFeedback(false, true);
             showNext();
@@ -648,8 +859,12 @@
     });
 
     document.addEventListener('keydown', function (e) {
-        if (mode === 'fractions' || mode === 'diagrammes') {
+        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne') {
             if (mode === 'diagrammes') handleDiagramKey(e);
+            return;
+        }
+        if (mode === 'conversions') {
+            handleConversionKey(e);
             return;
         }
         if (answered && e.key === 'Enter') { btnNext.click(); return; }
@@ -1019,6 +1234,296 @@
     btnNextDiagram.addEventListener('click', newRound);
 
     // ====================================================================
+    //                    ADDITION EN COLONNE MODE
+    // ====================================================================
+
+    function generateAdditionColonne() {
+        addColFeedback.textContent = '';
+        addColFeedback.className = 'text-center feedback';
+        btnValidateAddCol.disabled = false;
+        btnValidateAddColArea.classList.remove('d-none');
+        btnNextAddColArea.classList.add('d-none');
+
+        // Generate 2 or 3 digit numbers
+        const level = randInt(0, 2);
+        if (level === 0) {
+            colA = randInt(10, 99); colB = randInt(10, 99);
+        } else if (level === 1) {
+            colA = randInt(100, 999); colB = randInt(10, 999);
+        } else {
+            colA = randInt(100, 999); colB = randInt(100, 999);
+        }
+        colAnswer = colA + colB;
+        const ansStr = String(colAnswer);
+        const aStr = String(colA);
+        const bStr = String(colB);
+        colDigits = ansStr.length;
+
+        // Pad numbers to same length as answer
+        const padA = aStr.padStart(colDigits, ' ');
+        const padB = bStr.padStart(colDigits, ' ');
+
+        // Build carry row
+        carryRow.innerHTML = '';
+        for (let i = 0; i < colDigits; i++) {
+            const sp = document.createElement('span');
+            sp.textContent = '';
+            carryRow.appendChild(sp);
+        }
+
+        // Build number rows
+        numRow1.innerHTML = '';
+        for (let i = 0; i < colDigits; i++) {
+            const ch = padA[i] === ' ' ? '\u00A0' : padA[i];
+            const sp = document.createElement('span');
+            sp.style.width = '42px';
+            sp.style.textAlign = 'center';
+            sp.style.margin = '0 2px';
+            sp.style.display = 'inline-block';
+            sp.textContent = ch;
+            numRow1.appendChild(sp);
+        }
+
+        numRow2.innerHTML = '';
+        // + sign
+        const opSpan = document.createElement('span');
+        opSpan.textContent = '+';
+        opSpan.style.marginRight = '8px';
+        opSpan.style.fontSize = '2rem';
+        numRow2.appendChild(opSpan);
+        // spacer to push digits right
+        const spacer = document.createElement('span');
+        spacer.style.flex = '1';
+        numRow2.appendChild(spacer);
+        for (let i = 0; i < colDigits; i++) {
+            const ch = padB[i] === ' ' ? '\u00A0' : padB[i];
+            const sp = document.createElement('span');
+            sp.style.width = '42px';
+            sp.style.textAlign = 'center';
+            sp.style.margin = '0 2px';
+            sp.style.display = 'inline-block';
+            sp.textContent = ch;
+            numRow2.appendChild(sp);
+        }
+
+        // Build answer inputs (right to left entry)
+        answerRowCol.innerHTML = '';
+        for (let i = 0; i < colDigits; i++) {
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 1;
+            inp.inputMode = 'numeric';
+            inp.pattern = '[0-9]';
+            inp.dataset.pos = i;
+            inp.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                // Auto-advance to previous position (left)
+                if (this.value && i > 0) {
+                    const prev = answerRowCol.querySelector(`input[data-pos="${i - 1}"]`);
+                    if (prev && !prev.value) prev.focus();
+                }
+                checkAddColComplete();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !this.value && i < colDigits - 1) {
+                    const next = answerRowCol.querySelector(`input[data-pos="${i + 1}"]`);
+                    if (next) next.focus();
+                }
+                if (e.key === 'Enter') validateAddCol();
+            });
+            answerRowCol.appendChild(inp);
+        }
+
+        // Focus last input (ones digit)
+        const lastInput = answerRowCol.querySelector(`input[data-pos="${colDigits - 1}"]`);
+        if (lastInput) setTimeout(() => lastInput.focus(), 100);
+    }
+
+    function checkAddColComplete() {
+        const inputs = answerRowCol.querySelectorAll('input');
+        let filled = 0;
+        inputs.forEach(inp => { if (inp.value) filled++; });
+        btnValidateAddCol.disabled = filled < colDigits;
+    }
+
+    btnValidateAddCol.addEventListener('click', validateAddCol);
+
+    function validateAddCol() {
+        if (answered) return;
+        const inputs = answerRowCol.querySelectorAll('input');
+        let userStr = '';
+        inputs.forEach(inp => { userStr += inp.value || '0'; });
+        if (userStr.length < colDigits) return;
+
+        answered = true;
+        stopTimer();
+        total++;
+
+        const userVal = parseInt(userStr, 10);
+        const isCorrect = userVal === colAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        // Color each digit
+        const ansStr = String(colAnswer);
+        inputs.forEach((inp, i) => {
+            inp.disabled = true;
+            if (inp.value === ansStr[i]) {
+                inp.classList.add('correct-digit');
+            } else {
+                inp.classList.add('wrong-digit');
+            }
+        });
+
+        // Show carries
+        const aStr = String(colA).padStart(colDigits, '0');
+        const bStr = String(colB).padStart(colDigits, '0');
+        let carry = 0;
+        const carries = new Array(colDigits).fill('');
+        for (let i = colDigits - 1; i >= 0; i--) {
+            const sum = parseInt(aStr[i]) + parseInt(bStr[i]) + carry;
+            carry = sum >= 10 ? 1 : 0;
+            if (carry && i > 0) carries[i - 1] = '1';
+        }
+        const carrySpans = carryRow.querySelectorAll('span');
+        carrySpans.forEach((sp, i) => { sp.textContent = carries[i]; });
+
+        showAddColFeedback(isCorrect, false);
+    }
+
+    function showAddColFeedback(correct, timeout) {
+        if (timeout) {
+            addColFeedback.className = 'text-center feedback feedback-wrong';
+            addColFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + colAnswer;
+            // Show correct answer in inputs
+            const inputs = answerRowCol.querySelectorAll('input');
+            const ansStr = String(colAnswer);
+            inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
+        } else if (correct) {
+            addColFeedback.className = 'text-center feedback feedback-correct';
+            addColFeedback.textContent = 'Bravo ! \u2705';
+        } else {
+            addColFeedback.className = 'text-center feedback feedback-wrong';
+            addColFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + colAnswer + ' \u274C';
+        }
+        btnValidateAddColArea.classList.add('d-none');
+        btnNextAddColArea.classList.remove('d-none');
+        btnNextAddCol.focus();
+    }
+
+    btnNextAddCol.addEventListener('click', newRound);
+
+    // ====================================================================
+    //                    CONVERSIONS MODE (mm, cm, m)
+    // ====================================================================
+
+    const convUnits = ['mm', 'cm', 'm'];
+    const convFactors = { 'mm_cm': 10, 'cm_m': 100, 'mm_m': 1000 };
+
+    function generateConversion() {
+        conversionFeedbackEl.textContent = '';
+        conversionFeedbackEl.className = 'text-center feedback';
+        conversionUserAnswer = '';
+        conversionAnswerEl.textContent = '\u00A0';
+        btnValidateConv.disabled = true;
+        btnValidateConvArea.classList.remove('d-none');
+        btnNextConvArea.classList.add('d-none');
+
+        // Pick conversion type
+        const conversions = [
+            { from: 'cm', to: 'mm', gen: () => { const v = randInt(1, 50); return { v, ans: v * 10 }; }, hint: '1 cm = 10 mm' },
+            { from: 'mm', to: 'cm', gen: () => { const v = randInt(1, 30) * 10; return { v, ans: v / 10 }; }, hint: '10 mm = 1 cm' },
+            { from: 'm', to: 'cm', gen: () => { const v = randInt(1, 10); return { v, ans: v * 100 }; }, hint: '1 m = 100 cm' },
+            { from: 'cm', to: 'm', gen: () => { const v = randInt(1, 8) * 100; return { v, ans: v / 100 }; }, hint: '100 cm = 1 m' },
+            { from: 'm', to: 'mm', gen: () => { const v = randInt(1, 5); return { v, ans: v * 1000 }; }, hint: '1 m = 1000 mm' },
+            { from: 'mm', to: 'cm', gen: () => { const v = randInt(1, 20) * 10 + randInt(0, 9); return { v, ans: Math.floor(v / 10) }; }, hint: '10 mm = 1 cm (partie enti\u00e8re)' },
+        ];
+
+        const conv = pick(conversions);
+        const { v, ans } = conv.gen();
+        conversionCorrectAnswer = ans;
+
+        conversionQ.innerHTML = `<b>${v} ${conv.from}</b> = ? <b>${conv.to}</b>`;
+        conversionHint.textContent = 'Rappel : ' + conv.hint;
+
+        // Draw unit ruler
+        unitRuler.innerHTML = '';
+        convUnits.forEach((u, i) => {
+            const box = document.createElement('span');
+            box.className = 'unit-box';
+            if (u === conv.from) box.classList.add('active-unit');
+            if (u === conv.to) box.classList.add('target-unit');
+            box.textContent = u;
+            unitRuler.appendChild(box);
+            if (i < convUnits.length - 1) {
+                const arrow = document.createElement('span');
+                arrow.className = 'unit-arrow';
+                arrow.textContent = '\u2194';
+                unitRuler.appendChild(arrow);
+            }
+        });
+    }
+
+    // Conversion keypad
+    document.getElementById('conversionKeypad').addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-ckey]');
+        if (!btn || answered) return;
+        const key = btn.dataset.ckey;
+        if (key === 'clear') setConversionAnswer('');
+        else if (key === 'back') setConversionAnswer(conversionUserAnswer.slice(0, -1));
+        else if (conversionUserAnswer.length < 5) setConversionAnswer(conversionUserAnswer + key);
+    });
+
+    function handleConversionKey(e) {
+        if (answered && e.key === 'Enter') { btnNextConv.click(); return; }
+        if (answered) return;
+        if (e.key >= '0' && e.key <= '9') {
+            if (conversionUserAnswer.length < 5) setConversionAnswer(conversionUserAnswer + e.key);
+        } else if (e.key === 'Backspace') {
+            setConversionAnswer(conversionUserAnswer.slice(0, -1));
+        } else if (e.key === 'Enter' && conversionUserAnswer.length > 0) {
+            validateConversion();
+        }
+    }
+
+    function setConversionAnswer(val) {
+        conversionUserAnswer = val;
+        conversionAnswerEl.textContent = val || '\u00A0';
+        btnValidateConv.disabled = val.length === 0;
+    }
+
+    btnValidateConv.addEventListener('click', validateConversion);
+
+    function validateConversion() {
+        if (answered || conversionUserAnswer.length === 0) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = parseInt(conversionUserAnswer, 10) === conversionCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+        showConversionFeedback(isCorrect, false);
+    }
+
+    function showConversionFeedback(correct, timeout) {
+        if (timeout) {
+            conversionFeedbackEl.className = 'text-center feedback feedback-wrong';
+            conversionFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + conversionCorrectAnswer;
+        } else if (correct) {
+            conversionFeedbackEl.className = 'text-center feedback feedback-correct';
+            conversionFeedbackEl.textContent = 'Bravo ! \u2705';
+        } else {
+            conversionFeedbackEl.className = 'text-center feedback feedback-wrong';
+            conversionFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + conversionCorrectAnswer + ' \u274C';
+        }
+        btnValidateConvArea.classList.add('d-none');
+        btnNextConvArea.classList.remove('d-none');
+        btnNextConv.focus();
+    }
+
+    btnNextConv.addEventListener('click', newRound);
+
+    // ====================================================================
     //                    MAIN ROUND LOGIC
     // ====================================================================
 
@@ -1030,6 +1535,10 @@
             generateFraction();
         } else if (mode === 'diagrammes') {
             generateDiagram();
+        } else if (mode === 'addition_colonne') {
+            generateAdditionColonne();
+        } else if (mode === 'conversions') {
+            generateConversion();
         } else {
             // Keypad modes
             userAnswer = '';
