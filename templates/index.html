@@ -285,6 +285,28 @@
             text-align: center;
             margin: 0 2px;
         }
+        .column-add .row-num span,
+        .column-add .row-op span {
+            position: relative;
+        }
+        .borrow-indicator {
+            position: absolute;
+            top: -2px;
+            left: -4px;
+            font-size: 0.55em;
+            font-weight: 700;
+            color: #dc3545;
+            line-height: 1;
+        }
+        .borrow-added {
+            position: absolute;
+            top: -2px;
+            left: -4px;
+            font-size: 0.55em;
+            font-weight: 700;
+            color: #0d6efd;
+            line-height: 1;
+        }
 
         /* Conversions */
         .conversion-container {
@@ -1598,22 +1620,39 @@
             }
         });
 
-        // Show borrows (emprunts)
+        // Show borrows (emprunts) - notation française traditionnelle
         const aStr = String(subColA).padStart(subColDigits, '0');
         const bStr = String(subColB).padStart(subColDigits, '0');
-        const borrows = new Array(subColDigits).fill('');
         const aDigits = aStr.split('').map(Number);
+        const borrowAt = new Array(subColDigits).fill(false);
         for (let i = subColDigits - 1; i >= 1; i--) {
             if (aDigits[i] < parseInt(bStr[i])) {
-                borrows[i] = '-1';
+                borrowAt[i] = true;
                 aDigits[i] += 10;
                 aDigits[i - 1] -= 1;
             }
         }
-        const borrowSpans = borrowRow.querySelectorAll('span');
-        borrowSpans.forEach((sp, i) => {
-            sp.textContent = borrows[i];
-            if (borrows[i]) sp.style.color = '#dc3545';
+        // Petit "1" à gauche du chiffre du haut qui emprunte
+        const topSpans = subNumRow1.querySelectorAll('span');
+        borrowAt.forEach((b, i) => {
+            if (b && topSpans[i]) {
+                const ind = document.createElement('span');
+                ind.className = 'borrow-indicator';
+                ind.textContent = '1';
+                topSpans[i].appendChild(ind);
+            }
+        });
+        // Retenue +1 sur le chiffre du bas à gauche
+        const bottomDigitSpans = Array.from(subNumRow2.querySelectorAll('span')).filter(
+            sp => sp.style.width === '42px'
+        );
+        borrowAt.forEach((b, i) => {
+            if (b && i >= 1 && bottomDigitSpans[i - 1]) {
+                const ind = document.createElement('span');
+                ind.className = 'borrow-added';
+                ind.textContent = '+1';
+                bottomDigitSpans[i - 1].appendChild(ind);
+            }
         });
 
         showSubColFeedback(isCorrect, false);
