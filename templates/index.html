@@ -285,27 +285,19 @@
             text-align: center;
             margin: 0 2px;
         }
-        .column-add .row-num span,
-        .column-add .row-op span {
-            position: relative;
-        }
         .borrow-indicator {
-            position: absolute;
-            top: -2px;
-            left: -4px;
-            font-size: 0.55em;
+            font-size: 0.45em;
             font-weight: 700;
             color: #dc3545;
-            line-height: 1;
+            vertical-align: super;
+            margin-right: -2px;
         }
         .borrow-added {
-            position: absolute;
-            top: -2px;
-            left: -4px;
-            font-size: 0.55em;
+            font-size: 0.45em;
             font-weight: 700;
             color: #0d6efd;
-            line-height: 1;
+            vertical-align: super;
+            margin-right: -2px;
         }
 
         /* Conversions */
@@ -1639,7 +1631,7 @@
                 const ind = document.createElement('span');
                 ind.className = 'borrow-indicator';
                 ind.textContent = '1';
-                topSpans[i].appendChild(ind);
+                topSpans[i].prepend(ind);
             }
         });
         // Retenue +1 sur le chiffre du bas à gauche
@@ -1651,7 +1643,7 @@
                 const ind = document.createElement('span');
                 ind.className = 'borrow-added';
                 ind.textContent = '+1';
-                bottomDigitSpans[i - 1].appendChild(ind);
+                bottomDigitSpans[i - 1].prepend(ind);
             }
         });
 
