@@ -349,6 +349,10 @@
                     type="button" role="tab">Addition pos&eacute;e</button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="soustraction_colonne"
+                    type="button" role="tab">Soustraction pos&eacute;e</button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="conversions"
                     type="button" role="tab">Conversions</button>
         </li>
@@ -488,6 +492,27 @@
             </div>
         </div>
 
+        <!-- ====== ZONE SOUSTRACTION EN COLONNE ====== -->
+        <div id="subColMode" class="d-none">
+            <div class="text-center mb-2">
+                <div class="calcul-display" id="subColTitle" style="font-size:1.4rem;min-height:40px;">Pose et calcule la soustraction</div>
+            </div>
+            <div class="column-add" id="columnSubArea">
+                <div class="carry-row" id="borrowRow"></div>
+                <div class="row-num" id="subNumRow1"></div>
+                <div class="row-op" id="subNumRow2"></div>
+                <div class="separator"></div>
+                <div class="answer-row" id="answerRowSub"></div>
+            </div>
+            <div class="text-center feedback mb-2 mt-3" id="subColFeedback"></div>
+            <div id="btnValidateSubColArea" class="mb-3 mt-2">
+                <button class="btn btn-primary btn-validate w-100" id="btnValidateSubCol" disabled>Valider</button>
+            </div>
+            <div id="btnNextSubColArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextSubCol">Suivant &#x27A1;</button>
+            </div>
+        </div>
+
         <!-- ====== ZONE CONVERSIONS ====== -->
         <div id="conversionsMode" class="d-none">
             <div class="conversion-container">
@@ -605,6 +630,9 @@
     // Addition colonne state
     let colA = 0, colB = 0, colAnswer = 0, colDigits = 0;
 
+    // Soustraction colonne state
+    let subColA = 0, subColB = 0, subColAnswer = 0, subColDigits = 0;
+
     // Conversion state
     let conversionUserAnswer = '';
     let conversionCorrectAnswer = 0;
@@ -652,6 +680,18 @@
     const btnNextAddColArea = document.getElementById('btnNextAddColArea');
     const btnNextAddCol = document.getElementById('btnNextAddCol');
 
+    // Soustraction colonne DOM
+    const subColMode = document.getElementById('subColMode');
+    const subColFeedback = document.getElementById('subColFeedback');
+    const borrowRow = document.getElementById('borrowRow');
+    const subNumRow1 = document.getElementById('subNumRow1');
+    const subNumRow2 = document.getElementById('subNumRow2');
+    const answerRowSub = document.getElementById('answerRowSub');
+    const btnValidateSubCol = document.getElementById('btnValidateSubCol');
+    const btnValidateSubColArea = document.getElementById('btnValidateSubColArea');
+    const btnNextSubColArea = document.getElementById('btnNextSubColArea');
+    const btnNextSubCol = document.getElementById('btnNextSubCol');
+
     // Conversions DOM
     const conversionsMode = document.getElementById('conversionsMode');
     const conversionQ = document.getElementById('conversionQ');
@@ -686,6 +726,7 @@
         fractionsMode.classList.add('d-none');
         diagrammesMode.classList.add('d-none');
         addColMode.classList.add('d-none');
+        subColMode.classList.add('d-none');
         conversionsMode.classList.add('d-none');
         calculArea.classList.remove('d-none');
         problemArea.classList.add('d-none');
@@ -698,6 +739,9 @@
             timerDuration = 30;
         } else if (mode === 'addition_colonne') {
             addColMode.classList.remove('d-none');
+            timerDuration = 40;
+        } else if (mode === 'soustraction_colonne') {
+            subColMode.classList.remove('d-none');
             timerDuration = 40;
         } else if (mode === 'conversions') {
             conversionsMode.classList.remove('d-none');
@@ -761,6 +805,8 @@
             showDiagramFeedback(false, true);
         } else if (mode === 'addition_colonne') {
             showAddColFeedback(false, true);
+        } else if (mode === 'soustraction_colonne') {
+            showSubColFeedback(false, true);
         } else if (mode === 'conversions') {
             showConversionFeedback(false, true);
         } else {
@@ -859,7 +905,7 @@
     });
 
     document.addEventListener('keydown', function (e) {
-        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne') {
+        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne' || mode === 'soustraction_colonne') {
             if (mode === 'diagrammes') handleDiagramKey(e);
             return;
         }
@@ -1414,6 +1460,187 @@
     btnNextAddCol.addEventListener('click', newRound);
 
     // ====================================================================
+    //                    SOUSTRACTION EN COLONNE MODE
+    // ====================================================================
+
+    function generateSoustractionColonne() {
+        subColFeedback.textContent = '';
+        subColFeedback.className = 'text-center feedback';
+        btnValidateSubCol.disabled = false;
+        btnValidateSubColArea.classList.remove('d-none');
+        btnNextSubColArea.classList.add('d-none');
+
+        // Generate numbers where A >= B
+        const level = randInt(0, 2);
+        if (level === 0) {
+            subColA = randInt(20, 99); subColB = randInt(10, subColA - 1);
+        } else if (level === 1) {
+            subColA = randInt(100, 999); subColB = randInt(10, subColA - 1);
+        } else {
+            subColA = randInt(200, 999); subColB = randInt(100, subColA - 1);
+        }
+        subColAnswer = subColA - subColB;
+        const aStr = String(subColA);
+        const bStr = String(subColB);
+        subColDigits = aStr.length;
+
+        const padA = aStr.padStart(subColDigits, ' ');
+        const padB = bStr.padStart(subColDigits, ' ');
+
+        // Build borrow row (emprunts)
+        borrowRow.innerHTML = '';
+        for (let i = 0; i < subColDigits; i++) {
+            const sp = document.createElement('span');
+            sp.textContent = '';
+            borrowRow.appendChild(sp);
+        }
+
+        // Build number rows
+        subNumRow1.innerHTML = '';
+        for (let i = 0; i < subColDigits; i++) {
+            const ch = padA[i] === ' ' ? '\u00A0' : padA[i];
+            const sp = document.createElement('span');
+            sp.style.width = '42px';
+            sp.style.textAlign = 'center';
+            sp.style.margin = '0 2px';
+            sp.style.display = 'inline-block';
+            sp.textContent = ch;
+            subNumRow1.appendChild(sp);
+        }
+
+        subNumRow2.innerHTML = '';
+        const opSpan = document.createElement('span');
+        opSpan.textContent = '\u2212';
+        opSpan.style.marginRight = '8px';
+        opSpan.style.fontSize = '2rem';
+        subNumRow2.appendChild(opSpan);
+        const spacer = document.createElement('span');
+        spacer.style.flex = '1';
+        subNumRow2.appendChild(spacer);
+        for (let i = 0; i < subColDigits; i++) {
+            const ch = padB[i] === ' ' ? '\u00A0' : padB[i];
+            const sp = document.createElement('span');
+            sp.style.width = '42px';
+            sp.style.textAlign = 'center';
+            sp.style.margin = '0 2px';
+            sp.style.display = 'inline-block';
+            sp.textContent = ch;
+            subNumRow2.appendChild(sp);
+        }
+
+        // Build answer inputs
+        const ansStr = String(subColAnswer);
+        const ansDigits = aStr.length; // answer can't be longer than A
+        answerRowSub.innerHTML = '';
+        for (let i = 0; i < ansDigits; i++) {
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 1;
+            inp.inputMode = 'numeric';
+            inp.pattern = '[0-9]';
+            inp.dataset.pos = i;
+            inp.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value && i > 0) {
+                    const prev = answerRowSub.querySelector(`input[data-pos="${i - 1}"]`);
+                    if (prev && !prev.value) prev.focus();
+                }
+                checkSubColComplete();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !this.value && i < ansDigits - 1) {
+                    const next = answerRowSub.querySelector(`input[data-pos="${i + 1}"]`);
+                    if (next) next.focus();
+                }
+                if (e.key === 'Enter') validateSubCol();
+            });
+            answerRowSub.appendChild(inp);
+        }
+
+        const lastInput = answerRowSub.querySelector(`input[data-pos="${ansDigits - 1}"]`);
+        if (lastInput) setTimeout(() => lastInput.focus(), 100);
+    }
+
+    function checkSubColComplete() {
+        const inputs = answerRowSub.querySelectorAll('input');
+        let filled = 0;
+        inputs.forEach(inp => { if (inp.value) filled++; });
+        // At least the rightmost digits must be filled (answer may have fewer digits)
+        const ansStr = String(subColAnswer);
+        btnValidateSubCol.disabled = filled < ansStr.length;
+    }
+
+    btnValidateSubCol.addEventListener('click', validateSubCol);
+
+    function validateSubCol() {
+        if (answered) return;
+        const inputs = answerRowSub.querySelectorAll('input');
+        let userStr = '';
+        inputs.forEach(inp => { userStr += inp.value || '0'; });
+
+        answered = true;
+        stopTimer();
+        total++;
+
+        const userVal = parseInt(userStr, 10);
+        const isCorrect = userVal === subColAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        // Color each digit - pad answer to match input length
+        const ansStr = String(subColAnswer).padStart(subColDigits, '0');
+        inputs.forEach((inp, i) => {
+            inp.disabled = true;
+            if (inp.value === ansStr[i]) {
+                inp.classList.add('correct-digit');
+            } else {
+                inp.classList.add('wrong-digit');
+            }
+        });
+
+        // Show borrows (emprunts)
+        const aStr = String(subColA).padStart(subColDigits, '0');
+        const bStr = String(subColB).padStart(subColDigits, '0');
+        const borrows = new Array(subColDigits).fill('');
+        const aDigits = aStr.split('').map(Number);
+        for (let i = subColDigits - 1; i >= 1; i--) {
+            if (aDigits[i] < parseInt(bStr[i])) {
+                borrows[i] = '-1';
+                aDigits[i] += 10;
+                aDigits[i - 1] -= 1;
+            }
+        }
+        const borrowSpans = borrowRow.querySelectorAll('span');
+        borrowSpans.forEach((sp, i) => {
+            sp.textContent = borrows[i];
+            if (borrows[i]) sp.style.color = '#dc3545';
+        });
+
+        showSubColFeedback(isCorrect, false);
+    }
+
+    function showSubColFeedback(correct, timeout) {
+        if (timeout) {
+            subColFeedback.className = 'text-center feedback feedback-wrong';
+            subColFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + subColAnswer;
+            const inputs = answerRowSub.querySelectorAll('input');
+            const ansStr = String(subColAnswer).padStart(subColDigits, '0');
+            inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
+        } else if (correct) {
+            subColFeedback.className = 'text-center feedback feedback-correct';
+            subColFeedback.textContent = 'Bravo ! \u2705';
+        } else {
+            subColFeedback.className = 'text-center feedback feedback-wrong';
+            subColFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + subColAnswer + ' \u274C';
+        }
+        btnValidateSubColArea.classList.add('d-none');
+        btnNextSubColArea.classList.remove('d-none');
+        btnNextSubCol.focus();
+    }
+
+    btnNextSubCol.addEventListener('click', newRound);
+
+    // ====================================================================
     //                    CONVERSIONS MODE (mm, cm, m)
     // ====================================================================
 
@@ -1537,6 +1764,8 @@
             generateDiagram();
         } else if (mode === 'addition_colonne') {
             generateAdditionColonne();
+        } else if (mode === 'soustraction_colonne') {
+            generateSoustractionColonne();
         } else if (mode === 'conversions') {
             generateConversion();
         } else {
