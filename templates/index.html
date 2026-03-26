@@ -1936,54 +1936,49 @@
         equilateral: {
             name: 'Triangle \u00e9quilat\u00e9ral',
             svg: () => {
-                const cx = 130, cy = 140, r = 90;
+                const cx = 130, cy = 105, r = 80;
                 const pts = [0, 1, 2].map(i => {
                     const a = Math.PI / 2 + i * 2 * Math.PI / 3;
                     return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
                 });
-                return `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="#4CAF50" fill-opacity="0.3" stroke="#388E3C" stroke-width="3"/></svg>`;
+                return `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="#4CAF50" fill-opacity="0.3" stroke="#388E3C" stroke-width="3"/></svg>`;
             },
             props: { cotes: 3, cotesEgaux: 3, anglesEgaux: 3, anglesDroits: 0, axesSymetrie: 3, parallel: 0 }
         },
         isocele: {
             name: 'Triangle isoc\u00e8le',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="130,20 40,160 220,160" fill="#2196F3" fill-opacity="0.3" stroke="#1565C0" stroke-width="3"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="130,20 50,170 210,170" fill="#2196F3" fill-opacity="0.3" stroke="#1565C0" stroke-width="3"/></svg>`,
             props: { cotes: 3, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 1, parallel: 0 }
         },
         rectangle_triangle: {
             name: 'Triangle rectangle',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="40,160 40,30 220,160" fill="#FF9800" fill-opacity="0.3" stroke="#E65100" stroke-width="3"/><rect x="40" y="140" width="20" height="20" fill="none" stroke="#E65100" stroke-width="2"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="40,170 40,30 210,170" fill="#FF9800" fill-opacity="0.3" stroke="#E65100" stroke-width="3"/><rect x="40" y="150" width="20" height="20" fill="none" stroke="#E65100" stroke-width="2"/></svg>`,
             props: { cotes: 3, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 1, axesSymetrie: 0, parallel: 0 }
-        },
-        scalene: {
-            name: 'Triangle scalène',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="50,160 100,30 230,150" fill="#9C27B0" fill-opacity="0.3" stroke="#6A1B9A" stroke-width="3"/></svg>`,
-            props: { cotes: 3, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 0, axesSymetrie: 0, parallel: 0 }
         },
         // Quadrilaterals
         carre: {
             name: 'Carr\u00e9',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><rect x="60" y="20" width="140" height="140" fill="#F44336" fill-opacity="0.3" stroke="#B71C1C" stroke-width="3"/><rect x="60" y="20" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="20" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="60" y="148" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="148" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><rect x="60" y="25" width="140" height="140" fill="#F44336" fill-opacity="0.3" stroke="#B71C1C" stroke-width="3"/><rect x="60" y="25" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="25" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="60" y="153" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="153" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/></svg>`,
             props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 4, anglesDroits: 4, axesSymetrie: 4, parallel: 2 }
         },
         rectangle: {
             name: 'Rectangle',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><rect x="30" y="40" width="200" height="110" fill="#00BCD4" fill-opacity="0.3" stroke="#006064" stroke-width="3"/><rect x="30" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="30" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><rect x="30" y="40" width="200" height="110" fill="#00BCD4" fill-opacity="0.3" stroke="#006064" stroke-width="3"/><rect x="30" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="30" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/></svg>`,
             props: { cotes: 4, cotesEgaux: 2, anglesEgaux: 4, anglesDroits: 4, axesSymetrie: 2, parallel: 2 }
         },
         losange: {
             name: 'Losange',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="130,15 230,90 130,165 30,90" fill="#FFEB3B" fill-opacity="0.5" stroke="#F57F17" stroke-width="3"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="130,20 225,100 130,180 35,100" fill="#FFEB3B" fill-opacity="0.5" stroke="#F57F17" stroke-width="3"/></svg>`,
             props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 2, parallel: 2 }
         },
         parallelogramme: {
             name: 'Parall\u00e9logramme',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="70,30 230,30 190,155 30,155" fill="#8BC34A" fill-opacity="0.3" stroke="#33691E" stroke-width="3"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="70,35 225,35 190,165 35,165" fill="#8BC34A" fill-opacity="0.3" stroke="#33691E" stroke-width="3"/></svg>`,
             props: { cotes: 4, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 0, parallel: 2 }
         },
         trapeze: {
             name: 'Trap\u00e8ze',
-            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="80,30 180,30 230,155 30,155" fill="#FF5722" fill-opacity="0.3" stroke="#BF360C" stroke-width="3"/></svg>`,
+            svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="80,35 180,35 225,165 35,165" fill="#FF5722" fill-opacity="0.3" stroke="#BF360C" stroke-width="3"/></svg>`,
             props: { cotes: 4, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 0, axesSymetrie: 0, parallel: 1 }
         }
     };
