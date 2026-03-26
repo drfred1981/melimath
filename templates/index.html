@@ -329,6 +329,80 @@
         .unit-box.active-unit { background: #0d6efd; color: #fff; border-color: #0d6efd; }
         .unit-box.target-unit { background: #198754; color: #fff; border-color: #198754; }
         .unit-arrow { font-size: 1.2rem; color: #6c757d; }
+
+        /* Geometrie */
+        .geo-svg-container {
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .geo-question {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.75rem;
+            background: #e8f0fe;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+        }
+        .geo-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+        .geo-choices .btn {
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 14px 10px;
+        }
+        .geo-vf-area {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Francais */
+        .fr-sentence {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            margin: 1rem 0;
+        }
+        .fr-blank {
+            display: inline-block;
+            min-width: 120px;
+            border-bottom: 3px solid #0d6efd;
+            color: #0d6efd;
+        }
+        .fr-hint {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+        }
+        .fr-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+        .fr-choices .btn {
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 14px 8px;
+        }
     </style>
 </head>
 <body>
@@ -381,6 +455,14 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="diagrammes"
                     type="button" role="tab">Diagrammes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="geometrie"
+                    type="button" role="tab">G&eacute;om&eacute;trie</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="francais"
+                    type="button" role="tab">Fran&ccedil;ais</button>
         </li>
     </ul>
 
@@ -617,6 +699,32 @@
                 <button class="btn btn-success btn-next w-100" id="btnNextDiagram">Suivant &#x27A1;</button>
             </div>
         </div>
+
+        <!-- ====== ZONE GEOMETRIE ====== -->
+        <div id="geometrieMode" class="d-none">
+            <div class="geo-svg-container" id="geoSvgContainer"></div>
+            <div class="geo-question" id="geoQuestion"></div>
+            <div class="geo-choices d-none" id="geoChoicesArea"></div>
+            <div class="geo-vf-area d-none" id="geoVfArea">
+                <button class="btn btn-success vf-btn" id="btnGeoVrai">Vrai &#x2705;</button>
+                <button class="btn btn-danger vf-btn" id="btnGeoFaux">Faux &#x274C;</button>
+            </div>
+            <div class="text-center feedback mb-2" id="geoFeedback"></div>
+            <div id="btnNextGeoArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextGeo">Suivant &#x27A1;</button>
+            </div>
+        </div>
+
+        <!-- ====== ZONE FRANCAIS ====== -->
+        <div id="francaisMode" class="d-none">
+            <div class="fr-sentence" id="frSentence"></div>
+            <div class="fr-hint" id="frHint"></div>
+            <div class="fr-choices" id="frChoicesArea"></div>
+            <div class="text-center feedback mb-2" id="frFeedback"></div>
+            <div id="btnNextFrArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextFr">Suivant &#x27A1;</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -650,6 +758,13 @@
     // Conversion state
     let conversionUserAnswer = '';
     let conversionCorrectAnswer = 0;
+
+    // Geometrie state
+    let geoCorrectAnswer = '';  // string label for QCM, boolean for VF
+    let geoQuestionType = '';   // 'qcm' or 'vf'
+
+    // Francais state
+    let frCorrectAnswer = '';   // correct conjugation string
 
     // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
@@ -728,6 +843,25 @@
     const btnNextDiagramArea = document.getElementById('btnNextDiagramArea');
     const btnNextDiagram = document.getElementById('btnNextDiagram');
 
+    // Geometrie DOM
+    const geometrieMode = document.getElementById('geometrieMode');
+    const geoSvgContainer = document.getElementById('geoSvgContainer');
+    const geoQuestionEl = document.getElementById('geoQuestion');
+    const geoChoicesArea = document.getElementById('geoChoicesArea');
+    const geoVfArea = document.getElementById('geoVfArea');
+    const geoFeedbackEl = document.getElementById('geoFeedback');
+    const btnNextGeoArea = document.getElementById('btnNextGeoArea');
+    const btnNextGeo = document.getElementById('btnNextGeo');
+
+    // Francais DOM
+    const francaisMode = document.getElementById('francaisMode');
+    const frSentenceEl = document.getElementById('frSentence');
+    const frHintEl = document.getElementById('frHint');
+    const frChoicesArea = document.getElementById('frChoicesArea');
+    const frFeedbackEl = document.getElementById('frFeedback');
+    const btnNextFrArea = document.getElementById('btnNextFrArea');
+    const btnNextFr = document.getElementById('btnNextFr');
+
     // ===================== UTILS =====================
     function randInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -742,6 +876,8 @@
         addColMode.classList.add('d-none');
         subColMode.classList.add('d-none');
         conversionsMode.classList.add('d-none');
+        geometrieMode.classList.add('d-none');
+        francaisMode.classList.add('d-none');
         calculArea.classList.remove('d-none');
         problemArea.classList.add('d-none');
 
@@ -760,6 +896,12 @@
         } else if (mode === 'conversions') {
             conversionsMode.classList.remove('d-none');
             timerDuration = 25;
+        } else if (mode === 'geometrie') {
+            geometrieMode.classList.remove('d-none');
+            timerDuration = 20;
+        } else if (mode === 'francais') {
+            francaisMode.classList.remove('d-none');
+            timerDuration = 20;
         } else if (mode === 'problemes') {
             keypadMode.classList.remove('d-none');
             calculArea.classList.add('d-none');
@@ -823,6 +965,10 @@
             showSubColFeedback(false, true);
         } else if (mode === 'conversions') {
             showConversionFeedback(false, true);
+        } else if (mode === 'geometrie') {
+            showGeoFeedback(false, true);
+        } else if (mode === 'francais') {
+            showFrFeedback(false, true);
         } else {
             showFeedback(false, true);
             showNext();
@@ -919,7 +1065,7 @@
     });
 
     document.addEventListener('keydown', function (e) {
-        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne' || mode === 'soustraction_colonne') {
+        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne' || mode === 'soustraction_colonne' || mode === 'geometrie' || mode === 'francais') {
             if (mode === 'diagrammes') handleDiagramKey(e);
             return;
         }
@@ -1782,6 +1928,372 @@
     btnNextConv.addEventListener('click', newRound);
 
     // ====================================================================
+    //                    GEOMETRIE MODE
+    // ====================================================================
+
+    const geoShapes = {
+        // Triangles
+        equilateral: {
+            name: 'Triangle \u00e9quilat\u00e9ral',
+            svg: () => {
+                const cx = 130, cy = 140, r = 90;
+                const pts = [0, 1, 2].map(i => {
+                    const a = Math.PI / 2 + i * 2 * Math.PI / 3;
+                    return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
+                });
+                return `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="#4CAF50" fill-opacity="0.3" stroke="#388E3C" stroke-width="3"/></svg>`;
+            },
+            props: { cotes: 3, cotesEgaux: 3, anglesEgaux: 3, anglesDroits: 0, axesSymetrie: 3, parallel: 0 }
+        },
+        isocele: {
+            name: 'Triangle isoc\u00e8le',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="130,20 40,160 220,160" fill="#2196F3" fill-opacity="0.3" stroke="#1565C0" stroke-width="3"/></svg>`,
+            props: { cotes: 3, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 1, parallel: 0 }
+        },
+        rectangle_triangle: {
+            name: 'Triangle rectangle',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="40,160 40,30 220,160" fill="#FF9800" fill-opacity="0.3" stroke="#E65100" stroke-width="3"/><rect x="40" y="140" width="20" height="20" fill="none" stroke="#E65100" stroke-width="2"/></svg>`,
+            props: { cotes: 3, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 1, axesSymetrie: 0, parallel: 0 }
+        },
+        scalene: {
+            name: 'Triangle scalène',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="50,160 100,30 230,150" fill="#9C27B0" fill-opacity="0.3" stroke="#6A1B9A" stroke-width="3"/></svg>`,
+            props: { cotes: 3, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 0, axesSymetrie: 0, parallel: 0 }
+        },
+        // Quadrilaterals
+        carre: {
+            name: 'Carr\u00e9',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><rect x="60" y="20" width="140" height="140" fill="#F44336" fill-opacity="0.3" stroke="#B71C1C" stroke-width="3"/><rect x="60" y="20" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="20" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="60" y="148" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="148" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/></svg>`,
+            props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 4, anglesDroits: 4, axesSymetrie: 4, parallel: 2 }
+        },
+        rectangle: {
+            name: 'Rectangle',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><rect x="30" y="40" width="200" height="110" fill="#00BCD4" fill-opacity="0.3" stroke="#006064" stroke-width="3"/><rect x="30" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="40" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="30" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/><rect x="218" y="138" width="12" height="12" fill="none" stroke="#006064" stroke-width="2"/></svg>`,
+            props: { cotes: 4, cotesEgaux: 2, anglesEgaux: 4, anglesDroits: 4, axesSymetrie: 2, parallel: 2 }
+        },
+        losange: {
+            name: 'Losange',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="130,15 230,90 130,165 30,90" fill="#FFEB3B" fill-opacity="0.5" stroke="#F57F17" stroke-width="3"/></svg>`,
+            props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 2, parallel: 2 }
+        },
+        parallelogramme: {
+            name: 'Parall\u00e9logramme',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="70,30 230,30 190,155 30,155" fill="#8BC34A" fill-opacity="0.3" stroke="#33691E" stroke-width="3"/></svg>`,
+            props: { cotes: 4, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 0, parallel: 2 }
+        },
+        trapeze: {
+            name: 'Trap\u00e8ze',
+            svg: () => `<svg width="260" height="180" viewBox="0 0 260 180"><polygon points="80,30 180,30 230,155 30,155" fill="#FF5722" fill-opacity="0.3" stroke="#BF360C" stroke-width="3"/></svg>`,
+            props: { cotes: 4, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 0, axesSymetrie: 0, parallel: 1 }
+        }
+    };
+
+    const geoShapeKeys = Object.keys(geoShapes);
+
+    function generateGeometrie() {
+        geoFeedbackEl.textContent = '';
+        geoFeedbackEl.className = 'text-center feedback';
+        geoChoicesArea.classList.add('d-none');
+        geoVfArea.classList.add('d-none');
+        btnNextGeoArea.classList.add('d-none');
+        document.getElementById('btnGeoVrai').disabled = false;
+        document.getElementById('btnGeoFaux').disabled = false;
+
+        const shapeKey = pick(geoShapeKeys);
+        const shape = geoShapes[shapeKey];
+
+        // Draw shape
+        geoSvgContainer.innerHTML = shape.svg();
+
+        // Decide: QCM or Vrai/Faux (50/50)
+        const useQcm = Math.random() < 0.5;
+
+        if (useQcm) {
+            geoQuestionType = 'qcm';
+            // QCM: What is this shape?
+            geoQuestionEl.textContent = 'Quelle est cette figure ?';
+            geoCorrectAnswer = shape.name;
+
+            // Build 3 wrong distractors from other shapes
+            const others = geoShapeKeys.filter(k => k !== shapeKey);
+            const shuffled = others.sort(() => Math.random() - 0.5).slice(0, 3);
+            const choices = [shape.name, ...shuffled.map(k => geoShapes[k].name)];
+            // Shuffle choices
+            choices.sort(() => Math.random() - 0.5);
+
+            geoChoicesArea.innerHTML = '';
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary';
+                btn.textContent = c;
+                btn.addEventListener('click', () => validateGeoChoice(c));
+                geoChoicesArea.appendChild(btn);
+            });
+            geoChoicesArea.classList.remove('d-none');
+        } else {
+            geoQuestionType = 'vf';
+            // Vrai/Faux: pick a property question
+            const props = shape.props;
+            const propQuestions = [
+                { q: `Ce triangle a 3 c\u00f4t\u00e9s.`, ans: props.cotes === 3 },
+                { q: `Ce quadrilat\u00e8re a 4 c\u00f4t\u00e9s.`, ans: props.cotes === 4 },
+                { q: `Cette figure a ${props.cotesEgaux} c\u00f4t\u00e9s \u00e9gaux.`, ans: true },
+                { q: `Cette figure a 4 angles droits.`, ans: props.anglesDroits === 4 },
+                { q: `Cette figure a au moins 1 angle droit.`, ans: props.anglesDroits >= 1 },
+                { q: `Cette figure a ${props.axesSymetrie} axe${props.axesSymetrie > 1 ? 's' : ''} de sym\u00e9trie.`, ans: true },
+                { q: `Cette figure a des c\u00f4t\u00e9s parall\u00e8les.`, ans: props.parallel > 0 },
+                { q: `Tous les c\u00f4t\u00e9s de cette figure sont \u00e9gaux.`, ans: props.cotesEgaux === props.cotes },
+                { q: `Cette figure est un triangle.`, ans: props.cotes === 3 },
+                { q: `Cette figure est un quadrilat\u00e8re.`, ans: props.cotes === 4 },
+            ].filter(pq => {
+                // Only include questions that make sense for this shape type
+                if (pq.q.startsWith('Ce triangle') && props.cotes !== 3) return false;
+                if (pq.q.startsWith('Ce quadrilat\u00e8re') && props.cotes !== 4) return false;
+                return true;
+            });
+
+            // Randomly flip some answers to make it more interesting
+            const pq = pick(propQuestions);
+            let finalAns = pq.ans;
+            // For "true" answers, 50% chance we flip to a wrong statement
+            if (Math.random() < 0.4) {
+                finalAns = !pq.ans;
+                // Modify question to match
+                if (!pq.ans) {
+                    // was false, we flip to true → question stays but answer is now true... skip this flip
+                    finalAns = pq.ans;
+                }
+            }
+            // Actually: just pick the question as-is, the ans field is the correct boolean
+            geoCorrectAnswer = pq.ans;
+            geoQuestionEl.textContent = pq.q + ' Vrai ou Faux ?';
+            geoVfArea.classList.remove('d-none');
+        }
+    }
+
+    function validateGeoChoice(chosen) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = chosen === geoCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        // Highlight buttons
+        geoChoicesArea.querySelectorAll('button').forEach(btn => {
+            btn.disabled = true;
+            if (btn.textContent === geoCorrectAnswer) {
+                btn.className = 'btn btn-success';
+            } else if (btn.textContent === chosen && !isCorrect) {
+                btn.className = 'btn btn-danger';
+            }
+        });
+
+        showGeoFeedback(isCorrect, false);
+    }
+
+    document.getElementById('btnGeoVrai').addEventListener('click', () => validateGeoVF(true));
+    document.getElementById('btnGeoFaux').addEventListener('click', () => validateGeoVF(false));
+
+    function validateGeoVF(userSaysTrue) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = userSaysTrue === geoCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+        document.getElementById('btnGeoVrai').disabled = true;
+        document.getElementById('btnGeoFaux').disabled = true;
+        showGeoFeedback(isCorrect, false);
+    }
+
+    function showGeoFeedback(correct, timeout) {
+        if (timeout) {
+            geoFeedbackEl.className = 'text-center feedback feedback-wrong';
+            const ans = geoQuestionType === 'qcm' ? geoCorrectAnswer : (geoCorrectAnswer ? 'Vrai' : 'Faux');
+            geoFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + ans;
+            // Reveal correct answer for QCM
+            if (geoQuestionType === 'qcm') {
+                geoChoicesArea.querySelectorAll('button').forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.textContent === geoCorrectAnswer) btn.className = 'btn btn-success';
+                });
+            }
+        } else if (correct) {
+            geoFeedbackEl.className = 'text-center feedback feedback-correct';
+            geoFeedbackEl.textContent = 'Bravo ! \u2705';
+        } else {
+            geoFeedbackEl.className = 'text-center feedback feedback-wrong';
+            const ans = geoQuestionType === 'qcm' ? geoCorrectAnswer : (geoCorrectAnswer ? 'Vrai' : 'Faux');
+            geoFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + ans + ' \u274C';
+        }
+        btnNextGeoArea.classList.remove('d-none');
+        btnNextGeo.focus();
+    }
+
+    btnNextGeo.addEventListener('click', newRound);
+
+    // ====================================================================
+    //                    FRANCAIS MODE (Imparfait)
+    // ====================================================================
+
+    const frConjugaisons = {
+        '\u00eatre': { je: '\u00e9tais', tu: '\u00e9tais', 'il/elle': '\u00e9tait', nous: '\u00e9tions', vous: '\u00e9tiez', 'ils/elles': '\u00e9taient' },
+        'avoir': { je: 'avais', tu: 'avais', 'il/elle': 'avait', nous: 'avions', vous: 'aviez', 'ils/elles': 'avaient' },
+        'aller': { je: 'allais', tu: 'allais', 'il/elle': 'allait', nous: 'allions', vous: 'alliez', 'ils/elles': 'allaient' },
+        'chanter': { je: 'chantais', tu: 'chantais', 'il/elle': 'chantait', nous: 'chantions', vous: 'chantiez', 'ils/elles': 'chantaient' },
+        'manger': { je: 'mangeais', tu: 'mangeais', 'il/elle': 'mangeait', nous: 'mangions', vous: 'mangiez', 'ils/elles': 'mangeaient' },
+        'jouer': { je: 'jouais', tu: 'jouais', 'il/elle': 'jouait', nous: 'jouions', vous: 'jouiez', 'ils/elles': 'jouaient' },
+        'parler': { je: 'parlais', tu: 'parlais', 'il/elle': 'parlait', nous: 'parlions', vous: 'parliez', 'ils/elles': 'parlaient' },
+        'danser': { je: 'dansais', tu: 'dansais', 'il/elle': 'dansait', nous: 'dansions', vous: 'dansiez', 'ils/elles': 'dansaient' },
+        'regarder': { je: 'regardais', tu: 'regardais', 'il/elle': 'regardait', nous: 'regardions', vous: 'regardiez', 'ils/elles': 'regardaient' },
+        'marcher': { je: 'marchais', tu: 'marchais', 'il/elle': 'marchait', nous: 'marchions', vous: 'marchiez', 'ils/elles': 'marchaient' },
+        '\u00e9couter': { je: '\u00e9coutais', tu: '\u00e9coutais', 'il/elle': '\u00e9coutait', nous: '\u00e9coutions', vous: '\u00e9coutiez', 'ils/elles': '\u00e9coutaient' }
+    };
+
+    const frPersonnes = ['je', 'tu', 'il/elle', 'nous', 'vous', 'ils/elles'];
+
+    const frContextes = {
+        'je': [
+            (v, c) => `Je ___ ${c}.`,
+            (v, c) => `Hier, je ___ ${c}.`,
+            (v, c) => `Quand j\u2019\u00e9tais petit, je ___ ${c}.`
+        ],
+        'tu': [
+            (v, c) => `Tu ___ ${c}.`,
+            (v, c) => `Avant, tu ___ ${c}.`
+        ],
+        'il/elle': [
+            (v, c) => `Il ___ ${c}.`,
+            (v, c) => `Elle ___ ${c}.`,
+            (v, c) => `Mon ami ___ ${c}.`
+        ],
+        'nous': [
+            (v, c) => `Nous ___ ${c}.`,
+            (v, c) => `Ensemble, nous ___ ${c}.`
+        ],
+        'vous': [
+            (v, c) => `Vous ___ ${c}.`,
+            (v, c) => `L\u2019ann\u00e9e derni\u00e8re, vous ___ ${c}.`
+        ],
+        'ils/elles': [
+            (v, c) => `Ils ___ ${c}.`,
+            (v, c) => `Elles ___ ${c}.`,
+            (v, c) => `Les enfants ___ ${c}.`
+        ]
+    };
+
+    const frComplements = {
+        '\u00eatre': ['heureux', 'tr\u00e8s sage', 'fatigué', 'en retard', 'content'],
+        'avoir': ['faim', 'soif', 'peur', 'un ch\u00e2t', 'beaucoup de jouets'],
+        'aller': ['au parc', '\u00e0 l\u2019\u00e9cole', 'au march\u00e9', 'chez mamie', 'en v\u00e9lo'],
+        'chanter': ['une chanson', 'tr\u00e8s fort', 'en ch\u0153ur', 'le matin'],
+        'manger': ['une pomme', 'du pain', 'des bonbons', 'au restaurant'],
+        'jouer': ['dans le jardin', 'avec mes amis', 'au foot', 'aux cartes'],
+        'parler': ['doucement', '\u00e0 ma ma\u00eetresse', 'en classe', 'avec ma s\u0153ur'],
+        'danser': ['la valse', 'avec joie', 'sur la sc\u00e8ne', 'tr\u00e8s bien'],
+        'regarder': ['la t\u00e9l\u00e9vision', 'les \u00e9toiles', 'un dessin anim\u00e9', 'par la fen\u00eatre'],
+        'marcher': ['dans la for\u00eat', 'vite', 'pieds nus', 'sous la pluie'],
+        '\u00e9couter': ['de la musique', 'mes parents', 'la radio', 'attentivement']
+    };
+
+    function generateFrancais() {
+        frFeedbackEl.textContent = '';
+        frFeedbackEl.className = 'text-center feedback';
+        btnNextFrArea.classList.add('d-none');
+
+        const verbKeys = Object.keys(frConjugaisons);
+        const verb = pick(verbKeys);
+        const personne = pick(frPersonnes);
+        const correctForm = frConjugaisons[verb][personne];
+        frCorrectAnswer = correctForm;
+
+        // Build sentence
+        const complement = pick(frComplements[verb]);
+        const tmpl = pick(frContextes[personne]);
+        const rawSentence = tmpl(verb, complement);
+        // Replace the pronoun in sentence if it appears explicitly
+        // The template already has pronoun in the sentence, blank is ___
+        frSentenceEl.innerHTML = rawSentence.replace('___', `<span class="fr-blank">___</span>`);
+
+        frHintEl.textContent = 'Verbe : ' + verb + ' \u2014 \u00e0 l\u2019imparfait';
+
+        // Build 4 choices: correct + 3 plausible wrong ones
+        const allForms = [];
+        verbKeys.forEach(vk => {
+            frPersonnes.forEach(p => {
+                const f = frConjugaisons[vk][p];
+                if (f !== correctForm) allForms.push(f);
+            });
+        });
+
+        // Prefer forms that look similar (same ending pattern)
+        const correctEnding = correctForm.slice(-4);
+        const similar = allForms.filter(f => f.slice(-4) === correctEnding && f !== correctForm);
+        const dissimilar = allForms.filter(f => f.slice(-4) !== correctEnding && f !== correctForm);
+
+        const wrongPool = similar.length >= 3 ? similar : [...similar, ...dissimilar];
+        // Remove duplicates
+        const uniqueWrong = [...new Set(wrongPool)].filter(f => f !== correctForm);
+        const shuffledWrong = uniqueWrong.sort(() => Math.random() - 0.5).slice(0, 3);
+
+        const choices = [correctForm, ...shuffledWrong].sort(() => Math.random() - 0.5);
+
+        frChoicesArea.innerHTML = '';
+        choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline-primary';
+            btn.textContent = c;
+            btn.addEventListener('click', () => validateFrChoix(c));
+            frChoicesArea.appendChild(btn);
+        });
+    }
+
+    function validateFrChoix(chosen) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = chosen === frCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        frChoicesArea.querySelectorAll('button').forEach(btn => {
+            btn.disabled = true;
+            if (btn.textContent === frCorrectAnswer) {
+                btn.className = 'btn btn-success';
+            } else if (btn.textContent === chosen && !isCorrect) {
+                btn.className = 'btn btn-danger';
+            }
+        });
+
+        showFrFeedback(isCorrect, false);
+    }
+
+    function showFrFeedback(correct, timeout) {
+        if (timeout) {
+            frFeedbackEl.className = 'text-center feedback feedback-wrong';
+            frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer;
+            frChoicesArea.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === frCorrectAnswer) btn.className = 'btn btn-success';
+            });
+        } else if (correct) {
+            frFeedbackEl.className = 'text-center feedback feedback-correct';
+            frFeedbackEl.textContent = 'Bravo ! \u2705';
+        } else {
+            frFeedbackEl.className = 'text-center feedback feedback-wrong';
+            frFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer + ' \u274C';
+        }
+        btnNextFrArea.classList.remove('d-none');
+        btnNextFr.focus();
+    }
+
+    btnNextFr.addEventListener('click', newRound);
+
+    // ====================================================================
     //                    MAIN ROUND LOGIC
     // ====================================================================
 
@@ -1799,6 +2311,10 @@
             generateSoustractionColonne();
         } else if (mode === 'conversions') {
             generateConversion();
+        } else if (mode === 'geometrie') {
+            generateGeometrie();
+        } else if (mode === 'francais') {
+            generateFrancais();
         } else {
             // Keypad modes
             userAnswer = '';
