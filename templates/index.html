@@ -403,6 +403,29 @@
             border-radius: 12px;
             padding: 14px 8px;
         }
+        .fr-terminaison-area {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .fr-terminaison-area .fr-radical {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        .fr-terminaison-area input {
+            font-size: 1.8rem;
+            font-weight: 800;
+            width: 140px;
+            display: inline-block;
+            border: none;
+            border-bottom: 3px solid #0d6efd;
+            background: transparent;
+            text-align: center;
+            outline: none;
+            color: #0d6efd;
+        }
+        .fr-terminaison-area input:focus {
+            border-bottom-color: #0b5ed7;
+        }
     </style>
 </head>
 <body>
@@ -462,7 +485,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="francais"
-                    type="button" role="tab">Fran&ccedil;ais</button>
+                    type="button" role="tab">Langage</button>
         </li>
     </ul>
 
@@ -720,6 +743,12 @@
             <div class="fr-sentence" id="frSentence"></div>
             <div class="fr-hint" id="frHint"></div>
             <div class="fr-choices" id="frChoicesArea"></div>
+            <div class="fr-terminaison-area d-none" id="frTerminaisonArea">
+                <span class="fr-radical" id="frRadical"></span><input type="text" id="frTerminaisonInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="...">
+                <div class="mt-2">
+                    <button class="btn btn-primary w-100" id="btnValiderTerminaison">Valider</button>
+                </div>
+            </div>
             <div class="text-center feedback mb-2" id="frFeedback"></div>
             <div id="btnNextFrArea" class="mb-3 d-none">
                 <button class="btn btn-success btn-next w-100" id="btnNextFr">Suivant &#x27A1;</button>
@@ -765,6 +794,8 @@
 
     // Francais state
     let frCorrectAnswer = '';   // correct conjugation string
+    let frSubMode = 'qcm';     // 'qcm' or 'terminaison'
+    let frCorrectTerminaison = ''; // correct ending for terminaison mode
 
     // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
@@ -858,6 +889,10 @@
     const frSentenceEl = document.getElementById('frSentence');
     const frHintEl = document.getElementById('frHint');
     const frChoicesArea = document.getElementById('frChoicesArea');
+    const frTerminaisonArea = document.getElementById('frTerminaisonArea');
+    const frRadicalEl = document.getElementById('frRadical');
+    const frTerminaisonInput = document.getElementById('frTerminaisonInput');
+    const btnValiderTerminaison = document.getElementById('btnValiderTerminaison');
     const frFeedbackEl = document.getElementById('frFeedback');
     const btnNextFrArea = document.getElementById('btnNextFrArea');
     const btnNextFr = document.getElementById('btnNextFr');
@@ -2145,7 +2180,9 @@
         'danser': { je: 'dansais', tu: 'dansais', 'il/elle': 'dansait', nous: 'dansions', vous: 'dansiez', 'ils/elles': 'dansaient' },
         'regarder': { je: 'regardais', tu: 'regardais', 'il/elle': 'regardait', nous: 'regardions', vous: 'regardiez', 'ils/elles': 'regardaient' },
         'marcher': { je: 'marchais', tu: 'marchais', 'il/elle': 'marchait', nous: 'marchions', vous: 'marchiez', 'ils/elles': 'marchaient' },
-        '\u00e9couter': { je: '\u00e9coutais', tu: '\u00e9coutais', 'il/elle': '\u00e9coutait', nous: '\u00e9coutions', vous: '\u00e9coutiez', 'ils/elles': '\u00e9coutaient' }
+        '\u00e9couter': { je: '\u00e9coutais', tu: '\u00e9coutais', 'il/elle': '\u00e9coutait', nous: '\u00e9coutions', vous: '\u00e9coutiez', 'ils/elles': '\u00e9coutaient' },
+        'faire': { je: 'faisais', tu: 'faisais', 'il/elle': 'faisait', nous: 'faisions', vous: 'faisiez', 'ils/elles': 'faisaient' },
+        'porter': { je: 'portais', tu: 'portais', 'il/elle': 'portait', nous: 'portions', vous: 'portiez', 'ils/elles': 'portaient' }
     };
 
     const frPersonnes = ['je', 'tu', 'il/elle', 'nous', 'vous', 'ils/elles'];
@@ -2191,7 +2228,32 @@
         'danser': ['la valse', 'avec joie', 'sur la sc\u00e8ne', 'tr\u00e8s bien'],
         'regarder': ['la t\u00e9l\u00e9vision', 'les \u00e9toiles', 'un dessin anim\u00e9', 'par la fen\u00eatre'],
         'marcher': ['dans la for\u00eat', 'vite', 'pieds nus', 'sous la pluie'],
-        '\u00e9couter': ['de la musique', 'mes parents', 'la radio', 'attentivement']
+        '\u00e9couter': ['de la musique', 'mes parents', 'la radio', 'attentivement'],
+        'faire': ['du v\u00e9lo', 'la cuisine', 'mes devoirs', 'un g\u00e2teau', 'du sport'],
+        'porter': ['un sac', 'un chapeau', 'des lunettes', 'un manteau', 'ses affaires']
+    };
+
+    // Terminaisons de l'imparfait par personne
+    const frTerminaisons = {
+        'je': 'ais', 'tu': 'ais', 'il/elle': 'ait',
+        'nous': 'ions', 'vous': 'iez', 'ils/elles': 'aient'
+    };
+
+    // Radicaux spéciaux pour l'imparfait (base "nous" au présent sans -ons)
+    const frRadicaux = {
+        '\u00eatre': '\u00e9t',  // ét-
+        'avoir': 'av',
+        'aller': 'all',
+        'faire': 'fais',
+        'chanter': 'chant',
+        'manger': 'mange',   // garde le e devant a
+        'jouer': 'jou',
+        'parler': 'parl',
+        'danser': 'dans',
+        'regarder': 'regard',
+        'marcher': 'march',
+        '\u00e9couter': '\u00e9cout',
+        'porter': 'port'
     };
 
     function generateFrancais() {
@@ -2209,42 +2271,92 @@
         const complement = pick(frComplements[verb]);
         const tmpl = pick(frContextes[personne]);
         const rawSentence = tmpl(verb, complement);
-        // Replace the pronoun in sentence if it appears explicitly
-        // The template already has pronoun in the sentence, blank is ___
         frSentenceEl.innerHTML = rawSentence.replace('___', `<span class="fr-blank">___</span>`);
-
         frHintEl.textContent = 'Verbe : ' + verb + ' \u2014 \u00e0 l\u2019imparfait';
 
-        // Build 4 choices: correct + 3 plausible wrong ones
-        const allForms = [];
-        verbKeys.forEach(vk => {
-            frPersonnes.forEach(p => {
-                const f = frConjugaisons[vk][p];
-                if (f !== correctForm) allForms.push(f);
+        // Randomly pick sub-mode: QCM or terminaison
+        frSubMode = Math.random() < 0.5 ? 'qcm' : 'terminaison';
+
+        if (frSubMode === 'terminaison') {
+            // Mode terminaison: show radical, user types ending
+            frChoicesArea.classList.add('d-none');
+            frTerminaisonArea.classList.remove('d-none');
+
+            const radical = frRadicaux[verb] || verb.replace(/(er|ir|re)$/, '');
+            frCorrectTerminaison = frTerminaisons[personne];
+            // Pour "manger" avec nous/vous, le radical perd le e
+            let displayRadical = radical;
+            if (verb === 'manger' && (personne === 'nous' || personne === 'vous')) {
+                displayRadical = 'mang';
+            }
+            frRadicalEl.textContent = displayRadical;
+            frTerminaisonInput.value = '';
+            frTerminaisonInput.disabled = false;
+            btnValiderTerminaison.disabled = false;
+            frTerminaisonInput.focus();
+        } else {
+            // Mode QCM classique
+            frChoicesArea.classList.remove('d-none');
+            frTerminaisonArea.classList.add('d-none');
+
+            const allForms = [];
+            verbKeys.forEach(vk => {
+                frPersonnes.forEach(p => {
+                    const f = frConjugaisons[vk][p];
+                    if (f !== correctForm) allForms.push(f);
+                });
             });
-        });
 
-        // Prefer forms that look similar (same ending pattern)
-        const correctEnding = correctForm.slice(-4);
-        const similar = allForms.filter(f => f.slice(-4) === correctEnding && f !== correctForm);
-        const dissimilar = allForms.filter(f => f.slice(-4) !== correctEnding && f !== correctForm);
+            const correctEnding = correctForm.slice(-4);
+            const similar = allForms.filter(f => f.slice(-4) === correctEnding && f !== correctForm);
+            const dissimilar = allForms.filter(f => f.slice(-4) !== correctEnding && f !== correctForm);
 
-        const wrongPool = similar.length >= 3 ? similar : [...similar, ...dissimilar];
-        // Remove duplicates
-        const uniqueWrong = [...new Set(wrongPool)].filter(f => f !== correctForm);
-        const shuffledWrong = uniqueWrong.sort(() => Math.random() - 0.5).slice(0, 3);
+            const wrongPool = similar.length >= 3 ? similar : [...similar, ...dissimilar];
+            const uniqueWrong = [...new Set(wrongPool)].filter(f => f !== correctForm);
+            const shuffledWrong = uniqueWrong.sort(() => Math.random() - 0.5).slice(0, 3);
 
-        const choices = [correctForm, ...shuffledWrong].sort(() => Math.random() - 0.5);
+            const choices = [correctForm, ...shuffledWrong].sort(() => Math.random() - 0.5);
 
-        frChoicesArea.innerHTML = '';
-        choices.forEach(c => {
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-outline-primary';
-            btn.textContent = c;
-            btn.addEventListener('click', () => validateFrChoix(c));
-            frChoicesArea.appendChild(btn);
-        });
+            frChoicesArea.innerHTML = '';
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary';
+                btn.textContent = c;
+                btn.addEventListener('click', () => validateFrChoix(c));
+                frChoicesArea.appendChild(btn);
+            });
+        }
     }
+
+    function validateFrTerminaison() {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const userInput = frTerminaisonInput.value.trim().toLowerCase();
+        const isCorrect = userInput === frCorrectTerminaison;
+        if (isCorrect) score++;
+        updateScore();
+
+        frTerminaisonInput.disabled = true;
+        btnValiderTerminaison.disabled = true;
+
+        if (isCorrect) {
+            frTerminaisonInput.style.color = '#198754';
+        } else {
+            frTerminaisonInput.style.color = '#dc3545';
+        }
+
+        showFrFeedback(isCorrect, false);
+    }
+
+    btnValiderTerminaison.addEventListener('click', validateFrTerminaison);
+    frTerminaisonInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            if (answered) { btnNextFr.click(); }
+            else { validateFrTerminaison(); }
+        }
+    });
 
     function validateFrChoix(chosen) {
         if (answered) return;
@@ -2270,17 +2382,27 @@
     function showFrFeedback(correct, timeout) {
         if (timeout) {
             frFeedbackEl.className = 'text-center feedback feedback-wrong';
-            frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer;
-            frChoicesArea.querySelectorAll('button').forEach(btn => {
-                btn.disabled = true;
-                if (btn.textContent === frCorrectAnswer) btn.className = 'btn btn-success';
-            });
+            if (frSubMode === 'terminaison') {
+                frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! Terminaison : ' + frCorrectTerminaison + ' \u2192 ' + frCorrectAnswer;
+                frTerminaisonInput.disabled = true;
+                btnValiderTerminaison.disabled = true;
+            } else {
+                frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer;
+                frChoicesArea.querySelectorAll('button').forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.textContent === frCorrectAnswer) btn.className = 'btn btn-success';
+                });
+            }
         } else if (correct) {
             frFeedbackEl.className = 'text-center feedback feedback-correct';
-            frFeedbackEl.textContent = 'Bravo ! \u2705';
+            frFeedbackEl.textContent = 'Bravo ! ' + frCorrectAnswer + ' \u2705';
         } else {
             frFeedbackEl.className = 'text-center feedback feedback-wrong';
-            frFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer + ' \u274C';
+            if (frSubMode === 'terminaison') {
+                frFeedbackEl.textContent = 'Rat\u00e9 ! Terminaison : ' + frCorrectTerminaison + ' \u2192 ' + frCorrectAnswer + ' \u274C';
+            } else {
+                frFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer + ' \u274C';
+            }
         }
         btnNextFrArea.classList.remove('d-none');
         btnNextFr.focus();
