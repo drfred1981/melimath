@@ -426,6 +426,44 @@
         .fr-terminaison-area input:focus {
             border-bottom-color: #0b5ed7;
         }
+
+        /* Pluriels */
+        .pl-word {
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            margin: 1rem 0;
+        }
+        .pl-rule {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+        .pl-input-area {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .pl-input-area input {
+            font-size: 1.8rem;
+            font-weight: 800;
+            width: 260px;
+            display: inline-block;
+            border: none;
+            border-bottom: 3px solid #0d6efd;
+            background: transparent;
+            text-align: center;
+            outline: none;
+            color: #0d6efd;
+        }
+        .pl-input-area input:focus {
+            border-bottom-color: #0b5ed7;
+        }
     </style>
 </head>
 <body>
@@ -486,6 +524,10 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-mode="francais"
                     type="button" role="tab">Langage</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-mode="pluriels"
+                    type="button" role="tab">Pluriels</button>
         </li>
     </ul>
 
@@ -754,6 +796,24 @@
                 <button class="btn btn-success btn-next w-100" id="btnNextFr">Suivant &#x27A1;</button>
             </div>
         </div>
+
+        <!-- ====== ZONE PLURIELS ====== -->
+        <div id="plurielsMode" class="d-none">
+            <div class="pl-word" id="plWord"></div>
+            <div class="fr-hint" id="plHint"></div>
+            <div class="pl-rule d-none" id="plRule"></div>
+            <div class="fr-choices d-none" id="plChoicesArea"></div>
+            <div class="pl-input-area d-none" id="plInputArea">
+                <input type="text" id="plInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="le pluriel...">
+                <div class="mt-2">
+                    <button class="btn btn-primary w-100" id="btnValiderPluriel">Valider</button>
+                </div>
+            </div>
+            <div class="text-center feedback mb-2" id="plFeedback"></div>
+            <div id="btnNextPlArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextPl">Suivant &#x27A1;</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -796,6 +856,11 @@
     let frCorrectAnswer = '';   // correct conjugation string
     let frSubMode = 'qcm';     // 'qcm' or 'terminaison'
     let frCorrectTerminaison = ''; // correct ending for terminaison mode
+
+    // Pluriels state
+    let plCorrectAnswer = '';
+    let plSubMode = 'qcm';     // 'qcm' or 'input'
+    let plCurrentRule = '';
 
     // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
@@ -897,6 +962,19 @@
     const btnNextFrArea = document.getElementById('btnNextFrArea');
     const btnNextFr = document.getElementById('btnNextFr');
 
+    // Pluriels DOM
+    const plurielsMode = document.getElementById('plurielsMode');
+    const plWordEl = document.getElementById('plWord');
+    const plHintEl = document.getElementById('plHint');
+    const plRuleEl = document.getElementById('plRule');
+    const plChoicesArea = document.getElementById('plChoicesArea');
+    const plInputArea = document.getElementById('plInputArea');
+    const plInput = document.getElementById('plInput');
+    const btnValiderPluriel = document.getElementById('btnValiderPluriel');
+    const plFeedbackEl = document.getElementById('plFeedback');
+    const btnNextPlArea = document.getElementById('btnNextPlArea');
+    const btnNextPl = document.getElementById('btnNextPl');
+
     // ===================== UTILS =====================
     function randInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -913,6 +991,7 @@
         conversionsMode.classList.add('d-none');
         geometrieMode.classList.add('d-none');
         francaisMode.classList.add('d-none');
+        plurielsMode.classList.add('d-none');
         calculArea.classList.remove('d-none');
         problemArea.classList.add('d-none');
 
@@ -936,6 +1015,9 @@
             timerDuration = 20;
         } else if (mode === 'francais') {
             francaisMode.classList.remove('d-none');
+            timerDuration = 20;
+        } else if (mode === 'pluriels') {
+            plurielsMode.classList.remove('d-none');
             timerDuration = 20;
         } else if (mode === 'problemes') {
             keypadMode.classList.remove('d-none');
@@ -1004,6 +1086,8 @@
             showGeoFeedback(false, true);
         } else if (mode === 'francais') {
             showFrFeedback(false, true);
+        } else if (mode === 'pluriels') {
+            showPlFeedback(false, true);
         } else {
             showFeedback(false, true);
             showNext();
@@ -2411,6 +2495,275 @@
     btnNextFr.addEventListener('click', newRound);
 
     // ====================================================================
+    //                    PLURIELS DES NOMS
+    // ====================================================================
+
+    // Mots groupés par règle de pluriel
+    const plMots = {
+        regulier: [
+            { sing: 'chat', plur: 'chats' },
+            { sing: 'livre', plur: 'livres' },
+            { sing: 'maison', plur: 'maisons' },
+            { sing: 'arbre', plur: 'arbres' },
+            { sing: 'fleur', plur: 'fleurs' },
+            { sing: 'table', plur: 'tables' },
+            { sing: 'chaise', plur: 'chaises' },
+            { sing: 'stylo', plur: 'stylos' },
+            { sing: 'pomme', plur: 'pommes' },
+            { sing: 'porte', plur: 'portes' },
+            { sing: 'route', plur: 'routes' },
+            { sing: 'ami', plur: 'amis' },
+            { sing: 'chien', plur: 'chiens' },
+            { sing: 'jouet', plur: 'jouets' },
+            { sing: 'bonbon', plur: 'bonbons' },
+            { sing: 'jardin', plur: 'jardins' }
+        ],
+        eau_au: [
+            { sing: 'bateau', plur: 'bateaux' },
+            { sing: 'chapeau', plur: 'chapeaux' },
+            { sing: 'g\u00e2teau', plur: 'g\u00e2teaux' },
+            { sing: 'oiseau', plur: 'oiseaux' },
+            { sing: 'cadeau', plur: 'cadeaux' },
+            { sing: 'manteau', plur: 'manteaux' },
+            { sing: 'drapeau', plur: 'drapeaux' },
+            { sing: 'morceau', plur: 'morceaux' },
+            { sing: 'noyau', plur: 'noyaux' },
+            { sing: 'tuyau', plur: 'tuyaux' }
+        ],
+        eu: [
+            { sing: 'jeu', plur: 'jeux' },
+            { sing: 'feu', plur: 'feux' },
+            { sing: 'cheveu', plur: 'cheveux' },
+            { sing: 'lieu', plur: 'lieux' },
+            { sing: 'voeu', plur: 'voeux' }
+        ],
+        eu_exception: [
+            { sing: 'pneu', plur: 'pneus' },
+            { sing: 'bleu', plur: 'bleus' }
+        ],
+        al: [
+            { sing: 'animal', plur: 'animaux' },
+            { sing: 'cheval', plur: 'chevaux' },
+            { sing: 'journal', plur: 'journaux' },
+            { sing: 'h\u00f4pital', plur: 'h\u00f4pitaux' },
+            { sing: 'canal', plur: 'canaux' },
+            { sing: 'signal', plur: 'signaux' },
+            { sing: 'm\u00e9tal', plur: 'm\u00e9taux' }
+        ],
+        al_exception: [
+            { sing: 'bal', plur: 'bals' },
+            { sing: 'festival', plur: 'festivals' },
+            { sing: 'carnaval', plur: 'carnavals' }
+        ],
+        ail: [
+            { sing: 'travail', plur: 'travaux' },
+            { sing: 'vitrail', plur: 'vitraux' },
+            { sing: 'corail', plur: 'coraux' },
+            { sing: '\u00e9mail', plur: '\u00e9maux' }
+        ],
+        ail_regulier: [
+            { sing: 'rail', plur: 'rails' },
+            { sing: 'd\u00e9tail', plur: 'd\u00e9tails' },
+            { sing: '\u00e9ventail', plur: '\u00e9ventails' }
+        ],
+        ou: [
+            { sing: 'trou', plur: 'trous' },
+            { sing: 'clou', plur: 'clous' },
+            { sing: 'sou', plur: 'sous' },
+            { sing: 'verrou', plur: 'verrous' }
+        ],
+        ou_exception: [
+            { sing: 'bijou', plur: 'bijoux' },
+            { sing: 'caillou', plur: 'cailloux' },
+            { sing: 'chou', plur: 'choux' },
+            { sing: 'genou', plur: 'genoux' },
+            { sing: 'hibou', plur: 'hiboux' },
+            { sing: 'joujou', plur: 'joujoux' },
+            { sing: 'pou', plur: 'poux' }
+        ],
+        invariable: [
+            { sing: 'souris', plur: 'souris' },
+            { sing: 'bras', plur: 'bras' },
+            { sing: 'voix', plur: 'voix' },
+            { sing: 'nez', plur: 'nez' },
+            { sing: 'noix', plur: 'noix' },
+            { sing: 'croix', plur: 'croix' },
+            { sing: 'prix', plur: 'prix' },
+            { sing: 'tapis', plur: 'tapis' }
+        ]
+    };
+
+    const plRegles = {
+        regulier: 'R\u00e8gle : on ajoute un -s au singulier.',
+        eau_au: 'R\u00e8gle : les noms en -eau et -au prennent un -x au pluriel.',
+        eu: 'R\u00e8gle : les noms en -eu prennent un -x au pluriel.',
+        eu_exception: 'Exception : pneu et bleu prennent un -s au pluriel.',
+        al: 'R\u00e8gle : les noms en -al font -aux au pluriel.',
+        al_exception: 'Exception : certains noms en -al prennent un -s (bal, festival, carnaval...).',
+        ail: 'R\u00e8gle : certains noms en -ail font -aux au pluriel (travail, vitrail, corail, \u00e9mail).',
+        ail_regulier: 'R\u00e8gle : la plupart des noms en -ail prennent un -s au pluriel.',
+        ou: 'R\u00e8gle : la plupart des noms en -ou prennent un -s au pluriel.',
+        ou_exception: 'Exception : 7 noms en -ou prennent un -x (bijou, caillou, chou, genou, hibou, joujou, pou).',
+        invariable: 'R\u00e8gle : les noms termin\u00e9s par -s, -x ou -z ne changent pas au pluriel.'
+    };
+
+    // Tous les mots en liste plate pour générer des distracteurs
+    const plTousMots = [];
+    Object.values(plMots).forEach(arr => arr.forEach(m => plTousMots.push(m)));
+
+    function generatePluriel() {
+        plFeedbackEl.textContent = '';
+        plFeedbackEl.className = 'text-center feedback';
+        btnNextPlArea.classList.add('d-none');
+        plRuleEl.classList.add('d-none');
+
+        // Choisir une catégorie puis un mot
+        const categories = Object.keys(plMots);
+        const cat = pick(categories);
+        const mot = pick(plMots[cat]);
+        plCorrectAnswer = mot.plur;
+        plCurrentRule = plRegles[cat];
+
+        plWordEl.innerHTML = '\ud83d\udcdd Mets au pluriel : <strong>un ' + mot.sing + '</strong> \u2192 <strong>des ___</strong>';
+        plHintEl.textContent = 'Singulier : ' + mot.sing;
+
+        // Alterner QCM / saisie
+        plSubMode = Math.random() < 0.5 ? 'qcm' : 'input';
+
+        if (plSubMode === 'input') {
+            plChoicesArea.classList.add('d-none');
+            plInputArea.classList.remove('d-none');
+            plInput.value = '';
+            plInput.disabled = false;
+            btnValiderPluriel.disabled = false;
+            plInput.focus();
+        } else {
+            plChoicesArea.classList.remove('d-none');
+            plInputArea.classList.add('d-none');
+
+            // Générer des distracteurs plausibles
+            const distracteurs = new Set();
+            // Faux pluriels courants du même mot
+            const s = mot.sing;
+            if (s.endsWith('al')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s.slice(0, -2) + 'aux');
+            } else if (s.endsWith('eau') || s.endsWith('au')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s + 'x');
+            } else if (s.endsWith('eu')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s + 'x');
+            } else if (s.endsWith('ou')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s + 'x');
+            } else if (s.endsWith('ail')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s.slice(0, -3) + 'aux');
+            } else if (s.endsWith('s') || s.endsWith('x') || s.endsWith('z')) {
+                distracteurs.add(s + 's');
+                distracteurs.add(s + 'es');
+            } else {
+                distracteurs.add(s + 's');
+                distracteurs.add(s + 'x');
+            }
+            distracteurs.delete(plCorrectAnswer);
+
+            // Compléter avec d'autres pluriels de la base
+            const autresPlur = plTousMots.map(m => m.plur).filter(p => p !== plCorrectAnswer);
+            while (distracteurs.size < 3) {
+                distracteurs.add(pick(autresPlur));
+            }
+
+            const distractList = [...distracteurs].slice(0, 3);
+            const choices = [plCorrectAnswer, ...distractList].sort(() => Math.random() - 0.5);
+
+            plChoicesArea.innerHTML = '';
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary';
+                btn.textContent = c;
+                btn.addEventListener('click', () => validatePlChoix(c));
+                plChoicesArea.appendChild(btn);
+            });
+        }
+    }
+
+    function validatePlInput() {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const userInput = plInput.value.trim().toLowerCase();
+        const isCorrect = userInput === plCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        plInput.disabled = true;
+        btnValiderPluriel.disabled = true;
+        plInput.style.color = isCorrect ? '#198754' : '#dc3545';
+
+        showPlFeedback(isCorrect, false);
+    }
+
+    function validatePlChoix(chosen) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = chosen === plCorrectAnswer;
+        if (isCorrect) score++;
+        updateScore();
+
+        plChoicesArea.querySelectorAll('button').forEach(btn => {
+            btn.disabled = true;
+            if (btn.textContent === plCorrectAnswer) {
+                btn.className = 'btn btn-success';
+            } else if (btn.textContent === chosen && !isCorrect) {
+                btn.className = 'btn btn-danger';
+            }
+        });
+
+        showPlFeedback(isCorrect, false);
+    }
+
+    function showPlFeedback(correct, timeout) {
+        if (timeout) {
+            plFeedbackEl.className = 'text-center feedback feedback-wrong';
+            plFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + plCorrectAnswer;
+            if (plSubMode === 'input') {
+                plInput.disabled = true;
+                btnValiderPluriel.disabled = true;
+            } else {
+                plChoicesArea.querySelectorAll('button').forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.textContent === plCorrectAnswer) btn.className = 'btn btn-success';
+                });
+            }
+        } else if (correct) {
+            plFeedbackEl.className = 'text-center feedback feedback-correct';
+            plFeedbackEl.textContent = 'Bravo ! ' + plCorrectAnswer + ' \u2705';
+        } else {
+            plFeedbackEl.className = 'text-center feedback feedback-wrong';
+            plFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + plCorrectAnswer + ' \u274C';
+        }
+        // Toujours afficher la règle
+        plRuleEl.textContent = plCurrentRule;
+        plRuleEl.classList.remove('d-none');
+        btnNextPlArea.classList.remove('d-none');
+        btnNextPl.focus();
+    }
+
+    btnValiderPluriel.addEventListener('click', validatePlInput);
+    plInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            if (answered) { btnNextPl.click(); }
+            else { validatePlInput(); }
+        }
+    });
+    btnNextPl.addEventListener('click', newRound);
+
+    // ====================================================================
     //                    MAIN ROUND LOGIC
     // ====================================================================
 
@@ -2432,6 +2785,8 @@
             generateGeometrie();
         } else if (mode === 'francais') {
             generateFrancais();
+        } else if (mode === 'pluriels') {
+            generatePluriel();
         } else {
             // Keypad modes
             userAnswer = '';
