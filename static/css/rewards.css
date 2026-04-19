@@ -1,5 +1,10 @@
 /* MeliMath - Systeme de recompense (HUD + animations + modal) */
 
+:root {
+  --rw-accent: #0d6efd;
+  --rw-accent2: #fd7e14;
+}
+
 #rw-hud {
   position: fixed;
   top: 12px;
@@ -42,7 +47,7 @@
 }
 .rw-xp-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffc107, #fd7e14);
+  background: linear-gradient(90deg, var(--rw-accent2), var(--rw-accent));
   width: 0%;
   transition: width 0.5s ease;
 }
@@ -59,16 +64,37 @@
 }
 
 .rw-badges-btn {
-  background: #0d6efd;
+  background: var(--rw-accent);
   border: none;
   color: #fff;
   border-radius: 999px;
   padding: 6px 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
-.rw-badges-btn:hover { background: #0b5ed7; transform: scale(1.05); }
+.rw-badges-btn:hover { filter: brightness(0.92); transform: scale(1.05); }
+
+.rw-theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, var(--rw-accent), var(--rw-accent2));
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.rw-theme-picker label { margin: 0; font-weight: 700; letter-spacing: 0.02em; }
+.rw-theme-picker select {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  background: #fff;
+  color: #212529;
+}
 
 /* Toasts */
 .rw-toast {
@@ -182,7 +208,7 @@
   padding: 10px;
   text-align: center;
 }
-.rw-stat-value { font-size: 1.3rem; font-weight: 700; color: #0d6efd; }
+.rw-stat-value { font-size: 1.3rem; font-weight: 700; color: var(--rw-accent); }
 .rw-stat-label { font-size: 0.78rem; color: #6c757d; margin-top: 2px; }
 
 .rw-badges-grid {
@@ -198,7 +224,10 @@
   transition: transform 0.15s ease;
 }
 .rw-badge:hover { transform: translateY(-2px); }
-.rw-badge-got { background: linear-gradient(135deg, #fff3cd, #ffe69c); border: 2px solid #ffc107; }
+.rw-badge-got {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--rw-accent2) 25%, #fff), #fff);
+  border: 2px solid var(--rw-accent2);
+}
 .rw-badge-locked { background: #f8f9fa; border: 2px dashed #ced4da; opacity: 0.7; }
 .rw-badge-icon { font-size: 1.8rem; }
 .rw-badge-label { font-weight: 700; font-size: 0.85rem; color: #212529; margin-top: 4px; }

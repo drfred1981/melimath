@@ -31,22 +31,158 @@
     "Sans faute ! Bravo ! 🌟",
   ];
 
-  const BADGES = [
-    { id: "first_step",   label: "Premiers pas",    icon: "👣", desc: "Reussir sa premiere reponse" },
-    { id: "streak_5",     label: "En feu",          icon: "🔥", desc: "5 bonnes reponses d'affilee" },
-    { id: "streak_10",    label: "Inarretable",     icon: "🚀", desc: "10 bonnes reponses d'affilee" },
-    { id: "streak_20",    label: "Legende",         icon: "👑", desc: "20 bonnes reponses d'affilee" },
-    { id: "total_50",     label: "Bucheron",        icon: "🪵", desc: "50 bonnes reponses au total" },
-    { id: "total_200",    label: "Marathonien",     icon: "🏃", desc: "200 bonnes reponses au total" },
-    { id: "total_500",    label: "Virtuose",        icon: "🎖️", desc: "500 bonnes reponses au total" },
-    { id: "explorer_3",   label: "Explorateur",     icon: "🧭", desc: "Essayer 3 modes differents" },
-    { id: "explorer_all", label: "Encyclopediste",  icon: "📚", desc: "Essayer tous les modes" },
-    { id: "perfect_10",   label: "Perfectionniste", icon: "💯", desc: "10/10 sur une session" },
-    { id: "daily_3",      label: "Regulier",        icon: "📅", desc: "Jouer 3 jours de suite" },
-    { id: "daily_7",      label: "Assidu",          icon: "🗓️", desc: "Jouer 7 jours de suite" },
-    { id: "level_5",      label: "Niveau 5",        icon: "⭐", desc: "Atteindre le niveau 5" },
-    { id: "level_10",     label: "Niveau 10",       icon: "🌠", desc: "Atteindre le niveau 10" },
+  const BADGE_IDS = [
+    "first_step", "streak_5", "streak_10", "streak_20",
+    "total_50", "total_200", "total_500",
+    "explorer_3", "explorer_all",
+    "perfect_10", "daily_3", "daily_7",
+    "level_5", "level_10",
   ];
+
+  const THEMES = {
+    default: {
+      label: "Classique",
+      hudIcon: "🏅",
+      accent: "#0d6efd",
+      accent2: "#fd7e14",
+      badges: {
+        first_step:   { icon: "👣", label: "Premiers pas",    desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "🔥", label: "En feu",          desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🚀", label: "Inarretable",     desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "👑", label: "Legende",         desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "🪵", label: "Bucheron",        desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🏃", label: "Marathonien",     desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "🎖️", label: "Virtuose",        desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🧭", label: "Explorateur",     desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "📚", label: "Encyclopediste",  desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "💯", label: "Perfectionniste", desc: "10/10 sur une session" },
+        daily_3:      { icon: "📅", label: "Regulier",        desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "🗓️", label: "Assidu",          desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "⭐", label: "Niveau 5",        desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🌠", label: "Niveau 10",       desc: "Atteindre le niveau 10" },
+      },
+    },
+    princesses: {
+      label: "Princesses",
+      hudIcon: "👑",
+      accent: "#e83e8c",
+      accent2: "#ffc0cb",
+      badges: {
+        first_step:   { icon: "👑", label: "Couronne de princesse", desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "💎", label: "Diademe etincelant",    desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🏰", label: "Palais royal",          desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "👸", label: "Reine supreme",         desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "🌹", label: "Bouquet royal",         desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🦋", label: "Jardin de papillons",   desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "✨", label: "Poussiere de fee",      desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🐎", label: "Chevauchee royale",     desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "🫅", label: "Souveraine des royaumes", desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "💍", label: "Alliance parfaite",     desc: "10/10 sur une session" },
+        daily_3:      { icon: "🌸", label: "Jardin fleuri",         desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "🎀", label: "Ruban d'honneur",       desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "🍰", label: "Gateau de fee",         desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🎭", label: "Bal royal",             desc: "Atteindre le niveau 10" },
+      },
+    },
+    sirenes: {
+      label: "Sirenes",
+      hudIcon: "🧜‍♀️",
+      accent: "#0d6efd",
+      accent2: "#17c3b2",
+      badges: {
+        first_step:   { icon: "🐚", label: "Coquillage magique",   desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "🐠", label: "Banc de poissons",     desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🌊", label: "Vague geante",         desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "🧜‍♀️", label: "Reine des sirenes",    desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "💦", label: "Goutte d'ocean",       desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🐙", label: "Explorateur des abysses", desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "🦑", label: "Kraken apprivoise",    desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🏝️", label: "Ile mysterieuse",      desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "🗺️", label: "Cartographe des oceans", desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "🫧", label: "Bulle parfaite",       desc: "10/10 sur une session" },
+        daily_3:      { icon: "🪸", label: "Corail fleurissant",   desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "🌙", label: "Lune de maree",        desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "⚓", label: "Ancre d'or",           desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🧿", label: "Perle rare",           desc: "Atteindre le niveau 10" },
+      },
+    },
+    espace: {
+      label: "Espace",
+      hudIcon: "🚀",
+      accent: "#6f42c1",
+      accent2: "#20c997",
+      badges: {
+        first_step:   { icon: "🪐", label: "Premier decollage",    desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "🚀", label: "Fusee lancee",         desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🛸", label: "OVNI repere",          desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "👽", label: "Maitre de l'univers",  desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "⭐", label: "Etoile filante",       desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🌠", label: "Constellation",        desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "🌌", label: "Galaxie entiere",      desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🔭", label: "Astronome",            desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "🌍", label: "Cartographe cosmique", desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "☄️", label: "Comete parfaite",      desc: "10/10 sur une session" },
+        daily_3:      { icon: "🌙", label: "Lune croissante",      desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "☀️", label: "Soleil brillant",      desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "🛰️", label: "Satellite orbital",    desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🏆", label: "Astronaute decoree",   desc: "Atteindre le niveau 10" },
+      },
+    },
+    dinosaures: {
+      label: "Dinosaures",
+      hudIcon: "🦖",
+      accent: "#198754",
+      accent2: "#ffc107",
+      badges: {
+        first_step:   { icon: "🥚", label: "Eclosion",             desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "🦕", label: "Diplodocus",           desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🦖", label: "T-Rex en charge",      desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "🌋", label: "Maitre du volcan",     desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "🦴", label: "Collectionneur d'os",  desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🪨", label: "Decouvreur de fossiles", desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "🏺", label: "Musee du Dino",        desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🌿", label: "Exploration jurassique", desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "🗿", label: "Paleontologue",        desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "💎", label: "Ambre parfait",        desc: "10/10 sur une session" },
+        daily_3:      { icon: "🌳", label: "Foret ancestrale",     desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "⛰️", label: "Expedition epique",    desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "🦴", label: "Fossile rare",         desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🏆", label: "Trophee jurassique",   desc: "Atteindre le niveau 10" },
+      },
+    },
+    animaux: {
+      label: "Animaux",
+      hudIcon: "🐾",
+      accent: "#fd7e14",
+      accent2: "#28a745",
+      badges: {
+        first_step:   { icon: "🐾", label: "Premieres traces",     desc: "Reussir sa premiere reponse" },
+        streak_5:     { icon: "🐰", label: "Lapin rapide",         desc: "5 bonnes reponses d'affilee" },
+        streak_10:    { icon: "🦁", label: "Roi lion",             desc: "10 bonnes reponses d'affilee" },
+        streak_20:    { icon: "🦄", label: "Licorne magique",      desc: "20 bonnes reponses d'affilee" },
+        total_50:     { icon: "🐻", label: "Ours solide",          desc: "50 bonnes reponses au total" },
+        total_200:    { icon: "🐘", label: "Elephant sage",        desc: "200 bonnes reponses au total" },
+        total_500:    { icon: "🐉", label: "Dragon legendaire",    desc: "500 bonnes reponses au total" },
+        explorer_3:   { icon: "🦊", label: "Renard ruse",          desc: "Essayer 3 modes differents" },
+        explorer_all: { icon: "🌍", label: "Protecteur de la nature", desc: "Essayer tous les modes" },
+        perfect_10:   { icon: "🐼", label: "Panda zen",            desc: "10/10 sur une session" },
+        daily_3:      { icon: "🐢", label: "Tortue perseverante",  desc: "Jouer 3 jours de suite" },
+        daily_7:      { icon: "🦉", label: "Hibou savant",         desc: "Jouer 7 jours de suite" },
+        level_5:      { icon: "🐱", label: "Chat d'or",            desc: "Atteindre le niveau 5" },
+        level_10:     { icon: "🦅", label: "Aigle majestueux",     desc: "Atteindre le niveau 10" },
+      },
+    },
+  };
+
+  function currentTheme() { return THEMES[state.theme] || THEMES.default; }
+
+  function currentBadges() {
+    const t = currentTheme();
+    return BADGE_IDS.map(id => {
+      const b = (t.badges && t.badges[id]) || THEMES.default.badges[id];
+      return { id: id, icon: b.icon, label: b.label, desc: b.desc };
+    });
+  }
 
   const DEFAULT_STATE = {
     xp: 0,
@@ -62,6 +198,7 @@
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionMode: null,
+    theme: "default",
   };
 
   let state = load();
@@ -122,7 +259,7 @@
   function awardBadge(id) {
     if (state.badges.includes(id)) return null;
     state.badges.push(id);
-    const badge = BADGES.find(b => b.id === id);
+    const badge = currentBadges().find(b => b.id === id);
     if (badge) showBadgeToast(badge);
     return badge;
   }
@@ -158,7 +295,7 @@
       '  <div class="rw-xp-text"><span id="rw-xp">0</span> / <span id="rw-xp-max">50</span> XP</div>' +
       '</div>' +
       '<div class="rw-streak" title="Serie actuelle">🔥 <span id="rw-streak">0</span></div>' +
-      '<button class="rw-badges-btn" id="rw-badges-btn" title="Mes badges">🏅 <span id="rw-badges-count">0</span></button>';
+      '<button class="rw-badges-btn" id="rw-badges-btn" title="Mes badges"><span id="rw-badges-icon">🏅</span> <span id="rw-badges-count">0</span></button>';
     document.body.appendChild(hud);
     document.getElementById("rw-badges-btn").addEventListener("click", openBadgesModal);
     renderHud();
@@ -174,6 +311,8 @@
     document.getElementById("rw-xp-fill").style.width = p.pct + "%";
     document.getElementById("rw-streak").textContent = state.streak;
     document.getElementById("rw-badges-count").textContent = state.badges.length;
+    const iconEl = document.getElementById("rw-badges-icon");
+    if (iconEl) iconEl.textContent = currentTheme().hudIcon;
   }
 
   function flashToast(text, kind) {
@@ -227,7 +366,8 @@
     bg.id = "rw-badges-modal";
     bg.className = "rw-modal-bg";
     const unlocked = state.badges;
-    const items = BADGES.map(b => {
+    const badges = currentBadges();
+    const items = badges.map(b => {
       const got = unlocked.includes(b.id);
       return '<div class="rw-badge ' + (got ? "rw-badge-got" : "rw-badge-locked") + '">' +
         '<div class="rw-badge-icon">' + (got ? b.icon : "🔒") + '</div>' +
@@ -257,7 +397,13 @@
       '      <div class="rw-stat"><div class="rw-stat-value">' + state.totalCorrect + '</div><div class="rw-stat-label">Bonnes reponses</div></div>' +
       '      <div class="rw-stat"><div class="rw-stat-value">' + state.dailyStreak + ' j</div><div class="rw-stat-label">Serie jours</div></div>' +
       '    </div>' +
-      '    <h4 class="mt-3">Badges (' + unlocked.length + ' / ' + BADGES.length + ')</h4>' +
+      '    <div class="rw-theme-picker">' +
+      '      <label>Theme :</label>' +
+      '      <select id="rw-theme-select">' +
+              Object.keys(THEMES).map(k => '<option value="' + k + '"' + (state.theme === k ? ' selected' : '') + '>' + THEMES[k].hudIcon + ' ' + THEMES[k].label + '</option>').join("") +
+      '      </select>' +
+      '    </div>' +
+      '    <h4 class="mt-3">Badges (' + unlocked.length + ' / ' + badges.length + ')</h4>' +
       '    <div class="rw-badges-grid">' + items + '</div>' +
       '    <h4 class="mt-3">Progression par mode</h4>' +
       '    <div class="rw-modes">' + modeRows + '</div>' +
@@ -265,7 +411,27 @@
       '</div>';
     document.body.appendChild(bg);
     document.getElementById("rw-modal-close").addEventListener("click", closeBadgesModal);
+    const sel = document.getElementById("rw-theme-select");
+    if (sel) sel.addEventListener("change", function (e) { setTheme(e.target.value); });
     bg.addEventListener("click", e => { if (e.target === bg) closeBadgesModal(); });
+  }
+
+  function setTheme(themeId) {
+    if (!THEMES[themeId]) return;
+    state.theme = themeId;
+    save();
+    applyThemeVars();
+    renderHud();
+    closeBadgesModal();
+    openBadgesModal();
+    flashToast("Theme : " + THEMES[themeId].hudIcon + " " + THEMES[themeId].label, "level");
+  }
+
+  function applyThemeVars() {
+    const t = currentTheme();
+    const root = document.documentElement;
+    root.style.setProperty("--rw-accent", t.accent);
+    root.style.setProperty("--rw-accent2", t.accent2);
   }
 
   function closeBadgesModal() {
@@ -333,6 +499,7 @@
     ensureHud();
     updateDailyStreak();
     state.level = levelFromXp(state.xp);
+    applyThemeVars();
     checkBadges();
     save();
     renderHud();
@@ -344,6 +511,10 @@
     onAnswer: onAnswer,
     resetSession: resetSession,
     openBadges: openBadgesModal,
+    setTheme: setTheme,
+    listThemes: function () {
+      return Object.keys(THEMES).map(k => ({ id: k, label: THEMES[k].label, icon: THEMES[k].hudIcon }));
+    },
     getState: getState,
   };
 
