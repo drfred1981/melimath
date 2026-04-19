@@ -7,6 +7,10 @@
   const LEVEL_STEP = 50; // XP pour passer au niveau 1 (progression quadratique apres)
   const XP_CORRECT = 10;
   const XP_STREAK_BONUS = 2; // par unite de streak au-dela de 2
+  const SERVER_ENDPOINT = "/api/profile";
+  const SERVER_SAVE_DEBOUNCE_MS = 1500;
+  const HISTORY_MAX = 500;
+  let _serverSaveTimer = null;
 
   const ENCOURAGEMENTS_OK = [
     "Bravo ! 🎉", "Super ! 🌟", "Genial ! 💫", "Tu deches ! 🔥",
@@ -199,6 +203,8 @@
     sessionTotal: 0,
     sessionMode: null,
     theme: "default",
+    history: [],
+    updatedAt: null,
   };
 
   let state = load();
@@ -215,7 +221,44 @@
   }
 
   function save() {
+    state.updatedAt = new Date().toISOString();
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    scheduleServerSave();
+  }
+
+  function scheduleServerSave() {
+    if (_serverSaveTimer) clearTimeout(_serverSaveTimer);
+    _serverSaveTimer = setTimeout(serverSave, SERVER_SAVE_DEBOUNCE_MS);
+  }
+
+  function serverSave() {
+    _serverSaveTimer = null;
+    try {
+      fetch(SERVER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+        keepalive: true,
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function serverLoad() {
+    return fetch(SERVER_ENDPOINT, { method: "GET" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (body) {
+        if (!body || !body.data) return;
+        const remote = body.data;
+        const remoteTs = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
+        const localTs = state.updatedAt ? Date.parse(state.updatedAt) : 0;
+        if (remoteTs >= localTs && Object.keys(remote).length > 0) {
+          state = Object.assign(structuredClone(DEFAULT_STATE), remote);
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+          applyThemeVars();
+          renderHud();
+        }
+      })
+      .catch(function () {});
   }
 
   function xpForLevel(level) {
@@ -452,6 +495,12 @@
     if (!state.byMode[mode]) state.byMode[mode] = { correct: 0, total: 0 };
     state.byMode[mode].total++;
 
+    if (!Array.isArray(state.history)) state.history = [];
+    state.history.push({ ts: new Date().toISOString(), mode: mode, correct: !!correct });
+    if (state.history.length > HISTORY_MAX) {
+      state.history.splice(0, state.history.length - HISTORY_MAX);
+    }
+
     if (correct) {
       state.streak++;
       state.bestStreak = Math.max(state.bestStreak, state.streak);
@@ -484,6 +533,7 @@
     checkBadges();
     save();
     renderHud();
+    serverLoad();
   }
 
   function resetSession(mode) {
@@ -512,6 +562,8 @@
     resetSession: resetSession,
     openBadges: openBadgesModal,
     setTheme: setTheme,
+    serverSave: serverSave,
+    serverLoad: serverLoad,
     listThemes: function () {
       return Object.keys(THEMES).map(k => ({ id: k, label: THEMES[k].label, icon: THEMES[k].hudIcon }));
     },
