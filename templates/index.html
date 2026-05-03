@@ -465,6 +465,97 @@
         .pl-input-area input:focus {
             border-bottom-color: #0b5ed7;
         }
+
+        /* Navigation : breadcrumb dans le toggle */
+        .nav-tabs .nav-link.dropdown-toggle .nav-current {
+            font-weight: 500;
+            opacity: 0.85;
+            margin-left: 0.35rem;
+        }
+        .nav-tabs .nav-link.dropdown-toggle .nav-current:not(.d-none)::before {
+            content: "\2022 \00a0";
+        }
+        .dropdown-menu .dropdown-item.active {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+        /* Grammaire */
+        .gr-question {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 0.85rem 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            margin: 0.5rem 0 1rem 0;
+        }
+        .gr-sentence {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #adb5bd;
+            margin: 0.5rem 0;
+            line-height: 2.2;
+        }
+        .gr-word {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 3px;
+            border-radius: 8px;
+            background: #fff;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .gr-word:hover { background: #e7f1ff; border-color: #0d6efd; }
+        .gr-word.selected { background: #0d6efd; color: #fff; border-color: #0a58ca; }
+        .gr-word.correct { background: #198754; color: #fff; border-color: #146c43; }
+        .gr-word.wrong { background: #dc3545; color: #fff; border-color: #b02a37; }
+        .gr-word.disabled { cursor: default; pointer-events: none; }
+        .gr-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+        .gr-choices .btn {
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 14px 8px;
+        }
+        .gr-definition {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            text-align: left;
+        }
+        .gr-definition .gr-def-title {
+            font-weight: 800;
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+        .gr-definition .gr-def-text {
+            font-size: 0.98rem;
+            color: #533f03;
+        }
+        .gr-definition .gr-def-example {
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: #6c4d00;
+        }
+        .gr-definition .btn-lu {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -476,59 +567,37 @@
 </nav>
 
 <div class="container mt-3">
-    <!-- Onglets -->
+    <!-- Onglets : 2 grandes sections (Maths / Fran&ccedil;ais) -->
     <ul class="nav nav-tabs justify-content-center" id="modeTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-mode="addition"
-                    type="button" role="tab">Addition</button>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" data-bs-toggle="dropdown" href="#" role="button" id="navMaths">
+                &#x1F9EE; Maths <span class="nav-current d-none"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item active" href="#" data-mode="addition">Addition</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="soustraction">Soustraction</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="multiplication">Multiplication</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="calcul_ligne">Calcul en ligne</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-mode="addition_colonne">Addition pos&eacute;e</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="soustraction_colonne">Soustraction pos&eacute;e</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-mode="conversions">Conversions</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="fractions">Fractions</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="problemes">Probl&egrave;mes</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="diagrammes">Diagrammes</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="geometrie">G&eacute;om&eacute;trie</a></li>
+            </ul>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="soustraction"
-                    type="button" role="tab">Soustraction</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="multiplication"
-                    type="button" role="tab">Multiplication</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="calcul_ligne"
-                    type="button" role="tab">Calcul en ligne</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="addition_colonne"
-                    type="button" role="tab">Addition pos&eacute;e</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="soustraction_colonne"
-                    type="button" role="tab">Soustraction pos&eacute;e</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="conversions"
-                    type="button" role="tab">Conversions</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="fractions"
-                    type="button" role="tab">Fractions</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="problemes"
-                    type="button" role="tab">Probl&egrave;mes</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="diagrammes"
-                    type="button" role="tab">Diagrammes</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="geometrie"
-                    type="button" role="tab">G&eacute;om&eacute;trie</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="francais"
-                    type="button" role="tab">Langage</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-mode="pluriels"
-                    type="button" role="tab">Pluriels</button>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" id="navFrancais">
+                &#x1F4D6; Fran&ccedil;ais <span class="nav-current d-none"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-mode="francais">Conjugaison</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="pluriels">Pluriels</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="grammaire">Grammaire</a></li>
+            </ul>
         </li>
     </ul>
 
@@ -798,6 +867,23 @@
             </div>
         </div>
 
+        <!-- ====== ZONE GRAMMAIRE ====== -->
+        <div id="grammaireMode" class="d-none">
+            <div class="gr-question" id="grQuestion"></div>
+            <div class="gr-sentence d-none" id="grSentence"></div>
+            <div class="gr-choices d-none" id="grChoicesArea"></div>
+            <div class="text-center feedback mb-2" id="grFeedback"></div>
+            <div id="grDefinitionArea" class="gr-definition d-none">
+                <div class="gr-def-title">&#x1F4DA; Rappel de la d&eacute;finition</div>
+                <div class="gr-def-text" id="grDefText"></div>
+                <div class="gr-def-example" id="grDefExample"></div>
+                <button class="btn btn-warning btn-lu" id="btnGrLu">J&apos;ai lu la d&eacute;finition &#x2705;</button>
+            </div>
+            <div id="btnNextGrArea" class="mb-3 d-none">
+                <button class="btn btn-success btn-next w-100" id="btnNextGr" disabled>Suivant &#x27A1;</button>
+            </div>
+        </div>
+
         <!-- ====== ZONE PLURIELS ====== -->
         <div id="plurielsMode" class="d-none">
             <div class="pl-word" id="plWord"></div>
@@ -863,6 +949,10 @@
     let plCorrectAnswer = '';
     let plSubMode = 'qcm';     // 'qcm' or 'input'
     let plCurrentRule = '';
+
+    // Grammaire state
+    let grCurrentQuestion = null;
+    let grDefinitionViewed = true;
 
     // ===================== DOM REFS =====================
     const elCalc = document.getElementById('calcul');
@@ -964,6 +1054,19 @@
     const btnNextFrArea = document.getElementById('btnNextFrArea');
     const btnNextFr = document.getElementById('btnNextFr');
 
+    // Grammaire DOM
+    const grammaireMode = document.getElementById('grammaireMode');
+    const grQuestionEl = document.getElementById('grQuestion');
+    const grSentenceEl = document.getElementById('grSentence');
+    const grChoicesArea = document.getElementById('grChoicesArea');
+    const grFeedbackEl = document.getElementById('grFeedback');
+    const grDefinitionArea = document.getElementById('grDefinitionArea');
+    const grDefText = document.getElementById('grDefText');
+    const grDefExample = document.getElementById('grDefExample');
+    const btnGrLu = document.getElementById('btnGrLu');
+    const btnNextGrArea = document.getElementById('btnNextGrArea');
+    const btnNextGr = document.getElementById('btnNextGr');
+
     // Pluriels DOM
     const plurielsMode = document.getElementById('plurielsMode');
     const plWordEl = document.getElementById('plWord');
@@ -994,6 +1097,7 @@
         geometrieMode.classList.add('d-none');
         francaisMode.classList.add('d-none');
         plurielsMode.classList.add('d-none');
+        grammaireMode.classList.add('d-none');
         calculArea.classList.remove('d-none');
         problemArea.classList.add('d-none');
 
@@ -1021,6 +1125,9 @@
         } else if (mode === 'pluriels') {
             plurielsMode.classList.remove('d-none');
             timerDuration = 20;
+        } else if (mode === 'grammaire') {
+            grammaireMode.classList.remove('d-none');
+            timerDuration = 35;
         } else if (mode === 'problemes') {
             keypadMode.classList.remove('d-none');
             calculArea.classList.add('d-none');
@@ -1036,9 +1143,24 @@
     }
 
     document.querySelectorAll('[data-mode]').forEach(tab => {
-        tab.addEventListener('click', function () {
+        tab.addEventListener('click', function (e) {
+            e.preventDefault();
             document.querySelectorAll('[data-mode]').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link.dropdown-toggle').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-current').forEach(s => { s.textContent = ''; s.classList.add('d-none'); });
             this.classList.add('active');
+            const parentDropdown = this.closest('.dropdown');
+            if (parentDropdown) {
+                const toggle = parentDropdown.querySelector('.nav-link.dropdown-toggle');
+                if (toggle) {
+                    toggle.classList.add('active');
+                    const label = toggle.querySelector('.nav-current');
+                    if (label) {
+                        label.textContent = this.textContent.trim();
+                        label.classList.remove('d-none');
+                    }
+                }
+            }
             mode = this.dataset.mode;
             if (window.Rewards) window.Rewards.resetSession(mode);
             score = 0; total = 0;
@@ -1091,6 +1213,8 @@
             showFrFeedback(false, true);
         } else if (mode === 'pluriels') {
             showPlFeedback(false, true);
+        } else if (mode === 'grammaire') {
+            showGrFeedback(false, true);
         } else {
             showFeedback(false, true);
             showNext();
@@ -2797,6 +2921,220 @@
     btnNextPl.addEventListener('click', newRound);
 
     // ====================================================================
+    //                    GRAMMAIRE
+    // ====================================================================
+
+    const grDefinitions = {
+        phrase_declarative: { title: 'La phrase d\u00e9clarative', text: 'Une phrase d\u00e9clarative sert \u00e0 dire ou raconter quelque chose. Elle se termine par un point ( . ).', example: 'Exemple : Le chat dort sur le canap\u00e9.' },
+        phrase_negative:    { title: 'La phrase n\u00e9gative', text: 'Une phrase n\u00e9gative dit que quelque chose n\u2019est PAS vrai. Elle contient deux mots de n\u00e9gation : ne ... pas, ne ... plus, ne ... jamais, ne ... rien.', example: 'Exemple : Je ne mange pas de bonbons.' },
+        phrase_interrogative:{ title: 'La phrase interrogative', text: 'Une phrase interrogative sert \u00e0 poser une question. Elle se termine par un point d\u2019interrogation ( ? ).', example: 'Exemple : Veux-tu jouer avec moi ?' },
+        phrase_exclamative: { title: 'La phrase exclamative', text: 'Une phrase exclamative exprime une \u00e9motion forte (joie, surprise, col\u00e8re). Elle se termine par un point d\u2019exclamation ( ! ).', example: 'Exemple : Comme c\u2019est beau !' },
+        verbe:              { title: 'Le verbe', text: 'Le verbe est le mot qui indique l\u2019action ou l\u2019\u00e9tat. Il change selon le temps. On le trouve avec \u00ab Que fait... ? \u00bb', example: 'Exemple : Lila mange une pomme. \u2192 mange est le verbe.' },
+        sujet:              { title: 'Le sujet du verbe', text: 'Le sujet est celui qui fait l\u2019action. On le trouve avec \u00ab Qui est-ce qui... ? \u00bb plac\u00e9 devant le verbe.', example: 'Exemple : Lila mange une pomme. \u2192 Qui mange ? Lila.' },
+        pronom_personnel:   { title: 'Les pronoms personnels', text: 'Ils remplacent un nom. Singulier : je, tu, il, elle, on. Pluriel : nous, vous, ils, elles.', example: 'Exemple : Lila joue. \u2192 Elle joue.' },
+        pronom_possessif:   { title: 'Les pronoms possessifs', text: 'Ils remplacent un nom et indiquent l\u2019appartenance : le mien, la tienne, les siens, la n\u00f4tre, le v\u00f4tre, les leurs...', example: 'Exemple : Ce livre est \u00e0 moi. \u2192 C\u2019est le mien.' },
+        nom_propre:         { title: 'Le nom propre', text: 'Il d\u00e9signe une personne, un animal ou un lieu pr\u00e9cis. Il commence toujours par une majuscule.', example: 'Exemple : Paris, Lila, France, Mistigri.' },
+        nom_commun:         { title: 'Le nom commun', text: 'Il d\u00e9signe une chose, une personne ou un animal en g\u00e9n\u00e9ral. Minuscule, souvent pr\u00e9c\u00e9d\u00e9 d\u2019un d\u00e9terminant.', example: 'Exemple : un chat, la table, des fleurs.' },
+        genre:              { title: 'Le genre du nom', text: 'Soit masculin (le, un) soit f\u00e9minin (la, une). On le trouve gr\u00e2ce au d\u00e9terminant.', example: 'Exemple : le chat (masculin), la table (f\u00e9minin).' },
+        nombre:             { title: 'Le nombre du nom', text: 'Soit singulier (un seul) soit pluriel (plusieurs). Au pluriel, le nom prend g\u00e9n\u00e9ralement -s ou -x.', example: 'Exemple : un chat, des chats.' },
+        article:            { title: 'Les articles', text: 'D\u00e9terminants devant le nom. D\u00e9finis : le, la, l\u2019, les. Ind\u00e9finis : un, une, des.', example: 'Exemple : LE chien, UNE pomme, LES enfants.' },
+        determinant_possessif:{ title: 'Les d\u00e9terminants possessifs', text: 'Ils indiquent l\u2019appartenance et se placent devant le nom : mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, nos, vos, leur, leurs.', example: 'Exemple : MA poup\u00e9e, TON livre, NOS amis.' },
+        groupe_nominal:     { title: 'Le groupe nominal (GN)', text: 'Form\u00e9 d\u2019un nom (chef du groupe) et de son d\u00e9terminant. Il peut aussi contenir un adjectif.', example: 'Exemple : la grande maison \u2192 d\u00e9t (la) + adj (grande) + nom (maison).' },
+        adjectif:           { title: 'L\u2019adjectif qualificatif', text: 'Il qualifie un nom : il dit comment il est. Il s\u2019accorde en genre et en nombre.', example: 'Exemple : un petit chat, une petite souris, des petits chats.' }
+    };
+
+    const grQuestions = [
+        { type:'qcm', prompt:'Que sert \u00e0 faire une phrase interrogative ?', choices:['\u00c0 raconter quelque chose','\u00c0 poser une question','\u00c0 exprimer une \u00e9motion forte','\u00c0 dire que c\u2019est faux'], correct:'\u00c0 poser une question', defKey:'phrase_interrogative' },
+        { type:'qcm', prompt:'Comment se termine une phrase exclamative ?', choices:['Par un point ( . )','Par un point d\u2019interrogation ( ? )','Par un point d\u2019exclamation ( ! )','Par une virgule ( , )'], correct:'Par un point d\u2019exclamation ( ! )', defKey:'phrase_exclamative' },
+        { type:'qcm', prompt:'Quels mots permettent de former une phrase n\u00e9gative ?', choices:['toujours, encore','ne ... pas','tr\u00e8s, beaucoup','parce que, mais'], correct:'ne ... pas', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un verbe ?', choices:['Un mot qui qualifie un nom','Un mot qui indique l\u2019action ou l\u2019\u00e9tat','Un petit mot devant le nom','Le nom d\u2019une personne'], correct:'Un mot qui indique l\u2019action ou l\u2019\u00e9tat', defKey:'verbe' },
+        { type:'qcm', prompt:'Comment trouve-t-on le sujet du verbe ?', choices:['On regarde le dernier mot','On demande \u00ab Qui est-ce qui... ? \u00bb','On compte les lettres','On cherche la majuscule'], correct:'On demande \u00ab Qui est-ce qui... ? \u00bb', defKey:'sujet' },
+        { type:'qcm', prompt:'Quel pronom personnel est au PLURIEL ?', choices:['je','tu','elle','nous'], correct:'nous', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Quel pronom personnel est au SINGULIER ?', choices:['ils','vous','il','elles'], correct:'il', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Lequel est un pronom POSSESSIF ?', choices:['le mien','celui-ci','lequel','on'], correct:'le mien', defKey:'pronom_possessif' },
+        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un nom propre ?', choices:['Un nom de chose en g\u00e9n\u00e9ral','Un nom qui d\u00e9signe une personne ou un lieu pr\u00e9cis','Un nom de famille uniquement','Un nom \u00e0 la mode'], correct:'Un nom qui d\u00e9signe une personne ou un lieu pr\u00e9cis', defKey:'nom_propre' },
+        { type:'qcm', prompt:'Comment commence un nom propre ?', choices:['Par une minuscule','Par une majuscule','Par un d\u00e9terminant','Par un adjectif'], correct:'Par une majuscule', defKey:'nom_propre' },
+        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un d\u00e9terminant ?', choices:['Un mot qui qualifie le nom','Un petit mot plac\u00e9 devant le nom','Le verbe de la phrase','Le sujet de la phrase'], correct:'Un petit mot plac\u00e9 devant le nom', defKey:'article' },
+        { type:'qcm', prompt:'Lequel est un ARTICLE d\u00e9fini ?', choices:['un','une','le','mon'], correct:'le', defKey:'article' },
+        { type:'qcm', prompt:'Lequel est un d\u00e9terminant POSSESSIF ?', choices:['les','ma','des','l\u2019'], correct:'ma', defKey:'determinant_possessif' },
+        { type:'qcm', prompt:'De quoi est form\u00e9 le groupe nominal ?', choices:['D\u2019un verbe et d\u2019un sujet','D\u2019un nom et de son d\u00e9terminant','D\u2019un adjectif tout seul','De deux verbes'], correct:'D\u2019un nom et de son d\u00e9terminant', defKey:'groupe_nominal' },
+        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un adjectif ?', choices:['Un mot qui dit l\u2019action','Un mot qui qualifie le nom','Un nom propre','Un d\u00e9terminant'], correct:'Un mot qui qualifie le nom', defKey:'adjectif' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Comme cette glace est d\u00e9licieuse !', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Exclamative', defKey:'phrase_exclamative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'O\u00f9 vas-tu apr\u00e8s l\u2019\u00e9cole ?', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Interrogative', defKey:'phrase_interrogative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Je ne veux pas de soupe.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'N\u00e9gative', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Le chien dort dans son panier.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'D\u00e9clarative', defKey:'phrase_declarative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Tu n\u2019as jamais vu la mer.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'N\u00e9gative', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Quel beau jardin !', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Exclamative', defKey:'phrase_exclamative' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Le chat mange une souris.', correct:'mange', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'M\u00e9lissa joue dans le jardin.', correct:'joue', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Les oiseaux chantent au matin.', correct:'chantent', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Mon p\u00e8re lit un livre.', correct:'lit', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Nous mangeons une glace.', correct:'mangeons', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Le chat dort sur le canap\u00e9.', correct:'chat', defKey:'sujet' },
+        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Lila mange une pomme.', correct:'Lila', defKey:'sujet' },
+        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Les enfants jouent dehors.', correct:'enfants', defKey:'sujet' },
+        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Mon fr\u00e8re cuisine des cr\u00eapes.', correct:'fr\u00e8re', defKey:'sujet' },
+        { type:'qcm', prompt:'Combien de personnes le pronom \u00ab nous \u00bb d\u00e9signe-t-il ?', choices:['Une seule personne','Plusieurs personnes','\u00c7a d\u00e9pend','Aucune personne'], correct:'Plusieurs personnes', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Le pronom \u00ab elles \u00bb est :', choices:['singulier f\u00e9minin','pluriel f\u00e9minin','singulier masculin','pluriel masculin'], correct:'pluriel f\u00e9minin', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Lequel de ces mots est un NOM PROPRE ?', choices:['chien','pomme','Paris','arbre'], correct:'Paris', defKey:'nom_propre' },
+        { type:'qcm', prompt:'Lequel de ces mots est un NOM COMMUN ?', choices:['Lila','France','maison','Mistigri'], correct:'maison', defKey:'nom_commun' },
+        { type:'word', prompt:'Clique sur le NOM PROPRE de la phrase.', sentence:'Lila habite en France.', correct:'Lila', defKey:'nom_propre' },
+        { type:'word', prompt:'Clique sur un NOM COMMUN de la phrase.', sentence:'Le chien aboie tr\u00e8s fort.', correct:'chien', defKey:'nom_commun' },
+        { type:'qcm', prompt:'Quel est le genre du nom \u00ab table \u00bb ?', choices:['Masculin','F\u00e9minin','Singulier','Pluriel'], correct:'F\u00e9minin', defKey:'genre' },
+        { type:'qcm', prompt:'Quel est le genre du nom \u00ab cheval \u00bb ?', choices:['Masculin','F\u00e9minin','Singulier','Pluriel'], correct:'Masculin', defKey:'genre' },
+        { type:'qcm', prompt:'Quel est le nombre du groupe \u00ab les enfants \u00bb ?', choices:['Singulier','Pluriel','F\u00e9minin','Masculin'], correct:'Pluriel', defKey:'nombre' },
+        { type:'qcm', prompt:'Quel est le nombre du groupe \u00ab une fleur \u00bb ?', choices:['Singulier','Pluriel','F\u00e9minin','Masculin'], correct:'Singulier', defKey:'nombre' },
+        { type:'word', prompt:'Clique sur le D\u00c9TERMINANT de la phrase.', sentence:'La fleur est tr\u00e8s belle.', correct:'La', defKey:'article' },
+        { type:'word', prompt:'Clique sur le D\u00c9TERMINANT POSSESSIF de la phrase.', sentence:'Mon livre est sur la table.', correct:'Mon', defKey:'determinant_possessif' },
+        { type:'word', prompt:'Clique sur l\u2019ADJECTIF de la phrase.', sentence:'Le petit chat est joli.', correct:'petit', defKey:'adjectif' },
+        { type:'word', prompt:'Clique sur l\u2019ADJECTIF de la phrase.', sentence:'Une grande maison rouge.', correct:'grande', defKey:'adjectif' },
+        { type:'qcm', prompt:'Dans \u00ab la grande maison \u00bb, quel est le groupe nominal ?', choices:['grande','la grande maison','maison','la'], correct:'la grande maison', defKey:'groupe_nominal' },
+        { type:'qcm', prompt:'Dans \u00ab mon petit chien blanc \u00bb, quel est le NOM (chef du GN) ?', choices:['mon','petit','chien','blanc'], correct:'chien', defKey:'groupe_nominal' }
+    ];
+
+    function grSplitWords(sentence) {
+        const re = /([A-Za-z\u00C0-\u00FF\u2019']+|[.,!?;:])/g;
+        const tokens = [];
+        let m;
+        while ((m = re.exec(sentence)) !== null) tokens.push(m[0]);
+        return tokens;
+    }
+
+    function generateGrammaire() {
+        grCurrentQuestion = pick(grQuestions);
+        grDefinitionViewed = true;
+        grQuestionEl.textContent = grCurrentQuestion.prompt;
+        grFeedbackEl.textContent = '';
+        grFeedbackEl.className = 'text-center feedback';
+        grDefinitionArea.classList.add('d-none');
+        btnNextGrArea.classList.add('d-none');
+        btnNextGr.disabled = false;
+        btnGrLu.disabled = false;
+        btnGrLu.textContent = 'J\u2019ai lu la d\u00e9finition \u2705';
+
+        if (grCurrentQuestion.type === 'word') {
+            grSentenceEl.classList.remove('d-none');
+            grSentenceEl.innerHTML = '';
+            grChoicesArea.classList.add('d-none');
+            grSplitWords(grCurrentQuestion.sentence).forEach(tok => {
+                if (/^[.,!?;:]$/.test(tok)) {
+                    grSentenceEl.appendChild(document.createTextNode(tok + ' '));
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'gr-word';
+                    span.textContent = tok;
+                    span.addEventListener('click', () => validateGrammaireWord(span, tok));
+                    grSentenceEl.appendChild(span);
+                    grSentenceEl.appendChild(document.createTextNode(' '));
+                }
+            });
+        } else {
+            grChoicesArea.classList.remove('d-none');
+            grChoicesArea.innerHTML = '';
+            if (grCurrentQuestion.sentence) {
+                grSentenceEl.classList.remove('d-none');
+                grSentenceEl.textContent = grCurrentQuestion.sentence;
+            } else {
+                grSentenceEl.classList.add('d-none');
+            }
+            const choices = grCurrentQuestion.choices.slice();
+            for (let i = choices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [choices[i], choices[j]] = [choices[j], choices[i]];
+            }
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary';
+                btn.textContent = c;
+                btn.addEventListener('click', () => validateGrammaireQcm(c, btn));
+                grChoicesArea.appendChild(btn);
+            });
+        }
+    }
+
+    function validateGrammaireWord(span, word) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = word === grCurrentQuestion.correct;
+        if (isCorrect) score++;
+        updateScore();
+        grSentenceEl.querySelectorAll('.gr-word').forEach(w => {
+            w.classList.add('disabled');
+            if (w.textContent === grCurrentQuestion.correct) w.classList.add('correct');
+            else if (w === span && !isCorrect) w.classList.add('wrong');
+        });
+        showGrFeedback(isCorrect, false);
+    }
+
+    function validateGrammaireQcm(chosen, btn) {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const isCorrect = chosen === grCurrentQuestion.correct;
+        if (isCorrect) score++;
+        updateScore();
+        grChoicesArea.querySelectorAll('button').forEach(b => {
+            b.disabled = true;
+            if (b.textContent === grCurrentQuestion.correct) b.className = 'btn btn-success';
+            else if (b === btn && !isCorrect) b.className = 'btn btn-danger';
+        });
+        showGrFeedback(isCorrect, false);
+    }
+
+    function showGrFeedback(correct, timeout) {
+        if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (timeout) {
+            grFeedbackEl.className = 'text-center feedback feedback-wrong';
+            grFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + grCurrentQuestion.correct;
+            if (grCurrentQuestion.type === 'word') {
+                grSentenceEl.querySelectorAll('.gr-word').forEach(w => {
+                    w.classList.add('disabled');
+                    if (w.textContent === grCurrentQuestion.correct) w.classList.add('correct');
+                });
+            } else {
+                grChoicesArea.querySelectorAll('button').forEach(b => {
+                    b.disabled = true;
+                    if (b.textContent === grCurrentQuestion.correct) b.className = 'btn btn-success';
+                });
+            }
+        } else if (correct) {
+            grFeedbackEl.className = 'text-center feedback feedback-correct';
+            grFeedbackEl.textContent = 'Bravo ! \u2705';
+        } else {
+            grFeedbackEl.className = 'text-center feedback feedback-wrong';
+            grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + grCurrentQuestion.correct + ' \u274C';
+        }
+        if (!correct) {
+            const def = grDefinitions[grCurrentQuestion.defKey];
+            if (def) {
+                grDefText.innerHTML = '<strong>' + def.title + '</strong> &mdash; ' + def.text;
+                grDefExample.textContent = def.example;
+                grDefinitionArea.classList.remove('d-none');
+                grDefinitionViewed = false;
+                btnNextGr.disabled = true;
+            }
+        }
+        btnNextGrArea.classList.remove('d-none');
+        if (correct) btnNextGr.focus();
+    }
+
+    btnGrLu.addEventListener('click', () => {
+        grDefinitionViewed = true;
+        btnNextGr.disabled = false;
+        btnGrLu.disabled = true;
+        btnGrLu.textContent = 'D\u00e9finition lue \u2705';
+        btnNextGr.focus();
+    });
+
+    btnNextGr.addEventListener('click', () => {
+        if (!grDefinitionViewed) return;
+        newRound();
+    });
+
+    // ====================================================================
     //                    MAIN ROUND LOGIC
     // ====================================================================
 
@@ -2820,6 +3158,8 @@
             generateFrancais();
         } else if (mode === 'pluriels') {
             generatePluriel();
+        } else if (mode === 'grammaire') {
+            generateGrammaire();
         } else {
             // Keypad modes
             userAnswer = '';
