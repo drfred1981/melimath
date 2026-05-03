@@ -872,6 +872,9 @@
             <div class="gr-question" id="grQuestion"></div>
             <div class="gr-sentence d-none" id="grSentence"></div>
             <div class="gr-choices d-none" id="grChoicesArea"></div>
+            <div id="btnValidateGrArea" class="mb-3 d-none">
+                <button class="btn btn-primary w-100" id="btnValidateGr" disabled>Valider ma s&eacute;lection</button>
+            </div>
             <div class="text-center feedback mb-2" id="grFeedback"></div>
             <div id="grDefinitionArea" class="gr-definition d-none">
                 <div class="gr-def-title">&#x1F4DA; Rappel de la d&eacute;finition</div>
@@ -1066,6 +1069,8 @@
     const btnGrLu = document.getElementById('btnGrLu');
     const btnNextGrArea = document.getElementById('btnNextGrArea');
     const btnNextGr = document.getElementById('btnNextGr');
+    const btnValidateGrArea = document.getElementById('btnValidateGrArea');
+    const btnValidateGr = document.getElementById('btnValidateGr');
 
     // Pluriels DOM
     const plurielsMode = document.getElementById('plurielsMode');
@@ -2930,7 +2935,7 @@
         phrase_interrogative:{ title: 'La phrase interrogative', text: 'Une phrase interrogative sert \u00e0 poser une question. Elle se termine par un point d\u2019interrogation ( ? ).', example: 'Exemple : Veux-tu jouer avec moi ?' },
         phrase_exclamative: { title: 'La phrase exclamative', text: 'Une phrase exclamative exprime une \u00e9motion forte (joie, surprise, col\u00e8re). Elle se termine par un point d\u2019exclamation ( ! ).', example: 'Exemple : Comme c\u2019est beau !' },
         verbe:              { title: 'Le verbe', text: 'Le verbe est le mot qui indique l\u2019action ou l\u2019\u00e9tat. Il change selon le temps. On le trouve avec \u00ab Que fait... ? \u00bb', example: 'Exemple : Lila mange une pomme. \u2192 mange est le verbe.' },
-        sujet:              { title: 'Le sujet du verbe', text: 'Le sujet est celui qui fait l\u2019action. On le trouve avec \u00ab Qui est-ce qui... ? \u00bb plac\u00e9 devant le verbe.', example: 'Exemple : Lila mange une pomme. \u2192 Qui mange ? Lila.' },
+        sujet:              { title: 'Le sujet du verbe', text: 'Le sujet est celui qui fait l\u2019action. On le trouve avec \u00ab Qui est-ce qui... ? \u00bb plac\u00e9 devant le verbe. Souvent il s\u2019agit d\u2019un GROUPE de mots (d\u00e9terminant + nom + adjectif), il faut tout cliquer.', example: 'Exemple : Le grand cheval mange. \u2192 Qui mange ? Le grand cheval.' },
         pronom_personnel:   { title: 'Les pronoms personnels', text: 'Ils remplacent un nom. Singulier : je, tu, il, elle, on. Pluriel : nous, vous, ils, elles.', example: 'Exemple : Lila joue. \u2192 Elle joue.' },
         pronom_possessif:   { title: 'Les pronoms possessifs', text: 'Ils remplacent un nom et indiquent l\u2019appartenance : le mien, la tienne, les siens, la n\u00f4tre, le v\u00f4tre, les leurs...', example: 'Exemple : Ce livre est \u00e0 moi. \u2192 C\u2019est le mien.' },
         nom_propre:         { title: 'Le nom propre', text: 'Il d\u00e9signe une personne, un animal ou un lieu pr\u00e9cis. Il commence toujours par une majuscule.', example: 'Exemple : Paris, Lila, France, Mistigri.' },
@@ -2970,10 +2975,14 @@
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Les oiseaux chantent au matin.', correct:'chantent', defKey:'verbe' },
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Mon p\u00e8re lit un livre.', correct:'lit', defKey:'verbe' },
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Nous mangeons une glace.', correct:'mangeons', defKey:'verbe' },
-        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Le chat dort sur le canap\u00e9.', correct:'chat', defKey:'sujet' },
-        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Lila mange une pomme.', correct:'Lila', defKey:'sujet' },
-        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Les enfants jouent dehors.', correct:'enfants', defKey:'sujet' },
-        { type:'word', prompt:'Clique sur le SUJET du verbe.', sentence:'Mon fr\u00e8re cuisine des cr\u00eapes.', correct:'fr\u00e8re', defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Le chat dort sur le canap\u00e9.', correct:['Le','chat'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Lila mange une pomme.', correct:['Lila'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Les enfants jouent dehors.', correct:['Les','enfants'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Mon fr\u00e8re cuisine des cr\u00eapes.', correct:['Mon','fr\u00e8re'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Le grand cheval mange une pomme.', correct:['Le','grand','cheval'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Mes amis jouent au ballon.', correct:['Mes','amis'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du GROUPE NOMINAL en gras, puis Valider.', sentence:'Le petit chien blanc dort.', correct:['Le','petit','chien','blanc'], defKey:'groupe_nominal' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du GROUPE NOMINAL sujet, puis Valider.', sentence:'Une grande maison rouge se voit de loin.', correct:['Une','grande','maison','rouge'], defKey:'groupe_nominal' },
         { type:'qcm', prompt:'Combien de personnes le pronom \u00ab nous \u00bb d\u00e9signe-t-il ?', choices:['Une seule personne','Plusieurs personnes','\u00c7a d\u00e9pend','Aucune personne'], correct:'Plusieurs personnes', defKey:'pronom_personnel' },
         { type:'qcm', prompt:'Le pronom \u00ab elles \u00bb est :', choices:['singulier f\u00e9minin','pluriel f\u00e9minin','singulier masculin','pluriel masculin'], correct:'pluriel f\u00e9minin', defKey:'pronom_personnel' },
         { type:'qcm', prompt:'Lequel de ces mots est un NOM PROPRE ?', choices:['chien','pomme','Paris','arbre'], correct:'Paris', defKey:'nom_propre' },
@@ -3011,6 +3020,9 @@
         btnNextGr.disabled = false;
         btnGrLu.disabled = false;
         btnGrLu.textContent = 'J\u2019ai lu la d\u00e9finition \u2705';
+        btnValidateGrArea.classList.add('d-none');
+        btnValidateGr.disabled = true;
+        btnValidateGr.className = 'btn btn-primary w-100';
 
         if (grCurrentQuestion.type === 'word') {
             grSentenceEl.classList.remove('d-none');
@@ -3024,6 +3036,23 @@
                     span.className = 'gr-word';
                     span.textContent = tok;
                     span.addEventListener('click', () => validateGrammaireWord(span, tok));
+                    grSentenceEl.appendChild(span);
+                    grSentenceEl.appendChild(document.createTextNode(' '));
+                }
+            });
+        } else if (grCurrentQuestion.type === 'multiword') {
+            grSentenceEl.classList.remove('d-none');
+            grSentenceEl.innerHTML = '';
+            grChoicesArea.classList.add('d-none');
+            btnValidateGrArea.classList.remove('d-none');
+            grSplitWords(grCurrentQuestion.sentence).forEach(tok => {
+                if (/^[.,!?;:]$/.test(tok)) {
+                    grSentenceEl.appendChild(document.createTextNode(tok + ' '));
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'gr-word';
+                    span.textContent = tok;
+                    span.addEventListener('click', () => toggleGrammaireWordSelect(span));
                     grSentenceEl.appendChild(span);
                     grSentenceEl.appendChild(document.createTextNode(' '));
                 }
@@ -3050,6 +3079,43 @@
                 grChoicesArea.appendChild(btn);
             });
         }
+    }
+
+    function toggleGrammaireWordSelect(span) {
+        if (answered) return;
+        span.classList.toggle('selected');
+        const anySelected = grSentenceEl.querySelector('.gr-word.selected') !== null;
+        btnValidateGr.disabled = !anySelected;
+    }
+
+    function validateGrammaireMultiword() {
+        if (answered) return;
+        const selected = Array.from(grSentenceEl.querySelectorAll('.gr-word.selected')).map(w => w.textContent);
+        if (selected.length === 0) return;
+        answered = true;
+        stopTimer();
+        total++;
+        const correctSet = new Set(grCurrentQuestion.correct);
+        const selSet = new Set(selected);
+        let isCorrect = correctSet.size === selSet.size;
+        if (isCorrect) for (const w of correctSet) if (!selSet.has(w)) { isCorrect = false; break; }
+        if (isCorrect) score++;
+        updateScore();
+
+        grSentenceEl.querySelectorAll('.gr-word').forEach(w => {
+            w.classList.add('disabled');
+            w.classList.remove('selected');
+            const txt = w.textContent;
+            const inCorrect = correctSet.has(txt);
+            const wasSelected = selSet.has(txt);
+            if (inCorrect && wasSelected) w.classList.add('correct');
+            else if (!inCorrect && wasSelected) w.classList.add('wrong');
+            else if (inCorrect && !wasSelected) w.classList.add('correct');
+        });
+        btnValidateGr.disabled = true;
+        btnValidateGr.classList.remove('btn-primary');
+        btnValidateGr.classList.add(isCorrect ? 'btn-success' : 'btn-danger');
+        showGrFeedback(isCorrect, false);
     }
 
     function validateGrammaireWord(span, word) {
@@ -3088,12 +3154,18 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             grFeedbackEl.className = 'text-center feedback feedback-wrong';
-            grFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + grCurrentQuestion.correct;
-            if (grCurrentQuestion.type === 'word') {
+            const repTo = Array.isArray(grCurrentQuestion.correct) ? grCurrentQuestion.correct.join(' ') : grCurrentQuestion.correct;
+            grFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + repTo;
+            if (grCurrentQuestion.type === 'word' || grCurrentQuestion.type === 'multiword') {
+                const correctSet = Array.isArray(grCurrentQuestion.correct) ? new Set(grCurrentQuestion.correct) : new Set([grCurrentQuestion.correct]);
                 grSentenceEl.querySelectorAll('.gr-word').forEach(w => {
                     w.classList.add('disabled');
-                    if (w.textContent === grCurrentQuestion.correct) w.classList.add('correct');
+                    w.classList.remove('selected');
+                    if (correctSet.has(w.textContent)) w.classList.add('correct');
                 });
+                if (grCurrentQuestion.type === 'multiword') {
+                    btnValidateGr.disabled = true;
+                }
             } else {
                 grChoicesArea.querySelectorAll('button').forEach(b => {
                     b.disabled = true;
@@ -3105,7 +3177,8 @@
             grFeedbackEl.textContent = 'Bravo ! \u2705';
         } else {
             grFeedbackEl.className = 'text-center feedback feedback-wrong';
-            grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + grCurrentQuestion.correct + ' \u274C';
+            const reponse = Array.isArray(grCurrentQuestion.correct) ? grCurrentQuestion.correct.join(' ') : grCurrentQuestion.correct;
+            grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + reponse + ' \u274C';
         }
         if (!correct) {
             const def = grDefinitions[grCurrentQuestion.defKey];
@@ -3133,6 +3206,8 @@
         if (!grDefinitionViewed) return;
         newRound();
     });
+
+    btnValidateGr.addEventListener('click', validateGrammaireMultiword);
 
     // ====================================================================
     //                    MAIN ROUND LOGIC
