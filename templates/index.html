@@ -598,6 +598,23 @@
             <button id="poLoginBack" class="btn btn-link w-100 mt-2">&#x21A9; Retour</button>
         </div>
 
+        <!-- Vue 4 : definition du PIN au premier login (profil migre sans PIN) -->
+        <div id="poView-setpin" class="d-none">
+            <h4 class="text-center mb-3">Bonjour <span id="poSetpinName"></span> !</h4>
+            <p class="text-center text-muted">C'est ta premi&egrave;re fois ici.<br>Choisis un code &agrave; 4 chiffres pour prot&eacute;ger ton profil.</p>
+            <div class="mb-3">
+                <label class="form-label">Nouveau code (4 chiffres)</label>
+                <input type="password" class="form-control" id="poSetpinNew" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Confirme ton code</label>
+                <input type="password" class="form-control" id="poSetpinConfirm" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234">
+            </div>
+            <div id="poSetpinError" class="text-danger d-none mb-2"></div>
+            <button id="poSetpinSubmit" class="btn btn-primary w-100">Valider mon code</button>
+            <button id="poSetpinBack" class="btn btn-link w-100 mt-2">&#x21A9; Retour</button>
+        </div>
+
         <!-- Vue 3 : creation profil -->
         <div id="poView-create" class="d-none">
             <h4 class="text-center mb-3">Nouveau profil</h4>
@@ -1026,6 +1043,8 @@
         viewList.classList.toggle('d-none', name !== 'list');
         viewLogin.classList.toggle('d-none', name !== 'login');
         viewCreate.classList.toggle('d-none', name !== 'create');
+        const viewSetpin = document.getElementById('poView-setpin');
+        if (viewSetpin) viewSetpin.classList.toggle('d-none', name !== 'setpin');
     }
 
     function showOverlay() {
@@ -1067,15 +1086,21 @@
 
     function startLogin(p) {
         pendingLogin = p;
+        if (!p.has_pin) {
+            // Premier login d'un profil sans PIN (ex: profil migre depuis le legacy)
+            // → forcer la definition d'un code avant d'entrer
+            document.getElementById('poSetpinName').textContent = p.name;
+            document.getElementById('poSetpinNew').value = '';
+            document.getElementById('poSetpinConfirm').value = '';
+            document.getElementById('poSetpinError').classList.add('d-none');
+            showView('setpin');
+            return;
+        }
         loginName.textContent = p.name;
         pinBuffer = '';
         renderPin();
         loginError.classList.add('d-none');
         showView('login');
-        if (!p.has_pin) {
-            // Pas de PIN : login direct
-            doLogin('');
-        }
     }
 
     function renderPin() {
@@ -1185,6 +1210,43 @@
             pendingLogin = { name, has_pin: true };
             doLogin(pin);
         }).catch(() => { err.textContent = 'Erreur r\u00e9seau'; err.classList.remove('d-none'); });
+    });
+
+    document.getElementById('poSetpinSubmit').addEventListener('click', () => {
+        const np = document.getElementById('poSetpinNew').value.trim();
+        const cf = document.getElementById('poSetpinConfirm').value.trim();
+        const err = document.getElementById('poSetpinError');
+        if (!/^\d{4}$/.test(np)) {
+            err.textContent = 'Le code doit faire 4 chiffres.';
+            err.classList.remove('d-none');
+            return;
+        }
+        if (np !== cf) {
+            err.textContent = 'Les deux codes ne sont pas identiques.';
+            err.classList.remove('d-none');
+            return;
+        }
+        // Le profil n'a pas encore de PIN — on envoie pin vide + new_pin
+        fetch('/api/profile/' + encodeURIComponent(pendingLogin.name), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: '', new_pin: np }),
+        }).then(r => {
+            if (!r.ok) throw new Error('http ' + r.status);
+            return r.json();
+        }).then(() => {
+            // Auto-login avec le nouveau PIN
+            pendingLogin = { name: pendingLogin.name, has_pin: true };
+            doLogin(np);
+        }).catch(() => {
+            err.textContent = 'Erreur d\u2019enregistrement du code';
+            err.classList.remove('d-none');
+        });
+    });
+
+    document.getElementById('poSetpinBack').addEventListener('click', () => {
+        pendingLogin = null;
+        showView('list');
     });
 
     btnChange.addEventListener('click', () => {
