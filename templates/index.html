@@ -597,6 +597,7 @@
                 <li><a class="dropdown-item" href="#" data-mode="francais">Conjugaison</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="pluriels">Pluriels</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="grammaire">Grammaire</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="complements">Compl&eacute;ments</a></li>
             </ul>
         </li>
     </ul>
@@ -1130,7 +1131,7 @@
         } else if (mode === 'pluriels') {
             plurielsMode.classList.remove('d-none');
             timerDuration = 20;
-        } else if (mode === 'grammaire') {
+        } else if (mode === 'grammaire' || mode === 'complements') {
             grammaireMode.classList.remove('d-none');
             timerDuration = 35;
         } else if (mode === 'problemes') {
@@ -1218,7 +1219,7 @@
             showFrFeedback(false, true);
         } else if (mode === 'pluriels') {
             showPlFeedback(false, true);
-        } else if (mode === 'grammaire') {
+        } else if (mode === 'grammaire' || mode === 'complements') {
             showGrFeedback(false, true);
         } else {
             showFeedback(false, true);
@@ -3001,6 +3002,100 @@
         { type:'qcm', prompt:'Dans \u00ab mon petit chien blanc \u00bb, quel est le NOM (chef du GN) ?', choices:['mon','petit','chien','blanc'], correct:'chien', defKey:'groupe_nominal' }
     ];
 
+    // ====================================================================
+    // Compléments (mode "complements") — réutilise l'infra grammaire
+    // Convention : dans les phrases ci-dessous, le complément à identifier
+    // est écrit en MAJUSCULES pour être bien visible.
+    // ====================================================================
+
+    const cpDefinitions = {
+        cod: {
+            title: 'Le compl\u00e9ment d\u2019objet direct (COD)',
+            text: 'Le COD compl\u00e8te le verbe SANS pr\u00e9position. On le trouve en posant la question \u00ab QUI ? \u00bb ou \u00ab QUOI ? \u00bb apr\u00e8s le verbe. Il indique sur qui ou sur quoi porte l\u2019action.',
+            example: 'Exemple : Lila mange UNE POMME. \u2192 Lila mange QUOI ? une pomme.'
+        },
+        coi: {
+            title: 'Le compl\u00e9ment d\u2019objet indirect (COI)',
+            text: 'Le COI compl\u00e8te le verbe AVEC une pr\u00e9position (\u00e0, de, pour...). On le trouve en posant \u00ab \u00c0 QUI ? \u00bb, \u00ab \u00c0 QUOI ? \u00bb, \u00ab DE QUI ? \u00bb ou \u00ab DE QUOI ? \u00bb apr\u00e8s le verbe.',
+            example: 'Exemple : Je parle \u00c0 MON AMI. \u2192 Je parle \u00c0 QUI ? \u00e0 mon ami.'
+        },
+        cct: {
+            title: 'Le compl\u00e9ment circonstanciel de temps (CCT)',
+            text: 'Le CCT pr\u00e9cise QUAND, \u00c0 QUEL MOMENT ou PENDANT COMBIEN DE TEMPS se passe l\u2019action. On le trouve avec la question \u00ab QUAND ? \u00bb. Il peut \u00eatre d\u00e9plac\u00e9 ou supprim\u00e9.',
+            example: 'Exemple : DEMAIN, nous irons \u00e0 la mer. \u2192 Quand irons-nous \u00e0 la mer ? Demain.'
+        },
+        ccl: {
+            title: 'Le compl\u00e9ment circonstanciel de lieu (CCL)',
+            text: 'Le CCL indique O\u00d9 se passe l\u2019action. On le trouve avec la question \u00ab O\u00d9 ? \u00bb. Il peut \u00eatre d\u00e9plac\u00e9 ou supprim\u00e9 sans rendre la phrase fausse.',
+            example: 'Exemple : Le chat dort SUR LE CANAP\u00c9. \u2192 O\u00f9 dort le chat ? sur le canap\u00e9.'
+        },
+        ccm: {
+            title: 'Le compl\u00e9ment circonstanciel de mani\u00e8re (CCM)',
+            text: 'Le CCM pr\u00e9cise COMMENT se passe l\u2019action. On le trouve avec la question \u00ab COMMENT ? \u00bb ou \u00ab DE QUELLE MANI\u00c8RE ? \u00bb. Souvent c\u2019est un adverbe en -MENT.',
+            example: 'Exemple : Il court RAPIDEMENT. \u2192 Comment court-il ? Rapidement.'
+        },
+        ccc: {
+            title: 'Le compl\u00e9ment circonstanciel de cause (CCC)',
+            text: 'Le CCC indique POURQUOI l\u2019action a lieu, sa cause. On le trouve avec la question \u00ab POURQUOI ? \u00bb ou \u00ab \u00c0 CAUSE DE QUOI ? \u00bb.',
+            example: 'Exemple : Il pleure DE JOIE. \u2192 Pourquoi pleure-t-il ? De joie.'
+        },
+        ccb: {
+            title: 'Le compl\u00e9ment circonstanciel de but (CCB)',
+            text: 'Le CCB indique le BUT de l\u2019action. On le trouve avec la question \u00ab DANS QUEL BUT ? \u00bb ou \u00ab POUR QUOI FAIRE ? \u00bb. Souvent il commence par \u00ab pour \u00bb suivi d\u2019un verbe \u00e0 l\u2019infinitif.',
+            example: 'Exemple : Elle s\u2019entra\u00eene POUR GAGNER LA COURSE. \u2192 Dans quel but ? pour gagner la course.'
+        }
+    };
+
+    const CP_CHOICES_TYPE = ['COD','COI','CC de temps','CC de lieu','CC de mani\u00e8re','CC de cause','CC de but'];
+
+    const cpQuestions = [
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond le COD ?', choices:['Qui ? / Quoi ?','\u00c0 qui ? / \u00c0 quoi ?','Quand ?','O\u00f9 ?'], correct:'Qui ? / Quoi ?', defKey:'cod' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond le COI ?', choices:['Qui ? / Quoi ?','\u00c0 qui ? / De quoi ?','Comment ?','O\u00f9 ?'], correct:'\u00c0 qui ? / De quoi ?', defKey:'coi' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de TEMPS ?', choices:['O\u00f9 ?','Quand ?','Comment ?','Pourquoi ?'], correct:'Quand ?', defKey:'cct' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de LIEU ?', choices:['Quand ?','Pourquoi ?','O\u00f9 ?','Comment ?'], correct:'O\u00f9 ?', defKey:'ccl' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de MANI\u00c8RE ?', choices:['O\u00f9 ?','Comment ?','Quand ?','Pourquoi ?'], correct:'Comment ?', defKey:'ccm' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de CAUSE ?', choices:['Pourquoi ?','Comment ?','Quand ?','Dans quel but ?'], correct:'Pourquoi ?', defKey:'ccc' },
+        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de BUT ?', choices:['Pourquoi ?','Dans quel but ?','Comment ?','O\u00f9 ?'], correct:'Dans quel but ?', defKey:'ccb' },
+        { type:'qcm', prompt:'Quelle est la diff\u00e9rence entre COD et COI ?', choices:['Le COD est avant le verbe','Le COI utilise une pr\u00e9position (\u00e0, de...)','Le COD est toujours masculin','Le COI est toujours pluriel'], correct:'Le COI utilise une pr\u00e9position (\u00e0, de...)', defKey:'coi' },
+
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Lila mange UNE POMME.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le chien mord LE FACTEUR.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'J\u2019\u00e9cris UNE LETTRE \u00e0 ma grand-m\u00e8re.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous regardons LA T\u00c9L\u00c9VISION.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Je parle \u00c0 MON FR\u00c8RE.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le ma\u00eetre parle DE LA RECETTE \u00e0 ses \u00e9l\u00e8ves.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Lila pense \u00c0 SES VACANCES.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Tu te souviens DE TON ANNIVERSAIRE ?', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'DEMAIN, nous irons \u00e0 la piscine.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'CHAQUE MATIN, le coq chante.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous mangeons \u00c0 MIDI.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'PENDANT LES VACANCES, je lis beaucoup.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le chat dort SUR LE CANAP\u00c9.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous allons \u00c0 LA MONTAGNE.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'\u00c0 PARIS, il y a beaucoup de monde.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Les oiseaux volent DANS LE CIEL.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il court RAPIDEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle parle DOUCEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Les enfants jouent AVEC JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il r\u00e9pond AVEC UN GRAND SOURIRE.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il pleure DE JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'L\u2019\u00e9cole est ferm\u00e9e \u00c0 CAUSE DE LA NEIGE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il a r\u00e9ussi GR\u00c2CE \u00c0 SON TRAVAIL.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle tremble DE FROID.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle s\u2019entra\u00eene POUR GAGNER LA COURSE.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Je travaille POUR R\u00c9USSIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il sort le chien POUR LUI FAIRE PRENDRE L\u2019AIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous \u00e9conomisons POUR LES VACANCES.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Le chat attrape une souris.', correct:['une','souris'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Lila lit un livre passionnant.', correct:['un','livre','passionnant'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Je parle \u00e0 mon fr\u00e8re.', correct:['\u00e0','mon','fr\u00e8re'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de TEMPS, puis Valider.', sentence:'Demain nous partons \u00e0 la mer.', correct:['Demain'], defKey:'cct' },
+        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de LIEU, puis Valider.', sentence:'Le chien dort dans son panier.', correct:['dans','son','panier'], defKey:'ccl' },
+        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de MANI\u00c8RE, puis Valider.', sentence:'Elle parle tr\u00e8s doucement.', correct:['tr\u00e8s','doucement'], defKey:'ccm' },
+        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de BUT, puis Valider.', sentence:'Il court pour gagner la course.', correct:['pour','gagner','la','course'], defKey:'ccb' }
+    ];
+
     function grSplitWords(sentence) {
         const re = /([A-Za-z\u00C0-\u00FF\u2019']+|[.,!?;:])/g;
         const tokens = [];
@@ -3010,7 +3105,8 @@
     }
 
     function generateGrammaire() {
-        grCurrentQuestion = pick(grQuestions);
+        const pool = (mode === 'complements') ? cpQuestions : grQuestions;
+        grCurrentQuestion = pick(pool);
         grDefinitionViewed = true;
         grQuestionEl.textContent = grCurrentQuestion.prompt;
         grFeedbackEl.textContent = '';
@@ -3181,7 +3277,8 @@
             grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + reponse + ' \u274C';
         }
         if (!correct) {
-            const def = grDefinitions[grCurrentQuestion.defKey];
+            const defMap = (mode === 'complements') ? cpDefinitions : grDefinitions;
+            const def = defMap[grCurrentQuestion.defKey];
             if (def) {
                 grDefText.innerHTML = '<strong>' + def.title + '</strong> &mdash; ' + def.text;
                 grDefExample.textContent = def.example;
@@ -3233,7 +3330,7 @@
             generateFrancais();
         } else if (mode === 'pluriels') {
             generatePluriel();
-        } else if (mode === 'grammaire') {
+        } else if (mode === 'grammaire' || mode === 'complements') {
             generateGrammaire();
         } else {
             // Keypad modes

@@ -317,7 +317,7 @@
     if (state.totalCorrect >= 500) awardBadge("total_500");
     const modesUsed = Object.keys(state.byMode).length;
     if (modesUsed >= 3) awardBadge("explorer_3");
-    if (modesUsed >= 13) awardBadge("explorer_all");
+    if (modesUsed >= 14) awardBadge("explorer_all");
     if (state.dailyStreak >= 3) awardBadge("daily_3");
     if (state.dailyStreak >= 7) awardBadge("daily_7");
     if (state.level >= 5) awardBadge("level_5");
