@@ -682,6 +682,15 @@
         </li>
     </ul>
 
+    <!-- Bloc affiché quand le niveau du profil n'a pas encore d'exercices -->
+    <div id="levelLockedMessage" class="d-none text-center py-5">
+        <div style="font-size:4rem;">&#x1F512;</div>
+        <h3 class="mt-3">Bient&ocirc;t disponible !</h3>
+        <p class="text-muted">Les exercices pour le niveau <strong id="levelLockedName">CE1</strong> ne sont pas encore pr&ecirc;ts.<br>
+        Pour l'instant, seul le niveau <strong>CE2</strong> a des exercices.</p>
+        <p class="small text-muted">Tu peux changer de niveau dans le bandeau bleu en haut, ou cr&eacute;er un autre profil.</p>
+    </div>
+
     <div class="game-area mt-3">
         <!-- Score -->
         <div class="score-bar d-flex justify-content-between mb-2 px-1">
@@ -1206,8 +1215,44 @@
     // Expose pour le reste de l'app
     window.melimathProfile = function () { return activeProfile; };
 
+    // ── Gate par niveau : pour l'instant, seul CE2 a des exercices ───────
+    const LEVELS_WITH_EXERCISES = new Set(['CE2']);
+
+    function applyLevelGate() {
+        const level = activeProfile ? activeProfile.level : null;
+        const tabs = document.getElementById('modeTabs');
+        const gameArea = document.querySelector('.game-area');
+        const lockedMsg = document.getElementById('levelLockedMessage');
+        const lockedName = document.getElementById('levelLockedName');
+        if (!tabs || !gameArea || !lockedMsg) return;
+
+        if (!level || LEVELS_WITH_EXERCISES.has(level)) {
+            tabs.classList.remove('d-none');
+            gameArea.classList.remove('d-none');
+            lockedMsg.classList.add('d-none');
+        } else {
+            tabs.classList.add('d-none');
+            gameArea.classList.add('d-none');
+            lockedName.textContent = level;
+            lockedMsg.classList.remove('d-none');
+        }
+    }
+
+    // Hook appelé par le sélecteur de niveau (déjà câblé plus haut)
+    window.melimathOnLevelChange = function (newLevel) {
+        applyLevelGate();
+    };
+
+    // Appliquer aussi après login
+    const _origUpdateHeader = updateHeader;
+    updateHeader = function () {
+        _origUpdateHeader.apply(this, arguments);
+        applyLevelGate();
+    };
+
     // Boot
     showOverlay();
+    applyLevelGate();
 })();
 
 (function () {
