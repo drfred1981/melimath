@@ -3,11 +3,18 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "melimath.rewards.v1";
+  const STORAGE_KEY_LEGACY = "melimath.rewards.v1";          // ancien single-user (lecture seule pour migration)
+  const STORAGE_KEY_PREFIX = "melimath.rewards.v2.";          // par profil
+  let currentProfile = null;                                   // { name, pin }
+  function currentStorageKey() {
+    return currentProfile ? STORAGE_KEY_PREFIX + currentProfile.name : null;
+  }
+  function currentServerEndpoint() {
+    return currentProfile ? "/api/profile/" + encodeURIComponent(currentProfile.name) : null;
+  }
   const LEVEL_STEP = 50; // XP pour passer au niveau 1 (progression quadratique apres)
   const XP_CORRECT = 10;
   const XP_STREAK_BONUS = 2; // par unite de streak au-dela de 2
-  const SERVER_ENDPOINT = "/api/profile";
   const SERVER_SAVE_DEBOUNCE_MS = 1500;
   const HISTORY_MAX = 500;
   let _serverSaveTimer = null;
@@ -211,7 +218,9 @@
 
   function load() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const k = currentStorageKey();
+      if (!k) return structuredClone(DEFAULT_STATE);
+      const raw = localStorage.getItem(k);
       if (!raw) return structuredClone(DEFAULT_STATE);
       const parsed = JSON.parse(raw);
       return Object.assign(structuredClone(DEFAULT_STATE), parsed);
@@ -221,8 +230,12 @@
   }
 
   function save() {
+    if (!currentProfile) return; // pas de save si pas de profil actif
     state.updatedAt = new Date().toISOString();
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    try {
+      const k = currentStorageKey();
+      if (k) localStorage.setItem(k, JSON.stringify(state));
+    } catch (e) {}
     scheduleServerSave();
   }
 
@@ -233,27 +246,37 @@
 
   function serverSave() {
     _serverSaveTimer = null;
+    if (!currentProfile) return;
+    const ep = currentServerEndpoint();
+    if (!ep) return;
     try {
-      fetch(SERVER_ENDPOINT, {
-        method: "POST",
+      fetch(ep, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state),
+        body: JSON.stringify({ pin: currentProfile.pin || "", state: state }),
         keepalive: true,
       }).catch(function () {});
     } catch (e) {}
   }
 
   function serverLoad() {
-    return fetch(SERVER_ENDPOINT, { method: "GET" })
+    if (!currentProfile) return Promise.resolve();
+    const ep = currentServerEndpoint();
+    if (!ep) return Promise.resolve();
+    const url = ep + "?pin=" + encodeURIComponent(currentProfile.pin || "");
+    return fetch(url, { method: "GET" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (body) {
-        if (!body || !body.data) return;
-        const remote = body.data;
+        if (!body || !body.state) return;
+        const remote = body.state;
         const remoteTs = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
         const localTs = state.updatedAt ? Date.parse(state.updatedAt) : 0;
         if (remoteTs >= localTs && Object.keys(remote).length > 0) {
           state = Object.assign(structuredClone(DEFAULT_STATE), remote);
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+          try {
+            const k = currentStorageKey();
+            if (k) localStorage.setItem(k, JSON.stringify(state));
+          } catch (e) {}
           applyThemeVars();
           renderHud();
         }
@@ -555,6 +578,23 @@
     renderHud();
   }
 
+  // Bascule de profil : recharge le state local pour le profil donne et synchronise avec le serveur.
+  // profile = { name, pin } ou null pour deconnexion.
+  function setProfile(profile) {
+    currentProfile = (profile && profile.name) ? { name: profile.name, pin: profile.pin || "" } : null;
+    if (!currentProfile) {
+      // Deconnexion : reset memoire (le state local du profil reste en localStorage pour la prochaine fois)
+      state = structuredClone(DEFAULT_STATE);
+      applyThemeVars();
+      renderHud();
+      return Promise.resolve();
+    }
+    state = load();
+    applyThemeVars();
+    renderHud();
+    return serverLoad();
+  }
+
   // Expose
   window.Rewards = {
     init: init,
@@ -564,6 +604,7 @@
     setTheme: setTheme,
     serverSave: serverSave,
     serverLoad: serverLoad,
+    setProfile: setProfile,
     listThemes: function () {
       return Object.keys(THEMES).map(k => ({ id: k, label: THEMES[k].label, icon: THEMES[k].hudIcon }));
     },

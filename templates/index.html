@@ -560,9 +560,89 @@
 </head>
 <body>
 
+<!-- ====== Overlay multi-profils ====== -->
+<div id="profileOverlay" class="position-fixed top-0 start-0 w-100 h-100" style="z-index:9999; background:#f0f4ff; overflow-y:auto;">
+    <div class="container py-4" style="max-width:520px;">
+        <h1 class="text-center mb-4">&#x1F9EE; MeliMath</h1>
+
+        <!-- Vue 1 : liste des profils -->
+        <div id="poView-list">
+            <h4 class="text-center mb-3">Choisis ton profil</h4>
+            <div id="poProfilesList" class="d-grid gap-2"></div>
+            <hr class="my-4">
+            <button id="poBtnNew" class="btn btn-outline-primary w-100">&#x2795; Nouveau profil</button>
+        </div>
+
+        <!-- Vue 2 : login PIN -->
+        <div id="poView-login" class="d-none">
+            <h4 class="text-center mb-3">Bonjour <span id="poLoginName"></span> !</h4>
+            <p class="text-center text-muted">Entre ton code &agrave; 4 chiffres :</p>
+            <div class="text-center mb-3" style="font-size:2rem; letter-spacing:0.6rem;">
+                <span id="poPinDisplay">_ _ _ _</span>
+            </div>
+            <div class="d-grid gap-2" style="grid-template-columns:repeat(3, 1fr); display:grid;">
+                <button class="btn btn-light po-pin-key" data-key="1">1</button>
+                <button class="btn btn-light po-pin-key" data-key="2">2</button>
+                <button class="btn btn-light po-pin-key" data-key="3">3</button>
+                <button class="btn btn-light po-pin-key" data-key="4">4</button>
+                <button class="btn btn-light po-pin-key" data-key="5">5</button>
+                <button class="btn btn-light po-pin-key" data-key="6">6</button>
+                <button class="btn btn-light po-pin-key" data-key="7">7</button>
+                <button class="btn btn-light po-pin-key" data-key="8">8</button>
+                <button class="btn btn-light po-pin-key" data-key="9">9</button>
+                <button class="btn btn-warning po-pin-key" data-key="del">&#x232B;</button>
+                <button class="btn btn-light po-pin-key" data-key="0">0</button>
+                <button class="btn btn-success po-pin-key" data-key="ok">OK</button>
+            </div>
+            <div id="poLoginError" class="text-danger text-center mt-3 d-none">Code incorrect, recommence.</div>
+            <button id="poLoginBack" class="btn btn-link w-100 mt-2">&#x21A9; Retour</button>
+        </div>
+
+        <!-- Vue 3 : creation profil -->
+        <div id="poView-create" class="d-none">
+            <h4 class="text-center mb-3">Nouveau profil</h4>
+            <div class="mb-3">
+                <label class="form-label">Pr&eacute;nom</label>
+                <input type="text" class="form-control" id="poNewName" maxlength="30" placeholder="Ex : L&eacute;a">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Niveau scolaire</label>
+                <select class="form-select" id="poNewLevel">
+                    <option value="CE1">CE1</option>
+                    <option value="CE2" selected>CE2</option>
+                    <option value="CM1">CM1</option>
+                    <option value="CM2">CM2</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Code &agrave; 4 chiffres</label>
+                <input type="password" class="form-control" id="poNewPin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234">
+            </div>
+            <div id="poCreateError" class="text-danger d-none mb-2"></div>
+            <button id="poCreateSubmit" class="btn btn-primary w-100">Cr&eacute;er</button>
+            <button id="poCreateBack" class="btn btn-link w-100 mt-2">&#x21A9; Retour</button>
+        </div>
+    </div>
+</div>
+
 <nav class="navbar navbar-expand navbar-dark bg-primary">
     <div class="container">
         <span class="navbar-brand">&#x1F9EE; MeliMath</span>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <span id="profileLabel" class="text-white small d-none">
+                <span id="profileLabelName"></span>
+                <span class="badge bg-warning text-dark ms-1" id="profileLabelLevel"></span>
+            </span>
+            <button id="btnChangeProfile" class="btn btn-sm btn-outline-light d-none" title="Changer de profil">
+                &#x1F465; Changer
+            </button>
+            <select id="profileLevelSelect" class="form-select form-select-sm d-none" style="width:auto;" title="Changer de niveau">
+                <option value="CE1">CE1</option>
+                <option value="CE2">CE2</option>
+                <option value="CM1">CM1</option>
+                <option value="CM2">CM2</option>
+            </select>
+        </div>
     </div>
 </nav>
 
@@ -911,6 +991,225 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/rewards.js') }}"></script>
 <script>
+// ============================================================
+// Gestion multi-profils + PIN + niveau (overlay au démarrage)
+// ============================================================
+(function () {
+    let activeProfile = null;  // { name, level, pin }
+    let pendingLogin = null;   // { name, has_pin } pendant la saisie PIN
+    let pinBuffer = '';
+
+    const overlay = document.getElementById('profileOverlay');
+    const viewList = document.getElementById('poView-list');
+    const viewLogin = document.getElementById('poView-login');
+    const viewCreate = document.getElementById('poView-create');
+    const profilesList = document.getElementById('poProfilesList');
+    const pinDisplay = document.getElementById('poPinDisplay');
+    const loginName = document.getElementById('poLoginName');
+    const loginError = document.getElementById('poLoginError');
+    const labelName = document.getElementById('profileLabelName');
+    const labelLevel = document.getElementById('profileLabelLevel');
+    const profileLabel = document.getElementById('profileLabel');
+    const btnChange = document.getElementById('btnChangeProfile');
+    const levelSelect = document.getElementById('profileLevelSelect');
+
+    function showView(name) {
+        viewList.classList.toggle('d-none', name !== 'list');
+        viewLogin.classList.toggle('d-none', name !== 'login');
+        viewCreate.classList.toggle('d-none', name !== 'create');
+    }
+
+    function showOverlay() {
+        overlay.classList.remove('d-none');
+        overlay.style.display = '';
+        pinBuffer = '';
+        renderPin();
+        loginError.classList.add('d-none');
+        showView('list');
+        refreshList();
+    }
+
+    function hideOverlay() {
+        overlay.style.display = 'none';
+    }
+
+    function refreshList() {
+        profilesList.innerHTML = '<div class="text-muted text-center">Chargement...</div>';
+        fetch('/api/profiles').then(r => r.json()).then(body => {
+            profilesList.innerHTML = '';
+            const profs = (body.profiles || []);
+            if (profs.length === 0) {
+                profilesList.innerHTML = '<div class="text-muted text-center">Aucun profil. Cr&eacute;e le premier !</div>';
+                return;
+            }
+            profs.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary text-start';
+                btn.innerHTML = '<strong>' + escapeHtml(p.name) + '</strong> '
+                    + '<span class="badge bg-warning text-dark ms-1">' + escapeHtml(p.level) + '</span>'
+                    + (p.has_pin ? ' <span class="float-end">&#x1F512;</span>' : '');
+                btn.addEventListener('click', () => startLogin(p));
+                profilesList.appendChild(btn);
+            });
+        }).catch(() => {
+            profilesList.innerHTML = '<div class="text-danger text-center">Erreur de chargement</div>';
+        });
+    }
+
+    function startLogin(p) {
+        pendingLogin = p;
+        loginName.textContent = p.name;
+        pinBuffer = '';
+        renderPin();
+        loginError.classList.add('d-none');
+        showView('login');
+        if (!p.has_pin) {
+            // Pas de PIN : login direct
+            doLogin('');
+        }
+    }
+
+    function renderPin() {
+        const dots = '_ '.repeat(4 - pinBuffer.length).trim();
+        const filled = '\u2022 '.repeat(pinBuffer.length).trim();
+        pinDisplay.textContent = (filled + (pinBuffer.length && dots ? ' ' : '') + dots).trim() || '_ _ _ _';
+    }
+
+    function doLogin(pin) {
+        loginError.classList.add('d-none');
+        const url = '/api/profile/' + encodeURIComponent(pendingLogin.name) + '?pin=' + encodeURIComponent(pin);
+        fetch(url).then(r => {
+            if (r.status === 401) {
+                loginError.textContent = 'Code incorrect, recommence.';
+                loginError.classList.remove('d-none');
+                pinBuffer = '';
+                renderPin();
+                return null;
+            }
+            if (!r.ok) throw new Error('http ' + r.status);
+            return r.json();
+        }).then(body => {
+            if (!body) return;
+            activeProfile = { name: body.name, level: body.level, pin: pin };
+            try { localStorage.setItem('melimath.lastProfile', body.name); } catch (e) {}
+            updateHeader();
+            if (window.Rewards && window.Rewards.setProfile) {
+                window.Rewards.setProfile({ name: activeProfile.name, pin: activeProfile.pin });
+            }
+            hideOverlay();
+        }).catch(() => {
+            loginError.textContent = 'Erreur de connexion';
+            loginError.classList.remove('d-none');
+        });
+    }
+
+    function updateHeader() {
+        if (!activeProfile) {
+            profileLabel.classList.add('d-none');
+            btnChange.classList.add('d-none');
+            levelSelect.classList.add('d-none');
+            return;
+        }
+        labelName.textContent = activeProfile.name;
+        labelLevel.textContent = activeProfile.level;
+        profileLabel.classList.remove('d-none');
+        btnChange.classList.remove('d-none');
+        levelSelect.value = activeProfile.level;
+        levelSelect.classList.remove('d-none');
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[c]);
+    }
+
+    // ── Bindings ────────────────────────────────────────────────────────
+    document.querySelectorAll('.po-pin-key').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const k = btn.dataset.key;
+            if (k === 'del') { pinBuffer = pinBuffer.slice(0, -1); renderPin(); return; }
+            if (k === 'ok') {
+                if (pinBuffer.length === 4) doLogin(pinBuffer);
+                return;
+            }
+            if (pinBuffer.length < 4) {
+                pinBuffer += k;
+                renderPin();
+                if (pinBuffer.length === 4) doLogin(pinBuffer);
+            }
+        });
+    });
+
+    document.getElementById('poLoginBack').addEventListener('click', () => {
+        pendingLogin = null;
+        pinBuffer = '';
+        renderPin();
+        showView('list');
+    });
+
+    document.getElementById('poBtnNew').addEventListener('click', () => {
+        document.getElementById('poNewName').value = '';
+        document.getElementById('poNewPin').value = '';
+        document.getElementById('poNewLevel').value = 'CE2';
+        document.getElementById('poCreateError').classList.add('d-none');
+        showView('create');
+    });
+
+    document.getElementById('poCreateBack').addEventListener('click', () => showView('list'));
+
+    document.getElementById('poCreateSubmit').addEventListener('click', () => {
+        const name = document.getElementById('poNewName').value.trim();
+        const pin = document.getElementById('poNewPin').value.trim();
+        const level = document.getElementById('poNewLevel').value;
+        const err = document.getElementById('poCreateError');
+        if (!name) { err.textContent = 'Indique un pr\u00e9nom.'; err.classList.remove('d-none'); return; }
+        if (!/^\d{4}$/.test(pin)) { err.textContent = 'Le code doit faire 4 chiffres.'; err.classList.remove('d-none'); return; }
+        fetch('/api/profiles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, pin, level }),
+        }).then(r => r.json().then(b => ({ status: r.status, body: b }))).then(({ status, body }) => {
+            if (status === 409) { err.textContent = 'Ce pr\u00e9nom est d\u00e9j\u00e0 pris.'; err.classList.remove('d-none'); return; }
+            if (status >= 400) { err.textContent = 'Erreur : ' + (body.error || 'inconnue'); err.classList.remove('d-none'); return; }
+            // Auto-login
+            pendingLogin = { name, has_pin: true };
+            doLogin(pin);
+        }).catch(() => { err.textContent = 'Erreur r\u00e9seau'; err.classList.remove('d-none'); });
+    });
+
+    btnChange.addEventListener('click', () => {
+        activeProfile = null;
+        if (window.Rewards && window.Rewards.setProfile) window.Rewards.setProfile(null);
+        updateHeader();
+        showOverlay();
+    });
+
+    levelSelect.addEventListener('change', () => {
+        if (!activeProfile) return;
+        const newLevel = levelSelect.value;
+        fetch('/api/profile/' + encodeURIComponent(activeProfile.name), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: activeProfile.pin, level: newLevel }),
+        }).then(r => r.ok ? r.json() : null).then(b => {
+            if (b && b.ok) {
+                activeProfile.level = newLevel;
+                updateHeader();
+                if (window.melimathOnLevelChange) window.melimathOnLevelChange(newLevel);
+            } else {
+                levelSelect.value = activeProfile.level;
+            }
+        }).catch(() => { levelSelect.value = activeProfile.level; });
+    });
+
+    // Expose pour le reste de l'app
+    window.melimathProfile = function () { return activeProfile; };
+
+    // Boot
+    showOverlay();
+})();
+
 (function () {
     // ===================== STATE =====================
     let mode = 'addition';
