@@ -678,6 +678,7 @@
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" data-mode="addition_colonne">Addition pos&eacute;e</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="soustraction_colonne">Soustraction pos&eacute;e</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="multiplication_colonne">Multiplication pos&eacute;e</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" data-mode="conversions">Conversions</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="fractions">Fractions</a></li>
@@ -1520,7 +1521,7 @@
         } else if (mode === 'diagrammes') {
             diagrammesMode.classList.remove('d-none');
             timerDuration = 30;
-        } else if (mode === 'addition_colonne') {
+        } else if (mode === 'addition_colonne' || mode === 'multiplication_colonne') {
             addColMode.classList.remove('d-none');
             timerDuration = 40;
         } else if (mode === 'soustraction_colonne') {
@@ -1614,7 +1615,7 @@
             showFractionFeedback(false, true);
         } else if (mode === 'diagrammes') {
             showDiagramFeedback(false, true);
-        } else if (mode === 'addition_colonne') {
+        } else if (mode === 'addition_colonne' || mode === 'multiplication_colonne') {
             showAddColFeedback(false, true);
         } else if (mode === 'soustraction_colonne') {
             showSubColFeedback(false, true);
@@ -1724,7 +1725,7 @@
     });
 
     document.addEventListener('keydown', function (e) {
-        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne' || mode === 'soustraction_colonne' || mode === 'geometrie' || mode === 'francais') {
+        if (mode === 'fractions' || mode === 'diagrammes' || mode === 'addition_colonne' || mode === 'soustraction_colonne' || mode === 'multiplication_colonne' || mode === 'geometrie' || mode === 'francais') {
             if (mode === 'diagrammes') handleDiagramKey(e);
             return;
         }
@@ -2112,16 +2113,24 @@
         btnValidateAddColArea.classList.remove('d-none');
         btnNextAddColArea.classList.add('d-none');
 
-        // Generate 2 or 3 digit numbers
-        const level = randInt(0, 2);
-        if (level === 0) {
-            colA = randInt(10, 99); colB = randInt(10, 99);
-        } else if (level === 1) {
-            colA = randInt(100, 999); colB = randInt(10, 999);
+        // Generate operands selon le mode (addition vs multiplication posée)
+        const isMult = (mode === 'multiplication_colonne');
+        if (isMult) {
+            // Multiplicande 2-3 chiffres × multiplicateur 1 chiffre (CE2)
+            colA = randInt(12, 999);
+            colB = randInt(2, 9);
+            colAnswer = colA * colB;
         } else {
-            colA = randInt(100, 999); colB = randInt(100, 999);
+            const level = randInt(0, 2);
+            if (level === 0) {
+                colA = randInt(10, 99); colB = randInt(10, 99);
+            } else if (level === 1) {
+                colA = randInt(100, 999); colB = randInt(10, 999);
+            } else {
+                colA = randInt(100, 999); colB = randInt(100, 999);
+            }
+            colAnswer = colA + colB;
         }
-        colAnswer = colA + colB;
         const ansStr = String(colAnswer);
         const aStr = String(colA);
         const bStr = String(colB);
@@ -2153,9 +2162,9 @@
         }
 
         numRow2.innerHTML = '';
-        // + sign
+        // operateur (+ pour addition, × pour multiplication posée)
         const opSpan = document.createElement('span');
-        opSpan.textContent = '+';
+        opSpan.textContent = (mode === 'multiplication_colonne') ? '\u00D7' : '+';
         opSpan.style.marginRight = '8px';
         opSpan.style.fontSize = '2rem';
         numRow2.appendChild(opSpan);
@@ -2243,18 +2252,21 @@
             }
         });
 
-        // Show carries
-        const aStr = String(colA).padStart(colDigits, '0');
-        const bStr = String(colB).padStart(colDigits, '0');
-        let carry = 0;
-        const carries = new Array(colDigits).fill('');
-        for (let i = colDigits - 1; i >= 0; i--) {
-            const sum = parseInt(aStr[i]) + parseInt(bStr[i]) + carry;
-            carry = sum >= 10 ? 1 : 0;
-            if (carry && i > 0) carries[i - 1] = '1';
+        // Retenues : applicables uniquement à l'addition (la multiplication posée
+        // à 1 chiffre génère des retenues internes qu'on ne représente pas ici).
+        if (mode !== 'multiplication_colonne') {
+            const aStr = String(colA).padStart(colDigits, '0');
+            const bStr = String(colB).padStart(colDigits, '0');
+            let carry = 0;
+            const carries = new Array(colDigits).fill('');
+            for (let i = colDigits - 1; i >= 0; i--) {
+                const sum = parseInt(aStr[i]) + parseInt(bStr[i]) + carry;
+                carry = sum >= 10 ? 1 : 0;
+                if (carry && i > 0) carries[i - 1] = '1';
+            }
+            const carrySpans = carryRow.querySelectorAll('span');
+            carrySpans.forEach((sp, i) => { sp.textContent = carries[i]; });
         }
-        const carrySpans = carryRow.querySelectorAll('span');
-        carrySpans.forEach((sp, i) => { sp.textContent = carries[i]; });
 
         showAddColFeedback(isCorrect, false);
     }
@@ -3808,7 +3820,7 @@
             generateFraction();
         } else if (mode === 'diagrammes') {
             generateDiagram();
-        } else if (mode === 'addition_colonne') {
+        } else if (mode === 'addition_colonne' || mode === 'multiplication_colonne') {
             generateAdditionColonne();
         } else if (mode === 'soustraction_colonne') {
             generateSoustractionColonne();
