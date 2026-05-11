@@ -695,6 +695,7 @@
                 <li><a class="dropdown-item" href="#" data-mode="pluriels">Pluriels</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="grammaire">Grammaire</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="complements">Compl&eacute;ments</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="accents">Accents</a></li>
             </ul>
         </li>
     </ul>
@@ -1537,7 +1538,7 @@
         } else if (mode === 'pluriels') {
             plurielsMode.classList.remove('d-none');
             timerDuration = 20;
-        } else if (mode === 'grammaire' || mode === 'complements') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
             grammaireMode.classList.remove('d-none');
             timerDuration = 35;
         } else if (mode === 'problemes') {
@@ -1625,7 +1626,7 @@
             showFrFeedback(false, true);
         } else if (mode === 'pluriels') {
             showPlFeedback(false, true);
-        } else if (mode === 'grammaire' || mode === 'complements') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
             showGrFeedback(false, true);
         } else {
             showFeedback(false, true);
@@ -3502,6 +3503,85 @@
         { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de BUT, puis Valider.', sentence:'Il court pour gagner la course.', correct:['pour','gagner','la','course'], defKey:'ccb' }
     ];
 
+    // ====================================================================
+    // Accents (mode "accents") — réutilise l'infra grammaire
+    // Couvre les accents français : aigu (é), grave (è/à/ù),
+    // circonflexe (â/ê/î/ô/û), tréma (ë/ï/ü) et la cédille (ç).
+    // ====================================================================
+
+    const acDefinitions = {
+        aigu: {
+            title: 'L\u2019accent aigu ( \u00e9 )',
+            text: 'L\u2019accent aigu se met UNIQUEMENT sur la lettre E. Il indique le son [\u00e9] (la bouche \u00e9tir\u00e9e, comme dans \u00ab \u00e9t\u00e9 \u00bb). C\u2019est l\u2019accent le plus fr\u00e9quent.',
+            example: 'Exemples : \u00e9t\u00e9, b\u00e9b\u00e9, t\u00e9l\u00e9, caf\u00e9, \u00e9cole.'
+        },
+        grave: {
+            title: 'L\u2019accent grave ( \u00e8 \u00e0 \u00f9 )',
+            text: 'L\u2019accent grave se met sur 3 voyelles : E (son [\u00e8] comme dans \u00ab m\u00e8re \u00bb), A (uniquement dans \u00ab \u00e0 \u00bb pour distinguer du verbe \u00ab a \u00bb) et U (uniquement dans \u00ab o\u00f9 \u00bb pour distinguer de \u00ab ou \u00bb).',
+            example: 'Exemples : m\u00e8re, p\u00e8re, tr\u00e8s ; je vais \u00c0 Paris ; O\u00d9 vas-tu ?'
+        },
+        circonflexe: {
+            title: 'L\u2019accent circonflexe ( \u00e2 \u00ea \u00ee \u00f4 \u00fb )',
+            text: 'L\u2019accent circonflexe (le \u00ab petit chapeau \u00bb) se met sur a, e, i, o, u. Il indique souvent qu\u2019une lettre a disparu autrefois (souvent un S). Astuce : for\u00eat \u2192 ancien fran\u00e7ais \u00ab forest \u00bb.',
+            example: 'Exemples : t\u00eate, \u00e2ge, h\u00f4tel, \u00eele, fl\u00fbte, for\u00eat.'
+        },
+        trema: {
+            title: 'Le tr\u00e9ma ( \u00eb \u00ef \u00fc )',
+            text: 'Le tr\u00e9ma (les deux petits points) sert \u00e0 indiquer qu\u2019on doit prononcer la voyelle S\u00c9PAR\u00c9MENT de celle qui pr\u00e9c\u00e8de. Sans tr\u00e9ma, les voyelles formeraient un seul son.',
+            example: 'Exemples : ma\u00efs (m-a-\u00ee-s), No\u00ebl, No\u00e9mie, ha\u00efr.'
+        },
+        cedille: {
+            title: 'La c\u00e9dille ( \u00e7 )',
+            text: 'La c\u00e9dille est un petit crochet sous le C. Elle se met seulement DEVANT A, O, U pour que le C se prononce [s] au lieu de [k].',
+            example: 'Exemples : gar\u00e7on, fran\u00e7ais, le\u00e7on, \u00e7a, re\u00e7u.'
+        },
+        homophones: {
+            title: 'Les petits mots qui se ressemblent (homophones)',
+            text: 'Certains mots se prononcent pareil mais s\u2019\u00e9crivent diff\u00e9remment, avec ou sans accent : \u00ab a \u00bb (verbe avoir) / \u00ab \u00e0 \u00bb (pr\u00e9position), \u00ab ou \u00bb (choix) / \u00ab o\u00f9 \u00bb (lieu), \u00ab la \u00bb (article) / \u00ab l\u00e0 \u00bb (lieu).',
+            example: 'Exemples : il A faim / je vais \u00c0 Paris ; chien OU chat / O\u00d9 es-tu ? ; LA pomme / viens L\u00c0.'
+        }
+    };
+
+    const AC_CHOICES_ACCENTS = ['accent aigu', 'accent grave', 'accent circonflexe', 'tr\u00e9ma'];
+
+    const acQuestions = [
+        { type:'qcm', prompt:'Sur quelle lettre peut-on mettre l\u2019accent aigu ?', choices:['Seulement le E','Le A et le E','Le E et le I','Toutes les voyelles'], correct:'Seulement le E', defKey:'aigu' },
+        { type:'qcm', prompt:'Quel accent porte le mot \u00ab m\u00e8re \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent grave', defKey:'grave' },
+        { type:'qcm', prompt:'Quel accent porte le mot \u00ab \u00e9cole \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent aigu', defKey:'aigu' },
+        { type:'qcm', prompt:'Quel accent porte le mot \u00ab t\u00eate \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent circonflexe', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quel accent porte le mot \u00ab ma\u00efs \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'tr\u00e9ma', defKey:'trema' },
+        { type:'qcm', prompt:'\u00c0 quoi sert le tr\u00e9ma ?', choices:['\u00c0 dire que la lettre disparaissait avant','\u00c0 prononcer les deux voyelles s\u00e9par\u00e9ment','\u00c0 distinguer deux mots','\u00c0 rendre le c en s'], correct:'\u00c0 prononcer les deux voyelles s\u00e9par\u00e9ment', defKey:'trema' },
+        { type:'qcm', prompt:'\u00c0 quoi sert la c\u00e9dille ( \u00e7 ) ?', choices:['\u00c0 prononcer le C comme [s]','\u00c0 prononcer le C comme [k]','\u00c0 distinguer deux mots','\u00c0 mettre l\u2019accent'], correct:'\u00c0 prononcer le C comme [s]', defKey:'cedille' },
+        { type:'qcm', prompt:'Devant quelles lettres met-on la c\u00e9dille ?', choices:['A, O, U','E, I','Toutes les voyelles','Seulement A'], correct:'A, O, U', defKey:'cedille' },
+
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ecole','\u00e9cole','\u00e8cole','\u00eacole'], correct:'\u00e9cole', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['pere','p\u00e8re','p\u00e9re','p\u00eare'], correct:'p\u00e8re', defKey:'grave' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mere','m\u00e9re','m\u00e8re','m\u00eare'], correct:'m\u00e8re', defKey:'grave' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['tete','t\u00e8te','t\u00e9te','t\u00eate'], correct:'t\u00eate', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hopital','h\u00f4pital','h\u00f3pital','h\u00f2pital'], correct:'h\u00f4pital', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ile','\u00eele','\u00ecle','\u00edle'], correct:'\u00eele', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['noel','no\u00ebl','no\u00e8l','no\u00eal'], correct:'no\u00ebl', defKey:'trema' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mais','ma\u00efs','m\u00e2is','m\u00e0is'], correct:'ma\u00efs', defKey:'trema' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['garcon','gar\u00e7on','garson','garss\u00e7on'], correct:'gar\u00e7on', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['lecon','le\u00e7on','lesson','l\u00e9\u00e7on'], correct:'le\u00e7on', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['francais','fran\u00e7ais','francaise','franssais'], correct:'fran\u00e7ais', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ete','\u00e9t\u00e9','et\u00e9','\u00e9te'], correct:'\u00e9t\u00e9', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['cafe','caf\u00e9','c\u00e2fe','c\u00e0fe'], correct:'caf\u00e9', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['fenetre','f\u00e9n\u00eatre','fen\u00eatre','fen\u00e8tre'], correct:'fen\u00eatre', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['foret','f\u00f4ret','for\u00eat','for\u00e8t'], correct:'for\u00eat', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['recu','re\u00e7u','ressu','r\u00e9cu'], correct:'re\u00e7u', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['flute','fl\u00fbte','fl\u00f9te','fl\u00f8te'], correct:'fl\u00fbte', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['age','\u00e2ge','\u00e0ge','\u00e9ge'], correct:'\u00e2ge', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hair','ha\u00efr','ha\u00ear','h\u00e2ir'], correct:'ha\u00efr', defKey:'trema' },
+
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Le chien ___ trois pattes. \u00bb (verbe avoir)', choices:['a','\u00e0','as','\u00e2'], correct:'a', defKey:'homophones' },
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Je vais ___ Paris. \u00bb (direction)', choices:['a','\u00e0','as','\u00e2'], correct:'\u00e0', defKey:'homophones' },
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab ___ habites-tu ? \u00bb (lieu)', choices:['ou','o\u00f9','out','o\u00fb'], correct:'o\u00f9', defKey:'homophones' },
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Pomme ___ poire ? \u00bb (choix)', choices:['ou','o\u00f9','o\u00fb','o\u00f2'], correct:'ou', defKey:'homophones' },
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Pose ton sac ___ . \u00bb (lieu)', choices:['la','l\u00e0','l\u00e2','las'], correct:'l\u00e0', defKey:'homophones' },
+        { type:'qcm', prompt:'Compl\u00e8te : \u00ab J\u2019aime ___ tarte aux pommes. \u00bb (article)', choices:['la','l\u00e0','l\u00e2','las'], correct:'la', defKey:'homophones' }
+    ];
+
     function grSplitWords(sentence) {
         const re = /([A-Za-z\u00C0-\u00FF\u2019']+|[.,!?;:])/g;
         const tokens = [];
@@ -3511,7 +3591,9 @@
     }
 
     function generateGrammaire() {
-        const pool = (mode === 'complements') ? cpQuestions : grQuestions;
+        let pool = grQuestions;
+        if (mode === 'complements') pool = cpQuestions;
+        else if (mode === 'accents') pool = acQuestions;
         grCurrentQuestion = pick(pool);
         grDefinitionViewed = true;
         grQuestionEl.textContent = grCurrentQuestion.prompt;
@@ -3683,7 +3765,9 @@
             grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + reponse + ' \u274C';
         }
         if (!correct) {
-            const defMap = (mode === 'complements') ? cpDefinitions : grDefinitions;
+            let defMap = grDefinitions;
+            if (mode === 'complements') defMap = cpDefinitions;
+            else if (mode === 'accents') defMap = acDefinitions;
             const def = defMap[grCurrentQuestion.defKey];
             if (def) {
                 grDefText.innerHTML = '<strong>' + def.title + '</strong> &mdash; ' + def.text;
@@ -3736,7 +3820,7 @@
             generateFrancais();
         } else if (mode === 'pluriels') {
             generatePluriel();
-        } else if (mode === 'grammaire' || mode === 'complements') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
             generateGrammaire();
         } else {
             // Keypad modes
