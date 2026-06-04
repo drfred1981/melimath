@@ -683,6 +683,7 @@
                 <li><a class="dropdown-item" href="#" data-mode="conversions">Conversions</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="fractions">Fractions</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="problemes">Probl&egrave;mes</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="proportionnalite">Proportionnalit&eacute;</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="diagrammes">Diagrammes</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="geometrie">G&eacute;om&eacute;trie</a></li>
             </ul>
@@ -692,10 +693,11 @@
                 &#x1F4D6; Fran&ccedil;ais <span class="nav-current d-none"></span>
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" data-mode="francais">Conjugaison</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="francais">Conjugaison (imparfait)</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="passe_compose">Pass&eacute; compos&eacute;</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="pluriels">Pluriels</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="grammaire">Grammaire</a></li>
-                <li><a class="dropdown-item" href="#" data-mode="complements">Compl&eacute;ments</a></li>
+                <li><a class="dropdown-item" href="#" data-mode="complements">Compl&eacute;ments du verbe</a></li>
                 <li><a class="dropdown-item" href="#" data-mode="accents">Accents</a></li>
             </ul>
         </li>
@@ -790,9 +792,9 @@
             <!-- Fraction input (numerator/denominator) -->
             <div class="text-center mb-3 d-none" id="fractionInputArea">
                 <div class="fraction-input-group">
-                    <input type="number" id="fracNum" min="0" max="20" placeholder="?" aria-label="Num\u00e9rateur">
+                    <input type="number" id="fracNum" min="0" max="20" placeholder="?" aria-label="Numérateur">
                     <div class="fraction-line"></div>
-                    <input type="number" id="fracDen" min="1" max="20" placeholder="?" aria-label="D\u00e9nominateur">
+                    <input type="number" id="fracDen" min="1" max="20" placeholder="?" aria-label="Dénominateur">
                 </div>
             </div>
 
@@ -1107,7 +1109,7 @@
 
     function renderPin() {
         const dots = '_ '.repeat(4 - pinBuffer.length).trim();
-        const filled = '\u2022 '.repeat(pinBuffer.length).trim();
+        const filled = '• '.repeat(pinBuffer.length).trim();
         pinDisplay.textContent = (filled + (pinBuffer.length && dots ? ' ' : '') + dots).trim() || '_ _ _ _';
     }
 
@@ -1199,19 +1201,19 @@
         const pin = document.getElementById('poNewPin').value.trim();
         const level = document.getElementById('poNewLevel').value;
         const err = document.getElementById('poCreateError');
-        if (!name) { err.textContent = 'Indique un pr\u00e9nom.'; err.classList.remove('d-none'); return; }
+        if (!name) { err.textContent = 'Indique un prénom.'; err.classList.remove('d-none'); return; }
         if (!/^\d{4}$/.test(pin)) { err.textContent = 'Le code doit faire 4 chiffres.'; err.classList.remove('d-none'); return; }
         fetch('/api/profiles', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, pin, level }),
         }).then(r => r.json().then(b => ({ status: r.status, body: b }))).then(({ status, body }) => {
-            if (status === 409) { err.textContent = 'Ce pr\u00e9nom est d\u00e9j\u00e0 pris.'; err.classList.remove('d-none'); return; }
+            if (status === 409) { err.textContent = 'Ce prénom est déjà pris.'; err.classList.remove('d-none'); return; }
             if (status >= 400) { err.textContent = 'Erreur : ' + (body.error || 'inconnue'); err.classList.remove('d-none'); return; }
             // Auto-login
             pendingLogin = { name, has_pin: true };
             doLogin(pin);
-        }).catch(() => { err.textContent = 'Erreur r\u00e9seau'; err.classList.remove('d-none'); });
+        }).catch(() => { err.textContent = 'Erreur réseau'; err.classList.remove('d-none'); });
     });
 
     document.getElementById('poSetpinSubmit').addEventListener('click', () => {
@@ -1241,7 +1243,7 @@
             pendingLogin = { name: pendingLogin.name, has_pin: true };
             doLogin(np);
         }).catch(() => {
-            err.textContent = 'Erreur d\u2019enregistrement du code';
+            err.textContent = 'Erreur d’enregistrement du code';
             err.classList.remove('d-none');
         });
     });
@@ -1539,14 +1541,14 @@
         } else if (mode === 'pluriels') {
             plurielsMode.classList.remove('d-none');
             timerDuration = 30;
-        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents' || mode === 'passe_compose') {
             grammaireMode.classList.remove('d-none');
             timerDuration = 35;
-        } else if (mode === 'problemes') {
+        } else if (mode === 'problemes' || mode === 'proportionnalite') {
             keypadMode.classList.remove('d-none');
             calculArea.classList.add('d-none');
             problemArea.classList.remove('d-none');
-            timerDuration = 60;
+            timerDuration = mode === 'proportionnalite' ? 70 : 60;
         } else if (mode === 'calcul_ligne') {
             keypadMode.classList.remove('d-none');
             timerDuration = 40;
@@ -1627,7 +1629,7 @@
             showFrFeedback(false, true);
         } else if (mode === 'pluriels') {
             showPlFeedback(false, true);
-        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents' || mode === 'passe_compose') {
             showGrFeedback(false, true);
         } else {
             showFeedback(false, true);
@@ -1653,15 +1655,17 @@
         } else if (mode === 'soustraction') {
             a = randInt(0, 10); b = randInt(0, a);
             correctAnswer = a - b;
-            elCalc.textContent = a + ' \u2212 ' + b + ' = ?';
+            elCalc.textContent = a + ' − ' + b + ' = ?';
         } else if (mode === 'multiplication') {
             a = randInt(0, 10); b = randInt(0, 10);
             correctAnswer = a * b;
-            elCalc.textContent = a + ' \u00D7 ' + b + ' = ?';
+            elCalc.textContent = a + ' × ' + b + ' = ?';
         } else if (mode === 'calcul_ligne') {
             generateCalculLigne();
         } else if (mode === 'problemes') {
             generateProbleme();
+        } else if (mode === 'proportionnalite') {
+            generateProportionnalite();
         }
     }
 
@@ -1686,20 +1690,20 @@
         const templates = [
             { text: (a, b) => `${pick(['Marie','Lucas','Emma','Hugo'])} a ${a} billes. ${pick(['Son ami','Sa copine','Paul','Léa'])} lui donne ${b} billes de plus.`,
               q: 'Combien de billes a-t-il maintenant ?', op: '+', minA: 15, maxA: 80, minB: 10, maxB: 50 },
-            { text: (a, b) => `Dans la classe, il y a ${a} \u00e9l\u00e8ves. ${b} \u00e9l\u00e8ves partent \u00e0 la cantine.`,
-              q: 'Combien d\'\u00e9l\u00e8ves restent dans la classe ?', op: '-', minA: 20, maxA: 35, minB: 5, maxB: 15 },
-            { text: (a, b) => `Un fermier r\u00e9colte ${a} pommes le matin et ${b} pommes l'apr\u00e8s-midi.`,
-              q: 'Combien de pommes a-t-il r\u00e9colt\u00e9 en tout ?', op: '+', minA: 30, maxA: 150, minB: 20, maxB: 100 },
-            { text: (a, b) => `Un magasin a ${a} jouets. Il en vend ${b} pendant la journ\u00e9e.`,
+            { text: (a, b) => `Dans la classe, il y a ${a} élèves. ${b} élèves partent à la cantine.`,
+              q: 'Combien d\'élèves restent dans la classe ?', op: '-', minA: 20, maxA: 35, minB: 5, maxB: 15 },
+            { text: (a, b) => `Un fermier récolte ${a} pommes le matin et ${b} pommes l'après-midi.`,
+              q: 'Combien de pommes a-t-il récolté en tout ?', op: '+', minA: 30, maxA: 150, minB: 20, maxB: 100 },
+            { text: (a, b) => `Un magasin a ${a} jouets. Il en vend ${b} pendant la journée.`,
               q: 'Combien de jouets reste-t-il ?', op: '-', minA: 50, maxA: 200, minB: 10, maxB: 80 },
-            { text: (a, b) => `La biblioth\u00e8que re\u00e7oit ${a} nouveaux livres lundi et ${b} livres mardi.`,
+            { text: (a, b) => `La bibliothèque reçoit ${a} nouveaux livres lundi et ${b} livres mardi.`,
               q: 'Combien de nouveaux livres en tout ?', op: '+', minA: 20, maxA: 120, minB: 15, maxB: 80 },
-            { text: (a, b) => `${pick(['Léo','Manon','Jade','Nathan'])} avait ${a} images. Il en donne ${b} \u00e0 son fr\u00e8re.`,
+            { text: (a, b) => `${pick(['Léo','Manon','Jade','Nathan'])} avait ${a} images. Il en donne ${b} à son frère.`,
               q: 'Combien d\'images lui reste-t-il ?', op: '-', minA: 30, maxA: 100, minB: 5, maxB: 40 },
-            { text: (a, b) => `Un car transporte ${a} passagers. Au prochain arr\u00eat, ${b} passagers montent.`,
+            { text: (a, b) => `Un car transporte ${a} passagers. Au prochain arrêt, ${b} passagers montent.`,
               q: 'Combien de passagers y a-t-il maintenant ?', op: '+', minA: 15, maxA: 45, minB: 5, maxB: 20 },
-            { text: (a, b) => `Il y a ${a} g\u00e2teaux pour la f\u00eate. Les enfants en mangent ${b}.`,
-              q: 'Combien de g\u00e2teaux reste-t-il ?', op: '-', minA: 20, maxA: 60, minB: 5, maxB: 30 },
+            { text: (a, b) => `Il y a ${a} gâteaux pour la fête. Les enfants en mangent ${b}.`,
+              q: 'Combien de gâteaux reste-t-il ?', op: '-', minA: 20, maxA: 60, minB: 5, maxB: 30 },
         ];
         const t = pick(templates);
         a = randInt(t.minA, t.maxA);
@@ -1708,10 +1712,127 @@
         problemText.innerHTML = '<p>' + t.text(a, b) + '</p><p class="problem-question">' + t.q + '</p>';
     }
 
+    function generateProportionnalite() {
+        // ============================================================
+        // PROPORTIONNALITE (CE2)
+        // Regle simple : "Si X coute Y, alors n*X coute n*Y".
+        // ============================================================
+        const templates = [
+            {
+                build: () => {
+                    const objet = pick(['un croissant','un crayon','un cahier','une gomme','une bille']);
+                    const prix = randInt(2, 9);
+                    const nb = randInt(2, 8);
+                    return {
+                        text: `Au magasin, ${objet} coute ${prix} €.`,
+                        q: `Combien coutent ${nb} de ces objets ? (en €)`,
+                        answer: prix * nb
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const ing = pick([
+                        { nom: 'oeufs', base: 2 },
+                        { nom: 'pommes', base: 3 },
+                        { nom: 'carottes', base: 4 },
+                        { nom: 'bonbons', base: 5 }
+                    ]);
+                    const baseP = randInt(2, 4);
+                    const k = randInt(2, 5);
+                    return {
+                        text: `Une recette indique : pour ${baseP} personnes, il faut ${ing.base} ${ing.nom}.`,
+                        q: `Combien de ${ing.nom} faut-il pour ${baseP * k} personnes ?`,
+                        answer: ing.base * k
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const v = randInt(3, 9) * 5;
+                    const t = randInt(2, 5);
+                    return {
+                        text: `Un velo roule a ${v} km en 1 heure (vitesse constante).`,
+                        q: `Quelle distance parcourt-il en ${t} heures ? (en km)`,
+                        answer: v * t
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const obj = pick([
+                        { nom: 'gateaux', par: randInt(4, 8) },
+                        { nom: 'crayons', par: randInt(5, 10) },
+                        { nom: 'images', par: randInt(6, 12) }
+                    ]);
+                    const n = randInt(2, 6);
+                    return {
+                        text: `Dans un paquet, il y a ${obj.par} ${obj.nom}.`,
+                        q: `Combien y a-t-il de ${obj.nom} dans ${n} paquets ?`,
+                        answer: obj.par * n
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const unite = randInt(2, 9);
+                    const n = randInt(2, 6);
+                    return {
+                        text: `${n} paquets identiques de biscuits coutent ${unite * n} € au total.`,
+                        q: `Combien coute 1 paquet ? (en €)`,
+                        answer: unite
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const unite = randInt(2, 6);
+                    const n = randInt(3, 8);
+                    return {
+                        text: `Un cahier coute ${unite} €. Sophie depense ${unite * n} € en cahiers.`,
+                        q: `Combien de cahiers a-t-elle achetes ?`,
+                        answer: n
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const facteurs = [
+                        { mot: 'le double', k: 2 },
+                        { mot: 'le triple', k: 3 },
+                        { mot: 'le quadruple', k: 4 }
+                    ];
+                    const f = pick(facteurs);
+                    const base = randInt(3, 15);
+                    return {
+                        text: `Lila a ${base} billes. Lucas en a ${f.mot}.`,
+                        q: `Combien de billes a Lucas ?`,
+                        answer: base * f.k
+                    };
+                }
+            },
+            {
+                build: () => {
+                    const u = randInt(2, 6);
+                    const n1 = randInt(2, 4);
+                    const n2 = n1 * 2;
+                    return {
+                        text: `Tableau de proportionnalite : ${n1} kg de pommes coutent ${u * n1} €.`,
+                        q: `Combien coutent ${n2} kg de pommes ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            }
+        ];
+        const built = pick(templates).build();
+        correctAnswer = built.answer;
+        problemText.innerHTML = '<p>' + built.text + '</p><p class="problem-question">' + built.q + '</p>';
+    }
+
     // --- Answer input ---
     function setAnswer(val) {
         userAnswer = val;
-        elAnswer.textContent = val || '\u00A0';
+        elAnswer.textContent = val || ' ';
         btnValidate.disabled = val.length === 0;
     }
 
@@ -1762,13 +1883,13 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             elFeedback.className = 'text-center feedback feedback-wrong';
-            elFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + correctAnswer;
+            elFeedback.textContent = 'Temps écoulé ! Réponse : ' + correctAnswer;
         } else if (correct) {
             elFeedback.className = 'text-center feedback feedback-correct';
-            elFeedback.textContent = 'Bravo ! \u2705';
+            elFeedback.textContent = 'Bravo ! ✅';
         } else {
             elFeedback.className = 'text-center feedback feedback-wrong';
-            elFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + correctAnswer + ' \u274C';
+            elFeedback.textContent = 'Raté ! Réponse : ' + correctAnswer + ' ❌';
         }
     }
 
@@ -1811,7 +1932,7 @@
 
     // --- Type 1: Quelle fraction est coloriée ? ---
     function generateFractionColored() {
-        fractionTitle.textContent = 'Quelle fraction est colori\u00e9e ?';
+        fractionTitle.textContent = 'Quelle fraction est coloriée ?';
         const den = pick([2, 3, 4, 5, 6, 8]);
         const num = randInt(1, den - 1);
         fractionCorrect = { num, den };
@@ -1881,7 +2002,7 @@
         }
         fractionCorrect = isTrue;
 
-        fractionTitle.innerHTML = `La fl\u00e8che montre-t-elle <b>${shownNum}/${den}</b> ?`;
+        fractionTitle.innerHTML = `La flèche montre-t-elle <b>${shownNum}/${den}</b> ?`;
 
         // Draw number line from 0 to 1
         const w = 340, h = 80;
@@ -1945,19 +2066,19 @@
         if (timeout) {
             fractionFeedback.className = 'text-center feedback feedback-wrong';
             if (fractionType === 'colored') {
-                fractionFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + fractionCorrect.num + '/' + fractionCorrect.den;
+                fractionFeedback.textContent = 'Temps écoulé ! Réponse : ' + fractionCorrect.num + '/' + fractionCorrect.den;
             } else {
-                fractionFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + (fractionCorrect ? 'Vrai' : 'Faux');
+                fractionFeedback.textContent = 'Temps écoulé ! Réponse : ' + (fractionCorrect ? 'Vrai' : 'Faux');
             }
         } else if (correct) {
             fractionFeedback.className = 'text-center feedback feedback-correct';
-            fractionFeedback.textContent = 'Bravo ! \u2705';
+            fractionFeedback.textContent = 'Bravo ! ✅';
         } else {
             fractionFeedback.className = 'text-center feedback feedback-wrong';
             if (fractionType === 'colored') {
-                fractionFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + fractionCorrect.num + '/' + fractionCorrect.den + ' \u274C';
+                fractionFeedback.textContent = 'Raté ! Réponse : ' + fractionCorrect.num + '/' + fractionCorrect.den + ' ❌';
             } else {
-                fractionFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + (fractionCorrect ? 'Vrai' : 'Faux') + ' \u274C';
+                fractionFeedback.textContent = 'Raté ! Réponse : ' + (fractionCorrect ? 'Vrai' : 'Faux') + ' ❌';
             }
         }
         btnNextFractionArea.classList.remove('d-none');
@@ -1980,18 +2101,18 @@
 
     const barColors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4'];
     const diagramThemes = [
-        { title: 'Animaux pr\u00e9f\u00e9r\u00e9s', cats: ['Chien', 'Chat', 'Lapin', 'Hamster', 'Poisson'] },
-        { title: 'Fruits pr\u00e9f\u00e9r\u00e9s', cats: ['Pomme', 'Banane', 'Fraise', 'Orange', 'Raisin'] },
-        { title: 'Sports pratiqu\u00e9s', cats: ['Foot', 'Basket', 'Natation', 'Judo', 'Tennis'] },
-        { title: 'Couleurs pr\u00e9f\u00e9r\u00e9es', cats: ['Bleu', 'Rouge', 'Vert', 'Rose', 'Jaune'] },
-        { title: 'Go\u00fbters pr\u00e9f\u00e9r\u00e9s', cats: ['G\u00e2teau', 'Bonbon', 'Glace', 'Cr\u00eape', 'Compote'] },
+        { title: 'Animaux préférés', cats: ['Chien', 'Chat', 'Lapin', 'Hamster', 'Poisson'] },
+        { title: 'Fruits préférés', cats: ['Pomme', 'Banane', 'Fraise', 'Orange', 'Raisin'] },
+        { title: 'Sports pratiqués', cats: ['Foot', 'Basket', 'Natation', 'Judo', 'Tennis'] },
+        { title: 'Couleurs préférées', cats: ['Bleu', 'Rouge', 'Vert', 'Rose', 'Jaune'] },
+        { title: 'Goûters préférés', cats: ['Gâteau', 'Bonbon', 'Glace', 'Crêpe', 'Compote'] },
     ];
 
     function generateDiagram() {
         diagramFeedbackEl.textContent = '';
         diagramFeedbackEl.className = 'text-center feedback';
         diagramUserAnswer = '';
-        diagramAnswerEl.textContent = '\u00A0';
+        diagramAnswerEl.textContent = ' ';
         btnValidateDiagram.disabled = true;
         btnValidateDiagramArea.classList.remove('d-none');
         btnNextDiagramArea.classList.add('d-none');
@@ -2032,7 +2153,7 @@
             diagramQuestion.textContent = `Combien de plus y a-t-il de ${diagramData[bigger].label} que de ${diagramData[smaller].label} ?`;
         } else if (qType === 'total') {
             correctAnswer = diagramData.reduce((s, d) => s + d.value, 0);
-            diagramQuestion.textContent = 'Quel est le total de toutes les cat\u00e9gories ?';
+            diagramQuestion.textContent = 'Quel est le total de toutes les catégories ?';
         } else {
             const i1 = randInt(0, diagramData.length - 1);
             let i2;
@@ -2066,7 +2187,7 @@
 
     function setDiagramAnswer(val) {
         diagramUserAnswer = val;
-        diagramAnswerEl.textContent = val || '\u00A0';
+        diagramAnswerEl.textContent = val || ' ';
         btnValidateDiagram.disabled = val.length === 0;
     }
 
@@ -2087,13 +2208,13 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             diagramFeedbackEl.className = 'text-center feedback feedback-wrong';
-            diagramFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + correctAnswer;
+            diagramFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + correctAnswer;
         } else if (correct) {
             diagramFeedbackEl.className = 'text-center feedback feedback-correct';
-            diagramFeedbackEl.textContent = 'Bravo ! \u2705';
+            diagramFeedbackEl.textContent = 'Bravo ! ✅';
         } else {
             diagramFeedbackEl.className = 'text-center feedback feedback-wrong';
-            diagramFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + correctAnswer + ' \u274C';
+            diagramFeedbackEl.textContent = 'Raté ! Réponse : ' + correctAnswer + ' ❌';
         }
         btnValidateDiagramArea.classList.add('d-none');
         btnNextDiagramArea.classList.remove('d-none');
@@ -2151,7 +2272,7 @@
         // Build number rows
         numRow1.innerHTML = '';
         for (let i = 0; i < colDigits; i++) {
-            const ch = padA[i] === ' ' ? '\u00A0' : padA[i];
+            const ch = padA[i] === ' ' ? ' ' : padA[i];
             const sp = document.createElement('span');
             sp.style.width = '42px';
             sp.style.textAlign = 'center';
@@ -2164,7 +2285,7 @@
         numRow2.innerHTML = '';
         // operateur (+ pour addition, × pour multiplication posée)
         const opSpan = document.createElement('span');
-        opSpan.textContent = (mode === 'multiplication_colonne') ? '\u00D7' : '+';
+        opSpan.textContent = (mode === 'multiplication_colonne') ? '×' : '+';
         opSpan.style.marginRight = '8px';
         opSpan.style.fontSize = '2rem';
         numRow2.appendChild(opSpan);
@@ -2173,7 +2294,7 @@
         spacer.style.flex = '1';
         numRow2.appendChild(spacer);
         for (let i = 0; i < colDigits; i++) {
-            const ch = padB[i] === ' ' ? '\u00A0' : padB[i];
+            const ch = padB[i] === ' ' ? ' ' : padB[i];
             const sp = document.createElement('span');
             sp.style.width = '42px';
             sp.style.textAlign = 'center';
@@ -2275,17 +2396,17 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             addColFeedback.className = 'text-center feedback feedback-wrong';
-            addColFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + colAnswer;
+            addColFeedback.textContent = 'Temps écoulé ! Réponse : ' + colAnswer;
             // Show correct answer in inputs
             const inputs = answerRowCol.querySelectorAll('input');
             const ansStr = String(colAnswer);
             inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
         } else if (correct) {
             addColFeedback.className = 'text-center feedback feedback-correct';
-            addColFeedback.textContent = 'Bravo ! \u2705';
+            addColFeedback.textContent = 'Bravo ! ✅';
         } else {
             addColFeedback.className = 'text-center feedback feedback-wrong';
-            addColFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + colAnswer + ' \u274C';
+            addColFeedback.textContent = 'Raté ! Réponse : ' + colAnswer + ' ❌';
         }
         btnValidateAddColArea.classList.add('d-none');
         btnNextAddColArea.classList.remove('d-none');
@@ -2333,7 +2454,7 @@
         // Build number rows
         subNumRow1.innerHTML = '';
         for (let i = 0; i < subColDigits; i++) {
-            const ch = padA[i] === ' ' ? '\u00A0' : padA[i];
+            const ch = padA[i] === ' ' ? ' ' : padA[i];
             const sp = document.createElement('span');
             sp.style.width = '42px';
             sp.style.textAlign = 'center';
@@ -2345,7 +2466,7 @@
 
         subNumRow2.innerHTML = '';
         const opSpan = document.createElement('span');
-        opSpan.textContent = '\u2212';
+        opSpan.textContent = '−';
         opSpan.style.marginRight = '8px';
         opSpan.style.fontSize = '2rem';
         subNumRow2.appendChild(opSpan);
@@ -2353,7 +2474,7 @@
         spacer.style.flex = '1';
         subNumRow2.appendChild(spacer);
         for (let i = 0; i < subColDigits; i++) {
-            const ch = padB[i] === ' ' ? '\u00A0' : padB[i];
+            const ch = padB[i] === ' ' ? ' ' : padB[i];
             const sp = document.createElement('span');
             sp.style.width = '42px';
             sp.style.textAlign = 'center';
@@ -2475,16 +2596,16 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             subColFeedback.className = 'text-center feedback feedback-wrong';
-            subColFeedback.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + subColAnswer;
+            subColFeedback.textContent = 'Temps écoulé ! Réponse : ' + subColAnswer;
             const inputs = answerRowSub.querySelectorAll('input');
             const ansStr = String(subColAnswer).padStart(subColDigits, '0');
             inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
         } else if (correct) {
             subColFeedback.className = 'text-center feedback feedback-correct';
-            subColFeedback.textContent = 'Bravo ! \u2705';
+            subColFeedback.textContent = 'Bravo ! ✅';
         } else {
             subColFeedback.className = 'text-center feedback feedback-wrong';
-            subColFeedback.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + subColAnswer + ' \u274C';
+            subColFeedback.textContent = 'Raté ! Réponse : ' + subColAnswer + ' ❌';
         }
         btnValidateSubColArea.classList.add('d-none');
         btnNextSubColArea.classList.remove('d-none');
@@ -2504,7 +2625,7 @@
         conversionFeedbackEl.textContent = '';
         conversionFeedbackEl.className = 'text-center feedback';
         conversionUserAnswer = '';
-        conversionAnswerEl.textContent = '\u00A0';
+        conversionAnswerEl.textContent = ' ';
         btnValidateConv.disabled = true;
         btnValidateConvArea.classList.remove('d-none');
         btnNextConvArea.classList.add('d-none');
@@ -2516,7 +2637,7 @@
             { from: 'm', to: 'cm', gen: () => { const v = randInt(1, 10); return { v, ans: v * 100 }; }, hint: '1 m = 100 cm' },
             { from: 'cm', to: 'm', gen: () => { const v = randInt(1, 8) * 100; return { v, ans: v / 100 }; }, hint: '100 cm = 1 m' },
             { from: 'm', to: 'mm', gen: () => { const v = randInt(1, 5); return { v, ans: v * 1000 }; }, hint: '1 m = 1000 mm' },
-            { from: 'mm', to: 'cm', gen: () => { const v = randInt(1, 20) * 10 + randInt(0, 9); return { v, ans: Math.floor(v / 10) }; }, hint: '10 mm = 1 cm (partie enti\u00e8re)' },
+            { from: 'mm', to: 'cm', gen: () => { const v = randInt(1, 20) * 10 + randInt(0, 9); return { v, ans: Math.floor(v / 10) }; }, hint: '10 mm = 1 cm (partie entière)' },
         ];
 
         const conv = pick(conversions);
@@ -2538,7 +2659,7 @@
             if (i < convUnits.length - 1) {
                 const arrow = document.createElement('span');
                 arrow.className = 'unit-arrow';
-                arrow.textContent = '\u2194';
+                arrow.textContent = '↔';
                 unitRuler.appendChild(arrow);
             }
         });
@@ -2568,7 +2689,7 @@
 
     function setConversionAnswer(val) {
         conversionUserAnswer = val;
-        conversionAnswerEl.textContent = val || '\u00A0';
+        conversionAnswerEl.textContent = val || ' ';
         btnValidateConv.disabled = val.length === 0;
     }
 
@@ -2589,13 +2710,13 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             conversionFeedbackEl.className = 'text-center feedback feedback-wrong';
-            conversionFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + conversionCorrectAnswer;
+            conversionFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + conversionCorrectAnswer;
         } else if (correct) {
             conversionFeedbackEl.className = 'text-center feedback feedback-correct';
-            conversionFeedbackEl.textContent = 'Bravo ! \u2705';
+            conversionFeedbackEl.textContent = 'Bravo ! ✅';
         } else {
             conversionFeedbackEl.className = 'text-center feedback feedback-wrong';
-            conversionFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + conversionCorrectAnswer + ' \u274C';
+            conversionFeedbackEl.textContent = 'Raté ! Réponse : ' + conversionCorrectAnswer + ' ❌';
         }
         btnValidateConvArea.classList.add('d-none');
         btnNextConvArea.classList.remove('d-none');
@@ -2611,7 +2732,7 @@
     const geoShapes = {
         // Triangles
         equilateral: {
-            name: 'Triangle \u00e9quilat\u00e9ral',
+            name: 'Triangle équilatéral',
             svg: () => {
                 const cx = 130, cy = 105, r = 80;
                 const pts = [0, 1, 2].map(i => {
@@ -2623,7 +2744,7 @@
             props: { cotes: 3, cotesEgaux: 3, anglesEgaux: 3, anglesDroits: 0, axesSymetrie: 3, parallel: 0 }
         },
         isocele: {
-            name: 'Triangle isoc\u00e8le',
+            name: 'Triangle isocèle',
             svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="130,20 50,170 210,170" fill="#2196F3" fill-opacity="0.3" stroke="#1565C0" stroke-width="3"/></svg>`,
             props: { cotes: 3, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 1, parallel: 0 }
         },
@@ -2634,7 +2755,7 @@
         },
         // Quadrilaterals
         carre: {
-            name: 'Carr\u00e9',
+            name: 'Carré',
             svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><rect x="60" y="25" width="140" height="140" fill="#F44336" fill-opacity="0.3" stroke="#B71C1C" stroke-width="3"/><rect x="60" y="25" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="25" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="60" y="153" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/><rect x="188" y="153" width="12" height="12" fill="none" stroke="#B71C1C" stroke-width="2"/></svg>`,
             props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 4, anglesDroits: 4, axesSymetrie: 4, parallel: 2 }
         },
@@ -2649,12 +2770,12 @@
             props: { cotes: 4, cotesEgaux: 4, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 2, parallel: 2 }
         },
         parallelogramme: {
-            name: 'Parall\u00e9logramme',
+            name: 'Parallélogramme',
             svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="70,35 225,35 190,165 35,165" fill="#8BC34A" fill-opacity="0.3" stroke="#33691E" stroke-width="3"/></svg>`,
             props: { cotes: 4, cotesEgaux: 2, anglesEgaux: 2, anglesDroits: 0, axesSymetrie: 0, parallel: 2 }
         },
         trapeze: {
-            name: 'Trap\u00e8ze',
+            name: 'Trapèze',
             svg: () => `<svg width="260" height="200" viewBox="0 0 260 200"><polygon points="80,35 180,35 225,165 35,165" fill="#FF5722" fill-opacity="0.3" stroke="#BF360C" stroke-width="3"/></svg>`,
             props: { cotes: 4, cotesEgaux: 0, anglesEgaux: 0, anglesDroits: 0, axesSymetrie: 0, parallel: 1 }
         }
@@ -2707,20 +2828,20 @@
             // Vrai/Faux: pick a property question
             const props = shape.props;
             const propQuestions = [
-                { q: `Ce triangle a 3 c\u00f4t\u00e9s.`, ans: props.cotes === 3 },
-                { q: `Ce quadrilat\u00e8re a 4 c\u00f4t\u00e9s.`, ans: props.cotes === 4 },
-                { q: `Cette figure a ${props.cotesEgaux} c\u00f4t\u00e9s \u00e9gaux.`, ans: true },
+                { q: `Ce triangle a 3 côtés.`, ans: props.cotes === 3 },
+                { q: `Ce quadrilatère a 4 côtés.`, ans: props.cotes === 4 },
+                { q: `Cette figure a ${props.cotesEgaux} côtés égaux.`, ans: true },
                 { q: `Cette figure a 4 angles droits.`, ans: props.anglesDroits === 4 },
                 { q: `Cette figure a au moins 1 angle droit.`, ans: props.anglesDroits >= 1 },
-                { q: `Cette figure a ${props.axesSymetrie} axe${props.axesSymetrie > 1 ? 's' : ''} de sym\u00e9trie.`, ans: true },
-                { q: `Cette figure a des c\u00f4t\u00e9s parall\u00e8les.`, ans: props.parallel > 0 },
-                { q: `Tous les c\u00f4t\u00e9s de cette figure sont \u00e9gaux.`, ans: props.cotesEgaux === props.cotes },
+                { q: `Cette figure a ${props.axesSymetrie} axe${props.axesSymetrie > 1 ? 's' : ''} de symétrie.`, ans: true },
+                { q: `Cette figure a des côtés parallèles.`, ans: props.parallel > 0 },
+                { q: `Tous les côtés de cette figure sont égaux.`, ans: props.cotesEgaux === props.cotes },
                 { q: `Cette figure est un triangle.`, ans: props.cotes === 3 },
-                { q: `Cette figure est un quadrilat\u00e8re.`, ans: props.cotes === 4 },
+                { q: `Cette figure est un quadrilatère.`, ans: props.cotes === 4 },
             ].filter(pq => {
                 // Only include questions that make sense for this shape type
                 if (pq.q.startsWith('Ce triangle') && props.cotes !== 3) return false;
-                if (pq.q.startsWith('Ce quadrilat\u00e8re') && props.cotes !== 4) return false;
+                if (pq.q.startsWith('Ce quadrilatère') && props.cotes !== 4) return false;
                 return true;
             });
 
@@ -2786,7 +2907,7 @@
         if (timeout) {
             geoFeedbackEl.className = 'text-center feedback feedback-wrong';
             const ans = geoQuestionType === 'qcm' ? geoCorrectAnswer : (geoCorrectAnswer ? 'Vrai' : 'Faux');
-            geoFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + ans;
+            geoFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + ans;
             // Reveal correct answer for QCM
             if (geoQuestionType === 'qcm') {
                 geoChoicesArea.querySelectorAll('button').forEach(btn => {
@@ -2796,11 +2917,11 @@
             }
         } else if (correct) {
             geoFeedbackEl.className = 'text-center feedback feedback-correct';
-            geoFeedbackEl.textContent = 'Bravo ! \u2705';
+            geoFeedbackEl.textContent = 'Bravo ! ✅';
         } else {
             geoFeedbackEl.className = 'text-center feedback feedback-wrong';
             const ans = geoQuestionType === 'qcm' ? geoCorrectAnswer : (geoCorrectAnswer ? 'Vrai' : 'Faux');
-            geoFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + ans + ' \u274C';
+            geoFeedbackEl.textContent = 'Raté ! Réponse : ' + ans + ' ❌';
         }
         btnNextGeoArea.classList.remove('d-none');
         btnNextGeo.focus();
@@ -2813,7 +2934,7 @@
     // ====================================================================
 
     const frConjugaisons = {
-        '\u00eatre': { je: '\u00e9tais', tu: '\u00e9tais', 'il/elle': '\u00e9tait', nous: '\u00e9tions', vous: '\u00e9tiez', 'ils/elles': '\u00e9taient' },
+        'être': { je: 'étais', tu: 'étais', 'il/elle': 'était', nous: 'étions', vous: 'étiez', 'ils/elles': 'étaient' },
         'avoir': { je: 'avais', tu: 'avais', 'il/elle': 'avait', nous: 'avions', vous: 'aviez', 'ils/elles': 'avaient' },
         'aller': { je: 'allais', tu: 'allais', 'il/elle': 'allait', nous: 'allions', vous: 'alliez', 'ils/elles': 'allaient' },
         'chanter': { je: 'chantais', tu: 'chantais', 'il/elle': 'chantait', nous: 'chantions', vous: 'chantiez', 'ils/elles': 'chantaient' },
@@ -2823,7 +2944,7 @@
         'danser': { je: 'dansais', tu: 'dansais', 'il/elle': 'dansait', nous: 'dansions', vous: 'dansiez', 'ils/elles': 'dansaient' },
         'regarder': { je: 'regardais', tu: 'regardais', 'il/elle': 'regardait', nous: 'regardions', vous: 'regardiez', 'ils/elles': 'regardaient' },
         'marcher': { je: 'marchais', tu: 'marchais', 'il/elle': 'marchait', nous: 'marchions', vous: 'marchiez', 'ils/elles': 'marchaient' },
-        '\u00e9couter': { je: '\u00e9coutais', tu: '\u00e9coutais', 'il/elle': '\u00e9coutait', nous: '\u00e9coutions', vous: '\u00e9coutiez', 'ils/elles': '\u00e9coutaient' },
+        'écouter': { je: 'écoutais', tu: 'écoutais', 'il/elle': 'écoutait', nous: 'écoutions', vous: 'écoutiez', 'ils/elles': 'écoutaient' },
         'faire': { je: 'faisais', tu: 'faisais', 'il/elle': 'faisait', nous: 'faisions', vous: 'faisiez', 'ils/elles': 'faisaient' },
         'porter': { je: 'portais', tu: 'portais', 'il/elle': 'portait', nous: 'portions', vous: 'portiez', 'ils/elles': 'portaient' },
         'dire': { je: 'disais', tu: 'disais', 'il/elle': 'disait', nous: 'disions', vous: 'disiez', 'ils/elles': 'disaient' },
@@ -2841,7 +2962,7 @@
         'je': [
             (v, c) => `Je ___ ${c}.`,
             (v, c) => `Hier, je ___ ${c}.`,
-            (v, c) => `Quand j\u2019\u00e9tais petit, je ___ ${c}.`
+            (v, c) => `Quand j’étais petit, je ___ ${c}.`
         ],
         'tu': [
             (v, c) => `Tu ___ ${c}.`,
@@ -2858,7 +2979,7 @@
         ],
         'vous': [
             (v, c) => `Vous ___ ${c}.`,
-            (v, c) => `L\u2019ann\u00e9e derni\u00e8re, vous ___ ${c}.`
+            (v, c) => `L’année dernière, vous ___ ${c}.`
         ],
         'ils/elles': [
             (v, c) => `Ils ___ ${c}.`,
@@ -2868,18 +2989,18 @@
     };
 
     const frComplements = {
-        '\u00eatre': ['heureux', 'tr\u00e8s sage', 'fatigué', 'en retard', 'content'],
-        'avoir': ['faim', 'soif', 'peur', 'un ch\u00e2t', 'beaucoup de jouets'],
-        'aller': ['au parc', '\u00e0 l\u2019\u00e9cole', 'au march\u00e9', 'chez mamie', 'en v\u00e9lo'],
-        'chanter': ['une chanson', 'tr\u00e8s fort', 'en ch\u0153ur', 'le matin'],
+        'être': ['heureux', 'très sage', 'fatigué', 'en retard', 'content'],
+        'avoir': ['faim', 'soif', 'peur', 'un chât', 'beaucoup de jouets'],
+        'aller': ['au parc', 'à l’école', 'au marché', 'chez mamie', 'en vélo'],
+        'chanter': ['une chanson', 'très fort', 'en chœur', 'le matin'],
         'manger': ['une pomme', 'du pain', 'des bonbons', 'au restaurant'],
         'jouer': ['dans le jardin', 'avec mes amis', 'au foot', 'aux cartes'],
-        'parler': ['doucement', '\u00e0 ma ma\u00eetresse', 'en classe', 'avec ma s\u0153ur'],
-        'danser': ['la valse', 'avec joie', 'sur la sc\u00e8ne', 'tr\u00e8s bien'],
-        'regarder': ['la t\u00e9l\u00e9vision', 'les \u00e9toiles', 'un dessin anim\u00e9', 'par la fen\u00eatre'],
-        'marcher': ['dans la for\u00eat', 'vite', 'pieds nus', 'sous la pluie'],
-        '\u00e9couter': ['de la musique', 'mes parents', 'la radio', 'attentivement'],
-        'faire': ['du v\u00e9lo', 'la cuisine', 'mes devoirs', 'un g\u00e2teau', 'du sport'],
+        'parler': ['doucement', 'à ma maîtresse', 'en classe', 'avec ma sœur'],
+        'danser': ['la valse', 'avec joie', 'sur la scène', 'très bien'],
+        'regarder': ['la télévision', 'les étoiles', 'un dessin animé', 'par la fenêtre'],
+        'marcher': ['dans la forêt', 'vite', 'pieds nus', 'sous la pluie'],
+        'écouter': ['de la musique', 'mes parents', 'la radio', 'attentivement'],
+        'faire': ['du vélo', 'la cuisine', 'mes devoirs', 'un gâteau', 'du sport'],
         'porter': ['un sac', 'un chapeau', 'des lunettes', 'un manteau', 'ses affaires'],
         'dire': ['bonjour', 'la vérité', 'un secret', 'merci', 'une histoire'],
         'venir': ['à la maison', 'au parc', 'avec nous', 'en voiture', 'tous les jours'],
@@ -2898,7 +3019,7 @@
 
     // Radicaux spéciaux pour l'imparfait (base "nous" au présent sans -ons)
     const frRadicaux = {
-        '\u00eatre': '\u00e9t',  // ét-
+        'être': 'ét',  // ét-
         'avoir': 'av',
         'aller': 'all',
         'faire': 'fais',
@@ -2909,7 +3030,7 @@
         'danser': 'dans',
         'regarder': 'regard',
         'marcher': 'march',
-        '\u00e9couter': '\u00e9cout',
+        'écouter': 'écout',
         'porter': 'port',
         'dire': 'dis',
         'venir': 'ven',
@@ -2936,7 +3057,7 @@
         const tmpl = pick(frContextes[personne]);
         const rawSentence = tmpl(verb, complement);
         frSentenceEl.innerHTML = rawSentence.replace('___', `<span class="fr-blank">___</span>`);
-        frHintEl.textContent = 'Verbe : ' + verb + ' \u2014 \u00e0 l\u2019imparfait';
+        frHintEl.textContent = 'Verbe : ' + verb + ' — à l’imparfait';
 
         // Randomly pick sub-mode: QCM or terminaison
         frSubMode = Math.random() < 0.5 ? 'qcm' : 'terminaison';
@@ -3048,11 +3169,11 @@
         if (timeout) {
             frFeedbackEl.className = 'text-center feedback feedback-wrong';
             if (frSubMode === 'terminaison') {
-                frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! Terminaison : ' + frCorrectTerminaison + ' \u2192 ' + frCorrectAnswer;
+                frFeedbackEl.textContent = 'Temps écoulé ! Terminaison : ' + frCorrectTerminaison + ' → ' + frCorrectAnswer;
                 frTerminaisonInput.disabled = true;
                 btnValiderTerminaison.disabled = true;
             } else {
-                frFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer;
+                frFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + frCorrectAnswer;
                 frChoicesArea.querySelectorAll('button').forEach(btn => {
                     btn.disabled = true;
                     if (btn.textContent === frCorrectAnswer) btn.className = 'btn btn-success';
@@ -3060,13 +3181,13 @@
             }
         } else if (correct) {
             frFeedbackEl.className = 'text-center feedback feedback-correct';
-            frFeedbackEl.textContent = 'Bravo ! ' + frCorrectAnswer + ' \u2705';
+            frFeedbackEl.textContent = 'Bravo ! ' + frCorrectAnswer + ' ✅';
         } else {
             frFeedbackEl.className = 'text-center feedback feedback-wrong';
             if (frSubMode === 'terminaison') {
-                frFeedbackEl.textContent = 'Rat\u00e9 ! Terminaison : ' + frCorrectTerminaison + ' \u2192 ' + frCorrectAnswer + ' \u274C';
+                frFeedbackEl.textContent = 'Raté ! Terminaison : ' + frCorrectTerminaison + ' → ' + frCorrectAnswer + ' ❌';
             } else {
-                frFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + frCorrectAnswer + ' \u274C';
+                frFeedbackEl.textContent = 'Raté ! Réponse : ' + frCorrectAnswer + ' ❌';
             }
         }
         btnNextFrArea.classList.remove('d-none');
@@ -3102,7 +3223,7 @@
         eau_au: [
             { sing: 'bateau', plur: 'bateaux' },
             { sing: 'chapeau', plur: 'chapeaux' },
-            { sing: 'g\u00e2teau', plur: 'g\u00e2teaux' },
+            { sing: 'gâteau', plur: 'gâteaux' },
             { sing: 'oiseau', plur: 'oiseaux' },
             { sing: 'cadeau', plur: 'cadeaux' },
             { sing: 'manteau', plur: 'manteaux' },
@@ -3126,10 +3247,10 @@
             { sing: 'animal', plur: 'animaux' },
             { sing: 'cheval', plur: 'chevaux' },
             { sing: 'journal', plur: 'journaux' },
-            { sing: 'h\u00f4pital', plur: 'h\u00f4pitaux' },
+            { sing: 'hôpital', plur: 'hôpitaux' },
             { sing: 'canal', plur: 'canaux' },
             { sing: 'signal', plur: 'signaux' },
-            { sing: 'm\u00e9tal', plur: 'm\u00e9taux' }
+            { sing: 'métal', plur: 'métaux' }
         ],
         al_exception: [
             { sing: 'bal', plur: 'bals' },
@@ -3140,12 +3261,12 @@
             { sing: 'travail', plur: 'travaux' },
             { sing: 'vitrail', plur: 'vitraux' },
             { sing: 'corail', plur: 'coraux' },
-            { sing: '\u00e9mail', plur: '\u00e9maux' }
+            { sing: 'émail', plur: 'émaux' }
         ],
         ail_regulier: [
             { sing: 'rail', plur: 'rails' },
-            { sing: 'd\u00e9tail', plur: 'd\u00e9tails' },
-            { sing: '\u00e9ventail', plur: '\u00e9ventails' }
+            { sing: 'détail', plur: 'détails' },
+            { sing: 'éventail', plur: 'éventails' }
         ],
         ou: [
             { sing: 'trou', plur: 'trous' },
@@ -3175,17 +3296,17 @@
     };
 
     const plRegles = {
-        regulier: 'R\u00e8gle : on ajoute un -s au singulier.',
-        eau_au: 'R\u00e8gle : les noms en -eau et -au prennent un -x au pluriel.',
-        eu: 'R\u00e8gle : les noms en -eu prennent un -x au pluriel.',
+        regulier: 'Règle : on ajoute un -s au singulier.',
+        eau_au: 'Règle : les noms en -eau et -au prennent un -x au pluriel.',
+        eu: 'Règle : les noms en -eu prennent un -x au pluriel.',
         eu_exception: 'Exception : pneu et bleu prennent un -s au pluriel.',
-        al: 'R\u00e8gle : les noms en -al font -aux au pluriel.',
+        al: 'Règle : les noms en -al font -aux au pluriel.',
         al_exception: 'Exception : certains noms en -al prennent un -s (bal, festival, carnaval...).',
-        ail: 'R\u00e8gle : certains noms en -ail font -aux au pluriel (travail, vitrail, corail, \u00e9mail).',
-        ail_regulier: 'R\u00e8gle : la plupart des noms en -ail prennent un -s au pluriel.',
-        ou: 'R\u00e8gle : la plupart des noms en -ou prennent un -s au pluriel.',
+        ail: 'Règle : certains noms en -ail font -aux au pluriel (travail, vitrail, corail, émail).',
+        ail_regulier: 'Règle : la plupart des noms en -ail prennent un -s au pluriel.',
+        ou: 'Règle : la plupart des noms en -ou prennent un -s au pluriel.',
         ou_exception: 'Exception : 7 noms en -ou prennent un -x (bijou, caillou, chou, genou, hibou, joujou, pou).',
-        invariable: 'R\u00e8gle : les noms termin\u00e9s par -s, -x ou -z ne changent pas au pluriel.'
+        invariable: 'Règle : les noms terminés par -s, -x ou -z ne changent pas au pluriel.'
     };
 
     // Tous les mots en liste plate pour générer des distracteurs
@@ -3205,7 +3326,7 @@
         plCorrectAnswer = mot.plur;
         plCurrentRule = plRegles[cat];
 
-        plWordEl.innerHTML = '\ud83d\udcdd Mets au pluriel : <strong>un ' + mot.sing + '</strong> \u2192 <strong>des ___</strong>';
+        plWordEl.innerHTML = '📝 Mets au pluriel : <strong>un ' + mot.sing + '</strong> → <strong>des ___</strong>';
         plHintEl.textContent = 'Singulier : ' + mot.sing;
 
         // Alterner QCM / saisie
@@ -3312,7 +3433,7 @@
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
         if (timeout) {
             plFeedbackEl.className = 'text-center feedback feedback-wrong';
-            plFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + plCorrectAnswer;
+            plFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + plCorrectAnswer;
             if (plSubMode === 'input') {
                 plInput.disabled = true;
                 btnValiderPluriel.disabled = true;
@@ -3324,10 +3445,10 @@
             }
         } else if (correct) {
             plFeedbackEl.className = 'text-center feedback feedback-correct';
-            plFeedbackEl.textContent = 'Bravo ! ' + plCorrectAnswer + ' \u2705';
+            plFeedbackEl.textContent = 'Bravo ! ' + plCorrectAnswer + ' ✅';
         } else {
             plFeedbackEl.className = 'text-center feedback feedback-wrong';
-            plFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + plCorrectAnswer + ' \u274C';
+            plFeedbackEl.textContent = 'Raté ! Réponse : ' + plCorrectAnswer + ' ❌';
         }
         // Toujours afficher la règle
         plRuleEl.textContent = plCurrentRule;
@@ -3350,75 +3471,75 @@
     // ====================================================================
 
     const grDefinitions = {
-        phrase_declarative: { title: 'La phrase d\u00e9clarative', text: 'Une phrase d\u00e9clarative sert \u00e0 dire ou raconter quelque chose. Elle se termine par un point ( . ).', example: 'Exemple : Le chat dort sur le canap\u00e9.' },
-        phrase_negative:    { title: 'La phrase n\u00e9gative', text: 'Une phrase n\u00e9gative dit que quelque chose n\u2019est PAS vrai. Elle contient deux mots de n\u00e9gation : ne ... pas, ne ... plus, ne ... jamais, ne ... rien.', example: 'Exemple : Je ne mange pas de bonbons.' },
-        phrase_interrogative:{ title: 'La phrase interrogative', text: 'Une phrase interrogative sert \u00e0 poser une question. Elle se termine par un point d\u2019interrogation ( ? ).', example: 'Exemple : Veux-tu jouer avec moi ?' },
-        phrase_exclamative: { title: 'La phrase exclamative', text: 'Une phrase exclamative exprime une \u00e9motion forte (joie, surprise, col\u00e8re). Elle se termine par un point d\u2019exclamation ( ! ).', example: 'Exemple : Comme c\u2019est beau !' },
-        verbe:              { title: 'Le verbe', text: 'Le verbe est le mot qui indique l\u2019action ou l\u2019\u00e9tat. Il change selon le temps. On le trouve avec \u00ab Que fait... ? \u00bb', example: 'Exemple : Lila mange une pomme. \u2192 mange est le verbe.' },
-        sujet:              { title: 'Le sujet du verbe', text: 'Le sujet est celui qui fait l\u2019action. On le trouve avec \u00ab Qui est-ce qui... ? \u00bb plac\u00e9 devant le verbe. Souvent il s\u2019agit d\u2019un GROUPE de mots (d\u00e9terminant + nom + adjectif), il faut tout cliquer.', example: 'Exemple : Le grand cheval mange. \u2192 Qui mange ? Le grand cheval.' },
-        pronom_personnel:   { title: 'Les pronoms personnels', text: 'Ils remplacent un nom. Singulier : je, tu, il, elle, on. Pluriel : nous, vous, ils, elles.', example: 'Exemple : Lila joue. \u2192 Elle joue.' },
-        pronom_possessif:   { title: 'Les pronoms possessifs', text: 'Ils remplacent un nom et indiquent l\u2019appartenance : le mien, la tienne, les siens, la n\u00f4tre, le v\u00f4tre, les leurs...', example: 'Exemple : Ce livre est \u00e0 moi. \u2192 C\u2019est le mien.' },
-        nom_propre:         { title: 'Le nom propre', text: 'Il d\u00e9signe une personne, un animal ou un lieu pr\u00e9cis. Il commence toujours par une majuscule.', example: 'Exemple : Paris, Lila, France, Mistigri.' },
-        nom_commun:         { title: 'Le nom commun', text: 'Il d\u00e9signe une chose, une personne ou un animal en g\u00e9n\u00e9ral. Minuscule, souvent pr\u00e9c\u00e9d\u00e9 d\u2019un d\u00e9terminant.', example: 'Exemple : un chat, la table, des fleurs.' },
-        genre:              { title: 'Le genre du nom', text: 'Soit masculin (le, un) soit f\u00e9minin (la, une). On le trouve gr\u00e2ce au d\u00e9terminant.', example: 'Exemple : le chat (masculin), la table (f\u00e9minin).' },
-        nombre:             { title: 'Le nombre du nom', text: 'Soit singulier (un seul) soit pluriel (plusieurs). Au pluriel, le nom prend g\u00e9n\u00e9ralement -s ou -x.', example: 'Exemple : un chat, des chats.' },
-        article:            { title: 'Les articles', text: 'D\u00e9terminants devant le nom. D\u00e9finis : le, la, l\u2019, les. Ind\u00e9finis : un, une, des.', example: 'Exemple : LE chien, UNE pomme, LES enfants.' },
-        determinant_possessif:{ title: 'Les d\u00e9terminants possessifs', text: 'Ils indiquent l\u2019appartenance et se placent devant le nom : mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, nos, vos, leur, leurs.', example: 'Exemple : MA poup\u00e9e, TON livre, NOS amis.' },
-        groupe_nominal:     { title: 'Le groupe nominal (GN)', text: 'Form\u00e9 d\u2019un nom (chef du groupe) et de son d\u00e9terminant. Il peut aussi contenir un adjectif.', example: 'Exemple : la grande maison \u2192 d\u00e9t (la) + adj (grande) + nom (maison).' },
-        adjectif:           { title: 'L\u2019adjectif qualificatif', text: 'Il qualifie un nom : il dit comment il est. Il s\u2019accorde en genre et en nombre.', example: 'Exemple : un petit chat, une petite souris, des petits chats.' }
+        phrase_declarative: { title: 'La phrase déclarative', text: 'Une phrase déclarative sert à dire ou raconter quelque chose. Elle se termine par un point ( . ).', example: 'Exemple : Le chat dort sur le canapé.' },
+        phrase_negative:    { title: 'La phrase négative', text: 'Une phrase négative dit que quelque chose n’est PAS vrai. Elle contient deux mots de négation : ne ... pas, ne ... plus, ne ... jamais, ne ... rien.', example: 'Exemple : Je ne mange pas de bonbons.' },
+        phrase_interrogative:{ title: 'La phrase interrogative', text: 'Une phrase interrogative sert à poser une question. Elle se termine par un point d’interrogation ( ? ).', example: 'Exemple : Veux-tu jouer avec moi ?' },
+        phrase_exclamative: { title: 'La phrase exclamative', text: 'Une phrase exclamative exprime une émotion forte (joie, surprise, colère). Elle se termine par un point d’exclamation ( ! ).', example: 'Exemple : Comme c’est beau !' },
+        verbe:              { title: 'Le verbe', text: 'Le verbe est le mot qui indique l’action ou l’état. Il change selon le temps. On le trouve avec « Que fait... ? »', example: 'Exemple : Lila mange une pomme. → mange est le verbe.' },
+        sujet:              { title: 'Le sujet du verbe', text: 'Le sujet est celui qui fait l’action. On le trouve avec « Qui est-ce qui... ? » placé devant le verbe. Souvent il s’agit d’un GROUPE de mots (déterminant + nom + adjectif), il faut tout cliquer.', example: 'Exemple : Le grand cheval mange. → Qui mange ? Le grand cheval.' },
+        pronom_personnel:   { title: 'Les pronoms personnels', text: 'Ils remplacent un nom. Singulier : je, tu, il, elle, on. Pluriel : nous, vous, ils, elles.', example: 'Exemple : Lila joue. → Elle joue.' },
+        pronom_possessif:   { title: 'Les pronoms possessifs', text: 'Ils remplacent un nom et indiquent l’appartenance : le mien, la tienne, les siens, la nôtre, le vôtre, les leurs...', example: 'Exemple : Ce livre est à moi. → C’est le mien.' },
+        nom_propre:         { title: 'Le nom propre', text: 'Il désigne une personne, un animal ou un lieu précis. Il commence toujours par une majuscule.', example: 'Exemple : Paris, Lila, France, Mistigri.' },
+        nom_commun:         { title: 'Le nom commun', text: 'Il désigne une chose, une personne ou un animal en général. Minuscule, souvent précédé d’un déterminant.', example: 'Exemple : un chat, la table, des fleurs.' },
+        genre:              { title: 'Le genre du nom', text: 'Soit masculin (le, un) soit féminin (la, une). On le trouve grâce au déterminant.', example: 'Exemple : le chat (masculin), la table (féminin).' },
+        nombre:             { title: 'Le nombre du nom', text: 'Soit singulier (un seul) soit pluriel (plusieurs). Au pluriel, le nom prend généralement -s ou -x.', example: 'Exemple : un chat, des chats.' },
+        article:            { title: 'Les articles', text: 'Déterminants devant le nom. Définis : le, la, l’, les. Indéfinis : un, une, des.', example: 'Exemple : LE chien, UNE pomme, LES enfants.' },
+        determinant_possessif:{ title: 'Les déterminants possessifs', text: 'Ils indiquent l’appartenance et se placent devant le nom : mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, nos, vos, leur, leurs.', example: 'Exemple : MA poupée, TON livre, NOS amis.' },
+        groupe_nominal:     { title: 'Le groupe nominal (GN)', text: 'Formé d’un nom (chef du groupe) et de son déterminant. Il peut aussi contenir un adjectif.', example: 'Exemple : la grande maison → dét (la) + adj (grande) + nom (maison).' },
+        adjectif:           { title: 'L’adjectif qualificatif', text: 'Il qualifie un nom : il dit comment il est. Il s’accorde en genre et en nombre.', example: 'Exemple : un petit chat, une petite souris, des petits chats.' }
     };
 
     const grQuestions = [
-        { type:'qcm', prompt:'Que sert \u00e0 faire une phrase interrogative ?', choices:['\u00c0 raconter quelque chose','\u00c0 poser une question','\u00c0 exprimer une \u00e9motion forte','\u00c0 dire que c\u2019est faux'], correct:'\u00c0 poser une question', defKey:'phrase_interrogative' },
-        { type:'qcm', prompt:'Comment se termine une phrase exclamative ?', choices:['Par un point ( . )','Par un point d\u2019interrogation ( ? )','Par un point d\u2019exclamation ( ! )','Par une virgule ( , )'], correct:'Par un point d\u2019exclamation ( ! )', defKey:'phrase_exclamative' },
-        { type:'qcm', prompt:'Quels mots permettent de former une phrase n\u00e9gative ?', choices:['toujours, encore','ne ... pas','tr\u00e8s, beaucoup','parce que, mais'], correct:'ne ... pas', defKey:'phrase_negative' },
-        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un verbe ?', choices:['Un mot qui qualifie un nom','Un mot qui indique l\u2019action ou l\u2019\u00e9tat','Un petit mot devant le nom','Le nom d\u2019une personne'], correct:'Un mot qui indique l\u2019action ou l\u2019\u00e9tat', defKey:'verbe' },
-        { type:'qcm', prompt:'Comment trouve-t-on le sujet du verbe ?', choices:['On regarde le dernier mot','On demande \u00ab Qui est-ce qui... ? \u00bb','On compte les lettres','On cherche la majuscule'], correct:'On demande \u00ab Qui est-ce qui... ? \u00bb', defKey:'sujet' },
+        { type:'qcm', prompt:'Que sert à faire une phrase interrogative ?', choices:['À raconter quelque chose','À poser une question','À exprimer une émotion forte','À dire que c’est faux'], correct:'À poser une question', defKey:'phrase_interrogative' },
+        { type:'qcm', prompt:'Comment se termine une phrase exclamative ?', choices:['Par un point ( . )','Par un point d’interrogation ( ? )','Par un point d’exclamation ( ! )','Par une virgule ( , )'], correct:'Par un point d’exclamation ( ! )', defKey:'phrase_exclamative' },
+        { type:'qcm', prompt:'Quels mots permettent de former une phrase négative ?', choices:['toujours, encore','ne ... pas','très, beaucoup','parce que, mais'], correct:'ne ... pas', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Qu’est-ce qu’un verbe ?', choices:['Un mot qui qualifie un nom','Un mot qui indique l’action ou l’état','Un petit mot devant le nom','Le nom d’une personne'], correct:'Un mot qui indique l’action ou l’état', defKey:'verbe' },
+        { type:'qcm', prompt:'Comment trouve-t-on le sujet du verbe ?', choices:['On regarde le dernier mot','On demande « Qui est-ce qui... ? »','On compte les lettres','On cherche la majuscule'], correct:'On demande « Qui est-ce qui... ? »', defKey:'sujet' },
         { type:'qcm', prompt:'Quel pronom personnel est au PLURIEL ?', choices:['je','tu','elle','nous'], correct:'nous', defKey:'pronom_personnel' },
         { type:'qcm', prompt:'Quel pronom personnel est au SINGULIER ?', choices:['ils','vous','il','elles'], correct:'il', defKey:'pronom_personnel' },
         { type:'qcm', prompt:'Lequel est un pronom POSSESSIF ?', choices:['le mien','celui-ci','lequel','on'], correct:'le mien', defKey:'pronom_possessif' },
-        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un nom propre ?', choices:['Un nom de chose en g\u00e9n\u00e9ral','Un nom qui d\u00e9signe une personne ou un lieu pr\u00e9cis','Un nom de famille uniquement','Un nom \u00e0 la mode'], correct:'Un nom qui d\u00e9signe une personne ou un lieu pr\u00e9cis', defKey:'nom_propre' },
-        { type:'qcm', prompt:'Comment commence un nom propre ?', choices:['Par une minuscule','Par une majuscule','Par un d\u00e9terminant','Par un adjectif'], correct:'Par une majuscule', defKey:'nom_propre' },
-        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un d\u00e9terminant ?', choices:['Un mot qui qualifie le nom','Un petit mot plac\u00e9 devant le nom','Le verbe de la phrase','Le sujet de la phrase'], correct:'Un petit mot plac\u00e9 devant le nom', defKey:'article' },
-        { type:'qcm', prompt:'Lequel est un ARTICLE d\u00e9fini ?', choices:['un','une','le','mon'], correct:'le', defKey:'article' },
-        { type:'qcm', prompt:'Lequel est un d\u00e9terminant POSSESSIF ?', choices:['les','ma','des','l\u2019'], correct:'ma', defKey:'determinant_possessif' },
-        { type:'qcm', prompt:'De quoi est form\u00e9 le groupe nominal ?', choices:['D\u2019un verbe et d\u2019un sujet','D\u2019un nom et de son d\u00e9terminant','D\u2019un adjectif tout seul','De deux verbes'], correct:'D\u2019un nom et de son d\u00e9terminant', defKey:'groupe_nominal' },
-        { type:'qcm', prompt:'Qu\u2019est-ce qu\u2019un adjectif ?', choices:['Un mot qui dit l\u2019action','Un mot qui qualifie le nom','Un nom propre','Un d\u00e9terminant'], correct:'Un mot qui qualifie le nom', defKey:'adjectif' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Comme cette glace est d\u00e9licieuse !', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Exclamative', defKey:'phrase_exclamative' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'O\u00f9 vas-tu apr\u00e8s l\u2019\u00e9cole ?', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Interrogative', defKey:'phrase_interrogative' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Je ne veux pas de soupe.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'N\u00e9gative', defKey:'phrase_negative' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Le chien dort dans son panier.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'D\u00e9clarative', defKey:'phrase_declarative' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Tu n\u2019as jamais vu la mer.', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'N\u00e9gative', defKey:'phrase_negative' },
-        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Quel beau jardin !', choices:['D\u00e9clarative','Interrogative','Exclamative','N\u00e9gative'], correct:'Exclamative', defKey:'phrase_exclamative' },
+        { type:'qcm', prompt:'Qu’est-ce qu’un nom propre ?', choices:['Un nom de chose en général','Un nom qui désigne une personne ou un lieu précis','Un nom de famille uniquement','Un nom à la mode'], correct:'Un nom qui désigne une personne ou un lieu précis', defKey:'nom_propre' },
+        { type:'qcm', prompt:'Comment commence un nom propre ?', choices:['Par une minuscule','Par une majuscule','Par un déterminant','Par un adjectif'], correct:'Par une majuscule', defKey:'nom_propre' },
+        { type:'qcm', prompt:'Qu’est-ce qu’un déterminant ?', choices:['Un mot qui qualifie le nom','Un petit mot placé devant le nom','Le verbe de la phrase','Le sujet de la phrase'], correct:'Un petit mot placé devant le nom', defKey:'article' },
+        { type:'qcm', prompt:'Lequel est un ARTICLE défini ?', choices:['un','une','le','mon'], correct:'le', defKey:'article' },
+        { type:'qcm', prompt:'Lequel est un déterminant POSSESSIF ?', choices:['les','ma','des','l’'], correct:'ma', defKey:'determinant_possessif' },
+        { type:'qcm', prompt:'De quoi est formé le groupe nominal ?', choices:['D’un verbe et d’un sujet','D’un nom et de son déterminant','D’un adjectif tout seul','De deux verbes'], correct:'D’un nom et de son déterminant', defKey:'groupe_nominal' },
+        { type:'qcm', prompt:'Qu’est-ce qu’un adjectif ?', choices:['Un mot qui dit l’action','Un mot qui qualifie le nom','Un nom propre','Un déterminant'], correct:'Un mot qui qualifie le nom', defKey:'adjectif' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Comme cette glace est délicieuse !', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Exclamative', defKey:'phrase_exclamative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Où vas-tu après l’école ?', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Interrogative', defKey:'phrase_interrogative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Je ne veux pas de soupe.', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Négative', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Le chien dort dans son panier.', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Déclarative', defKey:'phrase_declarative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Tu n’as jamais vu la mer.', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Négative', defKey:'phrase_negative' },
+        { type:'qcm', prompt:'Quel est le type de cette phrase ?', sentence:'Quel beau jardin !', choices:['Déclarative','Interrogative','Exclamative','Négative'], correct:'Exclamative', defKey:'phrase_exclamative' },
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Le chat mange une souris.', correct:'mange', defKey:'verbe' },
-        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'M\u00e9lissa joue dans le jardin.', correct:'joue', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Mélissa joue dans le jardin.', correct:'joue', defKey:'verbe' },
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Les oiseaux chantent au matin.', correct:'chantent', defKey:'verbe' },
-        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Mon p\u00e8re lit un livre.', correct:'lit', defKey:'verbe' },
+        { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Mon père lit un livre.', correct:'lit', defKey:'verbe' },
         { type:'word', prompt:'Clique sur le VERBE de la phrase.', sentence:'Nous mangeons une glace.', correct:'mangeons', defKey:'verbe' },
-        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Le chat dort sur le canap\u00e9.', correct:['Le','chat'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Le chat dort sur le canapé.', correct:['Le','chat'], defKey:'sujet' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Lila mange une pomme.', correct:['Lila'], defKey:'sujet' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Les enfants jouent dehors.', correct:['Les','enfants'], defKey:'sujet' },
-        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Mon fr\u00e8re cuisine des cr\u00eapes.', correct:['Mon','fr\u00e8re'], defKey:'sujet' },
+        { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Mon frère cuisine des crêpes.', correct:['Mon','frère'], defKey:'sujet' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Le grand cheval mange une pomme.', correct:['Le','grand','cheval'], defKey:'sujet' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du sujet du verbe, puis Valider.', sentence:'Mes amis jouent au ballon.', correct:['Mes','amis'], defKey:'sujet' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du GROUPE NOMINAL en gras, puis Valider.', sentence:'Le petit chien blanc dort.', correct:['Le','petit','chien','blanc'], defKey:'groupe_nominal' },
         { type:'multiword', prompt:'Clique sur TOUS les mots du GROUPE NOMINAL sujet, puis Valider.', sentence:'Une grande maison rouge se voit de loin.', correct:['Une','grande','maison','rouge'], defKey:'groupe_nominal' },
-        { type:'qcm', prompt:'Combien de personnes le pronom \u00ab nous \u00bb d\u00e9signe-t-il ?', choices:['Une seule personne','Plusieurs personnes','\u00c7a d\u00e9pend','Aucune personne'], correct:'Plusieurs personnes', defKey:'pronom_personnel' },
-        { type:'qcm', prompt:'Le pronom \u00ab elles \u00bb est :', choices:['singulier f\u00e9minin','pluriel f\u00e9minin','singulier masculin','pluriel masculin'], correct:'pluriel f\u00e9minin', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Combien de personnes le pronom « nous » désigne-t-il ?', choices:['Une seule personne','Plusieurs personnes','Ça dépend','Aucune personne'], correct:'Plusieurs personnes', defKey:'pronom_personnel' },
+        { type:'qcm', prompt:'Le pronom « elles » est :', choices:['singulier féminin','pluriel féminin','singulier masculin','pluriel masculin'], correct:'pluriel féminin', defKey:'pronom_personnel' },
         { type:'qcm', prompt:'Lequel de ces mots est un NOM PROPRE ?', choices:['chien','pomme','Paris','arbre'], correct:'Paris', defKey:'nom_propre' },
         { type:'qcm', prompt:'Lequel de ces mots est un NOM COMMUN ?', choices:['Lila','France','maison','Mistigri'], correct:'maison', defKey:'nom_commun' },
         { type:'word', prompt:'Clique sur le NOM PROPRE de la phrase.', sentence:'Lila habite en France.', correct:'Lila', defKey:'nom_propre' },
-        { type:'word', prompt:'Clique sur un NOM COMMUN de la phrase.', sentence:'Le chien aboie tr\u00e8s fort.', correct:'chien', defKey:'nom_commun' },
-        { type:'qcm', prompt:'Quel est le genre du nom \u00ab table \u00bb ?', choices:['Masculin','F\u00e9minin','Singulier','Pluriel'], correct:'F\u00e9minin', defKey:'genre' },
-        { type:'qcm', prompt:'Quel est le genre du nom \u00ab cheval \u00bb ?', choices:['Masculin','F\u00e9minin','Singulier','Pluriel'], correct:'Masculin', defKey:'genre' },
-        { type:'qcm', prompt:'Quel est le nombre du groupe \u00ab les enfants \u00bb ?', choices:['Singulier','Pluriel','F\u00e9minin','Masculin'], correct:'Pluriel', defKey:'nombre' },
-        { type:'qcm', prompt:'Quel est le nombre du groupe \u00ab une fleur \u00bb ?', choices:['Singulier','Pluriel','F\u00e9minin','Masculin'], correct:'Singulier', defKey:'nombre' },
-        { type:'word', prompt:'Clique sur le D\u00c9TERMINANT de la phrase.', sentence:'La fleur est tr\u00e8s belle.', correct:'La', defKey:'article' },
-        { type:'word', prompt:'Clique sur le D\u00c9TERMINANT POSSESSIF de la phrase.', sentence:'Mon livre est sur la table.', correct:'Mon', defKey:'determinant_possessif' },
-        { type:'word', prompt:'Clique sur l\u2019ADJECTIF de la phrase.', sentence:'Le petit chat est joli.', correct:'petit', defKey:'adjectif' },
-        { type:'word', prompt:'Clique sur l\u2019ADJECTIF de la phrase.', sentence:'Une grande maison rouge.', correct:'grande', defKey:'adjectif' },
-        { type:'qcm', prompt:'Dans \u00ab la grande maison \u00bb, quel est le groupe nominal ?', choices:['grande','la grande maison','maison','la'], correct:'la grande maison', defKey:'groupe_nominal' },
-        { type:'qcm', prompt:'Dans \u00ab mon petit chien blanc \u00bb, quel est le NOM (chef du GN) ?', choices:['mon','petit','chien','blanc'], correct:'chien', defKey:'groupe_nominal' }
+        { type:'word', prompt:'Clique sur un NOM COMMUN de la phrase.', sentence:'Le chien aboie très fort.', correct:'chien', defKey:'nom_commun' },
+        { type:'qcm', prompt:'Quel est le genre du nom « table » ?', choices:['Masculin','Féminin','Singulier','Pluriel'], correct:'Féminin', defKey:'genre' },
+        { type:'qcm', prompt:'Quel est le genre du nom « cheval » ?', choices:['Masculin','Féminin','Singulier','Pluriel'], correct:'Masculin', defKey:'genre' },
+        { type:'qcm', prompt:'Quel est le nombre du groupe « les enfants » ?', choices:['Singulier','Pluriel','Féminin','Masculin'], correct:'Pluriel', defKey:'nombre' },
+        { type:'qcm', prompt:'Quel est le nombre du groupe « une fleur » ?', choices:['Singulier','Pluriel','Féminin','Masculin'], correct:'Singulier', defKey:'nombre' },
+        { type:'word', prompt:'Clique sur le DÉTERMINANT de la phrase.', sentence:'La fleur est très belle.', correct:'La', defKey:'article' },
+        { type:'word', prompt:'Clique sur le DÉTERMINANT POSSESSIF de la phrase.', sentence:'Mon livre est sur la table.', correct:'Mon', defKey:'determinant_possessif' },
+        { type:'word', prompt:'Clique sur l’ADJECTIF de la phrase.', sentence:'Le petit chat est joli.', correct:'petit', defKey:'adjectif' },
+        { type:'word', prompt:'Clique sur l’ADJECTIF de la phrase.', sentence:'Une grande maison rouge.', correct:'grande', defKey:'adjectif' },
+        { type:'qcm', prompt:'Dans « la grande maison », quel est le groupe nominal ?', choices:['grande','la grande maison','maison','la'], correct:'la grande maison', defKey:'groupe_nominal' },
+        { type:'qcm', prompt:'Dans « mon petit chien blanc », quel est le NOM (chef du GN) ?', choices:['mon','petit','chien','blanc'], correct:'chien', defKey:'groupe_nominal' }
     ];
 
     // ====================================================================
@@ -3428,91 +3549,128 @@
     // ====================================================================
 
     const cpDefinitions = {
+        complement_verbe: {
+            title: 'Le complément du verbe',
+            text: 'Le complément du verbe complète directement le verbe. Il répond à « QUI ? », « QUOI ? », « À QUI ? » ou « DE QUOI ? ». ATTENTION : on ne peut pas le supprimer, ni le déplacer en début de phrase. Il y a deux sortes : le COD (sans préposition) et le COI (avec « à » ou « de »).',
+            example: 'Exemple : Lila mange UNE POMME. → Lila mange QUOI ? une pomme. (COD, on ne peut pas dire « Lila mange » tout seul.)'
+        },
         cod: {
-            title: 'Le compl\u00e9ment d\u2019objet direct (COD)',
-            text: 'Le COD compl\u00e8te le verbe SANS pr\u00e9position. On le trouve en posant la question \u00ab QUI ? \u00bb ou \u00ab QUOI ? \u00bb apr\u00e8s le verbe. Il indique sur qui ou sur quoi porte l\u2019action.',
-            example: 'Exemple : Lila mange UNE POMME. \u2192 Lila mange QUOI ? une pomme.'
+            title: 'Le complément d’objet direct (COD)',
+            text: 'Le COD est un complément du verbe SANS préposition. On le trouve en posant la question « QUI ? » ou « QUOI ? » après le verbe. Il indique sur qui ou sur quoi porte l’action. On ne peut pas le supprimer.',
+            example: 'Exemple : Lila mange UNE POMME. → Lila mange QUOI ? une pomme.'
         },
         coi: {
-            title: 'Le compl\u00e9ment d\u2019objet indirect (COI)',
-            text: 'Le COI compl\u00e8te le verbe AVEC une pr\u00e9position (\u00e0, de, pour...). On le trouve en posant \u00ab \u00c0 QUI ? \u00bb, \u00ab \u00c0 QUOI ? \u00bb, \u00ab DE QUI ? \u00bb ou \u00ab DE QUOI ? \u00bb apr\u00e8s le verbe.',
-            example: 'Exemple : Je parle \u00c0 MON AMI. \u2192 Je parle \u00c0 QUI ? \u00e0 mon ami.'
+            title: 'Le complément d’objet indirect (COI)',
+            text: 'Le COI est un complément du verbe AVEC une préposition (à, de, pour...). On le trouve en posant « À QUI ? », « À QUOI ? », « DE QUI ? » ou « DE QUOI ? » après le verbe.',
+            example: 'Exemple : Je parle À MON AMI. → Je parle À QUI ? à mon ami.'
         },
         cct: {
-            title: 'Le compl\u00e9ment circonstanciel de temps (CCT)',
-            text: 'Le CCT pr\u00e9cise QUAND, \u00c0 QUEL MOMENT ou PENDANT COMBIEN DE TEMPS se passe l\u2019action. On le trouve avec la question \u00ab QUAND ? \u00bb. Il peut \u00eatre d\u00e9plac\u00e9 ou supprim\u00e9.',
-            example: 'Exemple : DEMAIN, nous irons \u00e0 la mer. \u2192 Quand irons-nous \u00e0 la mer ? Demain.'
+            title: 'Le complément circonstanciel de temps (CCT)',
+            text: 'Le CCT précise QUAND, À QUEL MOMENT ou PENDANT COMBIEN DE TEMPS se passe l’action. On le trouve avec la question « QUAND ? ». Il peut être déplacé ou supprimé.',
+            example: 'Exemple : DEMAIN, nous irons à la mer. → Quand irons-nous à la mer ? Demain.'
         },
         ccl: {
-            title: 'Le compl\u00e9ment circonstanciel de lieu (CCL)',
-            text: 'Le CCL indique O\u00d9 se passe l\u2019action. On le trouve avec la question \u00ab O\u00d9 ? \u00bb. Il peut \u00eatre d\u00e9plac\u00e9 ou supprim\u00e9 sans rendre la phrase fausse.',
-            example: 'Exemple : Le chat dort SUR LE CANAP\u00c9. \u2192 O\u00f9 dort le chat ? sur le canap\u00e9.'
+            title: 'Le complément circonstanciel de lieu (CCL)',
+            text: 'Le CCL indique OÙ se passe l’action. On le trouve avec la question « OÙ ? ». Il peut être déplacé ou supprimé sans rendre la phrase fausse.',
+            example: 'Exemple : Le chat dort SUR LE CANAPÉ. → Où dort le chat ? sur le canapé.'
         },
         ccm: {
-            title: 'Le compl\u00e9ment circonstanciel de mani\u00e8re (CCM)',
-            text: 'Le CCM pr\u00e9cise COMMENT se passe l\u2019action. On le trouve avec la question \u00ab COMMENT ? \u00bb ou \u00ab DE QUELLE MANI\u00c8RE ? \u00bb. Souvent c\u2019est un adverbe en -MENT.',
-            example: 'Exemple : Il court RAPIDEMENT. \u2192 Comment court-il ? Rapidement.'
+            title: 'Le complément circonstanciel de manière (CCM)',
+            text: 'Le CCM précise COMMENT se passe l’action. On le trouve avec la question « COMMENT ? » ou « DE QUELLE MANIÈRE ? ». Souvent c’est un adverbe en -MENT.',
+            example: 'Exemple : Il court RAPIDEMENT. → Comment court-il ? Rapidement.'
         },
         ccc: {
-            title: 'Le compl\u00e9ment circonstanciel de cause (CCC)',
-            text: 'Le CCC indique POURQUOI l\u2019action a lieu, sa cause. On le trouve avec la question \u00ab POURQUOI ? \u00bb ou \u00ab \u00c0 CAUSE DE QUOI ? \u00bb.',
-            example: 'Exemple : Il pleure DE JOIE. \u2192 Pourquoi pleure-t-il ? De joie.'
+            title: 'Le complément circonstanciel de cause (CCC)',
+            text: 'Le CCC indique POURQUOI l’action a lieu, sa cause. On le trouve avec la question « POURQUOI ? » ou « À CAUSE DE QUOI ? ».',
+            example: 'Exemple : Il pleure DE JOIE. → Pourquoi pleure-t-il ? De joie.'
         },
         ccb: {
-            title: 'Le compl\u00e9ment circonstanciel de but (CCB)',
-            text: 'Le CCB indique le BUT de l\u2019action. On le trouve avec la question \u00ab DANS QUEL BUT ? \u00bb ou \u00ab POUR QUOI FAIRE ? \u00bb. Souvent il commence par \u00ab pour \u00bb suivi d\u2019un verbe \u00e0 l\u2019infinitif.',
-            example: 'Exemple : Elle s\u2019entra\u00eene POUR GAGNER LA COURSE. \u2192 Dans quel but ? pour gagner la course.'
+            title: 'Le complément circonstanciel de but (CCB)',
+            text: 'Le CCB indique le BUT de l’action. On le trouve avec la question « DANS QUEL BUT ? » ou « POUR QUOI FAIRE ? ». Souvent il commence par « pour » suivi d’un verbe à l’infinitif.',
+            example: 'Exemple : Elle s’entraîne POUR GAGNER LA COURSE. → Dans quel but ? pour gagner la course.'
         }
     };
 
-    const CP_CHOICES_TYPE = ['COD','COI','CC de temps','CC de lieu','CC de mani\u00e8re','CC de cause','CC de but'];
+    const CP_CHOICES_TYPE = ['COD','COI','CC de temps','CC de lieu','CC de manière','CC de cause','CC de but'];
 
     const cpQuestions = [
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond le COD ?', choices:['Qui ? / Quoi ?','\u00c0 qui ? / \u00c0 quoi ?','Quand ?','O\u00f9 ?'], correct:'Qui ? / Quoi ?', defKey:'cod' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond le COI ?', choices:['Qui ? / Quoi ?','\u00c0 qui ? / De quoi ?','Comment ?','O\u00f9 ?'], correct:'\u00c0 qui ? / De quoi ?', defKey:'coi' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de TEMPS ?', choices:['O\u00f9 ?','Quand ?','Comment ?','Pourquoi ?'], correct:'Quand ?', defKey:'cct' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de LIEU ?', choices:['Quand ?','Pourquoi ?','O\u00f9 ?','Comment ?'], correct:'O\u00f9 ?', defKey:'ccl' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de MANI\u00c8RE ?', choices:['O\u00f9 ?','Comment ?','Quand ?','Pourquoi ?'], correct:'Comment ?', defKey:'ccm' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de CAUSE ?', choices:['Pourquoi ?','Comment ?','Quand ?','Dans quel but ?'], correct:'Pourquoi ?', defKey:'ccc' },
-        { type:'qcm', prompt:'\u00c0 quelle question r\u00e9pond un compl\u00e9ment circonstanciel de BUT ?', choices:['Pourquoi ?','Dans quel but ?','Comment ?','O\u00f9 ?'], correct:'Dans quel but ?', defKey:'ccb' },
-        { type:'qcm', prompt:'Quelle est la diff\u00e9rence entre COD et COI ?', choices:['Le COD est avant le verbe','Le COI utilise une pr\u00e9position (\u00e0, de...)','Le COD est toujours masculin','Le COI est toujours pluriel'], correct:'Le COI utilise une pr\u00e9position (\u00e0, de...)', defKey:'coi' },
+        // -- Notions générales sur le complément du verbe -------------------
+        { type:'qcm', prompt:'Qu’est-ce qu’un complément du verbe ?', choices:['Un mot qui complète le verbe et qu’on ne peut pas supprimer','Un mot qui peut toujours être supprimé','Un autre nom pour le sujet','Un mot qui complète un nom'], correct:'Un mot qui complète le verbe et qu’on ne peut pas supprimer', defKey:'complement_verbe' },
+        { type:'qcm', prompt:'Quels sont les deux compléments du verbe ?', choices:['COD et COI','CCT et CCL','Sujet et verbe','Article et nom'], correct:'COD et COI', defKey:'complement_verbe' },
+        { type:'qcm', prompt:'Peut-on déplacer le complément du verbe en début de phrase ?', choices:['Oui, comme un complément circonstanciel','Non, il reste après le verbe','Seulement le COI','Seulement le COD'], correct:'Non, il reste après le verbe', defKey:'complement_verbe' },
+        { type:'qcm', prompt:'Quelle est la différence principale entre COD et COI ?', choices:['Le COI a une préposition (à, de…), pas le COD','Le COD est toujours pluriel','Le COI vient avant le verbe','Le COD a une préposition'], correct:'Le COI a une préposition (à, de…), pas le COD', defKey:'complement_verbe' },
 
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Lila mange UNE POMME.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le chien mord LE FACTEUR.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'J\u2019\u00e9cris UNE LETTRE \u00e0 ma grand-m\u00e8re.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous regardons LA T\u00c9L\u00c9VISION.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Je parle \u00c0 MON FR\u00c8RE.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le ma\u00eetre parle DE LA RECETTE \u00e0 ses \u00e9l\u00e8ves.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Lila pense \u00c0 SES VACANCES.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Tu te souviens DE TON ANNIVERSAIRE ?', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'DEMAIN, nous irons \u00e0 la piscine.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'CHAQUE MATIN, le coq chante.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous mangeons \u00c0 MIDI.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'PENDANT LES VACANCES, je lis beaucoup.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Le chat dort SUR LE CANAP\u00c9.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous allons \u00c0 LA MONTAGNE.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'\u00c0 PARIS, il y a beaucoup de monde.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Les oiseaux volent DANS LE CIEL.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il court RAPIDEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle parle DOUCEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Les enfants jouent AVEC JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il r\u00e9pond AVEC UN GRAND SOURIRE.', choices:CP_CHOICES_TYPE, correct:'CC de mani\u00e8re', defKey:'ccm' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il pleure DE JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'L\u2019\u00e9cole est ferm\u00e9e \u00c0 CAUSE DE LA NEIGE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il a r\u00e9ussi GR\u00c2CE \u00c0 SON TRAVAIL.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle tremble DE FROID.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Elle s\u2019entra\u00eene POUR GAGNER LA COURSE.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Je travaille POUR R\u00c9USSIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Il sort le chien POUR LUI FAIRE PRENDRE L\u2019AIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
-        { type:'qcm', prompt:'Quel est le type du compl\u00e9ment en majuscules ?', sentence:'Nous \u00e9conomisons POUR LES VACANCES.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'À quelle question répond le COD ?', choices:['Qui ? / Quoi ?','À qui ? / À quoi ?','Quand ?','Où ?'], correct:'Qui ? / Quoi ?', defKey:'cod' },
+        { type:'qcm', prompt:'À quelle question répond le COI ?', choices:['Qui ? / Quoi ?','À qui ? / De quoi ?','Comment ?','Où ?'], correct:'À qui ? / De quoi ?', defKey:'coi' },
+        { type:'qcm', prompt:'À quelle question répond un complément circonstanciel de TEMPS ?', choices:['Où ?','Quand ?','Comment ?','Pourquoi ?'], correct:'Quand ?', defKey:'cct' },
+        { type:'qcm', prompt:'À quelle question répond un complément circonstanciel de LIEU ?', choices:['Quand ?','Pourquoi ?','Où ?','Comment ?'], correct:'Où ?', defKey:'ccl' },
+        { type:'qcm', prompt:'À quelle question répond un complément circonstanciel de MANIÈRE ?', choices:['Où ?','Comment ?','Quand ?','Pourquoi ?'], correct:'Comment ?', defKey:'ccm' },
+        { type:'qcm', prompt:'À quelle question répond un complément circonstanciel de CAUSE ?', choices:['Pourquoi ?','Comment ?','Quand ?','Dans quel but ?'], correct:'Pourquoi ?', defKey:'ccc' },
+        { type:'qcm', prompt:'À quelle question répond un complément circonstanciel de BUT ?', choices:['Pourquoi ?','Dans quel but ?','Comment ?','Où ?'], correct:'Dans quel but ?', defKey:'ccb' },
+        { type:'qcm', prompt:'Quelle est la différence entre COD et COI ?', choices:['Le COD est avant le verbe','Le COI utilise une préposition (à, de...)','Le COD est toujours masculin','Le COI est toujours pluriel'], correct:'Le COI utilise une préposition (à, de...)', defKey:'coi' },
+
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Lila mange UNE POMME.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Le chien mord LE FACTEUR.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'J’écris UNE LETTRE à ma grand-mère.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Nous regardons LA TÉLÉVISION.', choices:CP_CHOICES_TYPE, correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Je parle À MON FRÈRE.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Le maître parle DE LA RECETTE à ses élèves.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Lila pense À SES VACANCES.', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Tu te souviens DE TON ANNIVERSAIRE ?', choices:CP_CHOICES_TYPE, correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'DEMAIN, nous irons à la piscine.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'CHAQUE MATIN, le coq chante.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Nous mangeons À MIDI.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'PENDANT LES VACANCES, je lis beaucoup.', choices:CP_CHOICES_TYPE, correct:'CC de temps', defKey:'cct' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Le chat dort SUR LE CANAPÉ.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Nous allons À LA MONTAGNE.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'À PARIS, il y a beaucoup de monde.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Les oiseaux volent DANS LE CIEL.', choices:CP_CHOICES_TYPE, correct:'CC de lieu', defKey:'ccl' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Il court RAPIDEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de manière', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Elle parle DOUCEMENT.', choices:CP_CHOICES_TYPE, correct:'CC de manière', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Les enfants jouent AVEC JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de manière', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Il répond AVEC UN GRAND SOURIRE.', choices:CP_CHOICES_TYPE, correct:'CC de manière', defKey:'ccm' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Il pleure DE JOIE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'L’école est fermée À CAUSE DE LA NEIGE.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Il a réussi GRÂCE À SON TRAVAIL.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Elle tremble DE FROID.', choices:CP_CHOICES_TYPE, correct:'CC de cause', defKey:'ccc' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Elle s’entraîne POUR GAGNER LA COURSE.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Je travaille POUR RÉUSSIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Il sort le chien POUR LUI FAIRE PRENDRE L’AIR.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Nous économisons POUR LES VACANCES.', choices:CP_CHOICES_TYPE, correct:'CC de but', defKey:'ccb' },
 
         { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Le chat attrape une souris.', correct:['une','souris'], defKey:'cod' },
         { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Lila lit un livre passionnant.', correct:['un','livre','passionnant'], defKey:'cod' },
-        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Je parle \u00e0 mon fr\u00e8re.', correct:['\u00e0','mon','fr\u00e8re'], defKey:'coi' },
-        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de TEMPS, puis Valider.', sentence:'Demain nous partons \u00e0 la mer.', correct:['Demain'], defKey:'cct' },
-        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de LIEU, puis Valider.', sentence:'Le chien dort dans son panier.', correct:['dans','son','panier'], defKey:'ccl' },
-        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de MANI\u00c8RE, puis Valider.', sentence:'Elle parle tr\u00e8s doucement.', correct:['tr\u00e8s','doucement'], defKey:'ccm' },
-        { type:'multiword', prompt:'Clique sur le compl\u00e9ment circonstanciel de BUT, puis Valider.', sentence:'Il court pour gagner la course.', correct:['pour','gagner','la','course'], defKey:'ccb' }
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Je parle à mon frère.', correct:['à','mon','frère'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le complément circonstanciel de TEMPS, puis Valider.', sentence:'Demain nous partons à la mer.', correct:['Demain'], defKey:'cct' },
+        { type:'multiword', prompt:'Clique sur le complément circonstanciel de LIEU, puis Valider.', sentence:'Le chien dort dans son panier.', correct:['dans','son','panier'], defKey:'ccl' },
+        { type:'multiword', prompt:'Clique sur le complément circonstanciel de MANIÈRE, puis Valider.', sentence:'Elle parle très doucement.', correct:['très','doucement'], defKey:'ccm' },
+        { type:'multiword', prompt:'Clique sur le complément circonstanciel de BUT, puis Valider.', sentence:'Il court pour gagner la course.', correct:['pour','gagner','la','course'], defKey:'ccb' },
+
+        // -- Exercices supplémentaires sur le complément du verbe (COD/COI) --
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Maman prépare un gâteau au chocolat.', correct:['un','gâteau','au','chocolat'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Les enfants chantent une jolie chanson.', correct:['une','jolie','chanson'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Le boulanger vend du pain frais.', correct:['du','pain','frais'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Papa lave la voiture.', correct:['la','voiture'], defKey:'cod' },
+        { type:'multiword', prompt:'Clique sur le COD de la phrase, puis Valider.', sentence:'Tom regarde un film amusant.', correct:['un','film','amusant'], defKey:'cod' },
+
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Elle téléphone à sa cousine.', correct:['à','sa','cousine'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Nous pensons à nos vacances.', correct:['à','nos','vacances'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Le chien obéit à son maître.', correct:['à','son','maître'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Je me souviens de ce voyage.', correct:['de','ce','voyage'], defKey:'coi' },
+        { type:'multiword', prompt:'Clique sur le COI de la phrase, puis Valider.', sentence:'Lucas écrit à ses grands-parents.', correct:['à','ses','grands-parents'], defKey:'coi' },
+
+        // -- Distinguer COD et COI -------------------------------------------
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Lucas mange UNE TARTINE.', choices:['COD','COI','CC de temps','CC de lieu'], correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Lucas pense À SES VACANCES.', choices:['COD','COI','CC de temps','CC de lieu'], correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Le chat regarde LES OISEAUX.', choices:['COD','COI','CC de manière','CC de but'], correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Je parle À MA MAÎTRESSE.', choices:['COD','COI','CC de temps','CC de lieu'], correct:'COI', defKey:'coi' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Nous écoutons DE LA MUSIQUE.', choices:['COD','COI','CC de manière','CC de lieu'], correct:'COD', defKey:'cod' },
+        { type:'qcm', prompt:'Quel est le type du complément en majuscules ?', sentence:'Le chien obéit À SON MAÎTRE.', choices:['COD','COI','CC de manière','CC de but'], correct:'COI', defKey:'coi' },
+
+        // -- Identifier la présence d'un complément du verbe ------------------
+        { type:'qcm', prompt:'Quelle phrase contient un COD ?', choices:['Le chat dort sur le canapé.','Il pleut beaucoup.','Marie lit un livre.','Nous partons demain.'], correct:'Marie lit un livre.', defKey:'cod' },
+        { type:'qcm', prompt:'Quelle phrase contient un COI ?', choices:['Léa mange une pomme.','Léa parle à son frère.','Léa court rapidement.','Léa habite à Paris.'], correct:'Léa parle à son frère.', defKey:'coi' },
+        { type:'qcm', prompt:'Quelle phrase NE contient PAS de complément du verbe ?', choices:['Le chien aboie.','Le chien mord le facteur.','Le chien obéit à son maître.','Le chien attrape la balle.'], correct:'Le chien aboie.', defKey:'complement_verbe' }
     ];
 
     // ====================================================================
@@ -3523,79 +3681,187 @@
 
     const acDefinitions = {
         aigu: {
-            title: 'L\u2019accent aigu ( \u00e9 )',
-            text: 'L\u2019accent aigu se met UNIQUEMENT sur la lettre E. Il indique le son [\u00e9] (la bouche \u00e9tir\u00e9e, comme dans \u00ab \u00e9t\u00e9 \u00bb). C\u2019est l\u2019accent le plus fr\u00e9quent.',
-            example: 'Exemples : \u00e9t\u00e9, b\u00e9b\u00e9, t\u00e9l\u00e9, caf\u00e9, \u00e9cole.'
+            title: 'L’accent aigu ( é )',
+            text: 'L’accent aigu se met UNIQUEMENT sur la lettre E. Il indique le son [é] (la bouche étirée, comme dans « été »). C’est l’accent le plus fréquent.',
+            example: 'Exemples : été, bébé, télé, café, école.'
         },
         grave: {
-            title: 'L\u2019accent grave ( \u00e8 \u00e0 \u00f9 )',
-            text: 'L\u2019accent grave se met sur 3 voyelles : E (son [\u00e8] comme dans \u00ab m\u00e8re \u00bb), A (uniquement dans \u00ab \u00e0 \u00bb pour distinguer du verbe \u00ab a \u00bb) et U (uniquement dans \u00ab o\u00f9 \u00bb pour distinguer de \u00ab ou \u00bb).',
-            example: 'Exemples : m\u00e8re, p\u00e8re, tr\u00e8s ; je vais \u00c0 Paris ; O\u00d9 vas-tu ?'
+            title: 'L’accent grave ( è à ù )',
+            text: 'L’accent grave se met sur 3 voyelles : E (son [è] comme dans « mère »), A (uniquement dans « à » pour distinguer du verbe « a ») et U (uniquement dans « où » pour distinguer de « ou »).',
+            example: 'Exemples : mère, père, très ; je vais À Paris ; OÙ vas-tu ?'
         },
         circonflexe: {
-            title: 'L\u2019accent circonflexe ( \u00e2 \u00ea \u00ee \u00f4 \u00fb )',
-            text: 'L\u2019accent circonflexe (le \u00ab petit chapeau \u00bb) se met sur a, e, i, o, u. Il indique souvent qu\u2019une lettre a disparu autrefois (souvent un S). Astuce : for\u00eat \u2192 ancien fran\u00e7ais \u00ab forest \u00bb.',
-            example: 'Exemples : t\u00eate, \u00e2ge, h\u00f4tel, \u00eele, fl\u00fbte, for\u00eat.'
+            title: 'L’accent circonflexe ( â ê î ô û )',
+            text: 'L’accent circonflexe (le « petit chapeau ») se met sur a, e, i, o, u. Il indique souvent qu’une lettre a disparu autrefois (souvent un S). Astuce : forêt → ancien français « forest ».',
+            example: 'Exemples : tête, âge, hôtel, île, flûte, forêt.'
         },
         trema: {
-            title: 'Le tr\u00e9ma ( \u00eb \u00ef \u00fc )',
-            text: 'Le tr\u00e9ma (les deux petits points) sert \u00e0 indiquer qu\u2019on doit prononcer la voyelle S\u00c9PAR\u00c9MENT de celle qui pr\u00e9c\u00e8de. Sans tr\u00e9ma, les voyelles formeraient un seul son.',
-            example: 'Exemples : ma\u00efs (m-a-\u00ee-s), No\u00ebl, No\u00e9mie, ha\u00efr.'
+            title: 'Le tréma ( ë ï ü )',
+            text: 'Le tréma (les deux petits points) sert à indiquer qu’on doit prononcer la voyelle SÉPARÉMENT de celle qui précède. Sans tréma, les voyelles formeraient un seul son.',
+            example: 'Exemples : maïs (m-a-î-s), Noël, Noémie, haïr.'
         },
         cedille: {
-            title: 'La c\u00e9dille ( \u00e7 )',
-            text: 'La c\u00e9dille est un petit crochet sous le C. Elle se met seulement DEVANT A, O, U pour que le C se prononce [s] au lieu de [k].',
-            example: 'Exemples : gar\u00e7on, fran\u00e7ais, le\u00e7on, \u00e7a, re\u00e7u.'
+            title: 'La cédille ( ç )',
+            text: 'La cédille est un petit crochet sous le C. Elle se met seulement DEVANT A, O, U pour que le C se prononce [s] au lieu de [k].',
+            example: 'Exemples : garçon, français, leçon, ça, reçu.'
         },
         homophones: {
             title: 'Les petits mots qui se ressemblent (homophones)',
-            text: 'Certains mots se prononcent pareil mais s\u2019\u00e9crivent diff\u00e9remment, avec ou sans accent : \u00ab a \u00bb (verbe avoir) / \u00ab \u00e0 \u00bb (pr\u00e9position), \u00ab ou \u00bb (choix) / \u00ab o\u00f9 \u00bb (lieu), \u00ab la \u00bb (article) / \u00ab l\u00e0 \u00bb (lieu).',
-            example: 'Exemples : il A faim / je vais \u00c0 Paris ; chien OU chat / O\u00d9 es-tu ? ; LA pomme / viens L\u00c0.'
+            text: 'Certains mots se prononcent pareil mais s’écrivent différemment, avec ou sans accent : « a » (verbe avoir) / « à » (préposition), « ou » (choix) / « où » (lieu), « la » (article) / « là » (lieu).',
+            example: 'Exemples : il A faim / je vais À Paris ; chien OU chat / OÙ es-tu ? ; LA pomme / viens LÀ.'
         }
     };
 
-    const AC_CHOICES_ACCENTS = ['accent aigu', 'accent grave', 'accent circonflexe', 'tr\u00e9ma'];
+    const AC_CHOICES_ACCENTS = ['accent aigu', 'accent grave', 'accent circonflexe', 'tréma'];
 
     const acQuestions = [
-        { type:'qcm', prompt:'Sur quelle lettre peut-on mettre l\u2019accent aigu ?', choices:['Seulement le E','Le A et le E','Le E et le I','Toutes les voyelles'], correct:'Seulement le E', defKey:'aigu' },
-        { type:'qcm', prompt:'Quel accent porte le mot \u00ab m\u00e8re \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent grave', defKey:'grave' },
-        { type:'qcm', prompt:'Quel accent porte le mot \u00ab \u00e9cole \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent aigu', defKey:'aigu' },
-        { type:'qcm', prompt:'Quel accent porte le mot \u00ab t\u00eate \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'accent circonflexe', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quel accent porte le mot \u00ab ma\u00efs \u00bb ?', choices:AC_CHOICES_ACCENTS, correct:'tr\u00e9ma', defKey:'trema' },
-        { type:'qcm', prompt:'\u00c0 quoi sert le tr\u00e9ma ?', choices:['\u00c0 dire que la lettre disparaissait avant','\u00c0 prononcer les deux voyelles s\u00e9par\u00e9ment','\u00c0 distinguer deux mots','\u00c0 rendre le c en s'], correct:'\u00c0 prononcer les deux voyelles s\u00e9par\u00e9ment', defKey:'trema' },
-        { type:'qcm', prompt:'\u00c0 quoi sert la c\u00e9dille ( \u00e7 ) ?', choices:['\u00c0 prononcer le C comme [s]','\u00c0 prononcer le C comme [k]','\u00c0 distinguer deux mots','\u00c0 mettre l\u2019accent'], correct:'\u00c0 prononcer le C comme [s]', defKey:'cedille' },
-        { type:'qcm', prompt:'Devant quelles lettres met-on la c\u00e9dille ?', choices:['A, O, U','E, I','Toutes les voyelles','Seulement A'], correct:'A, O, U', defKey:'cedille' },
+        { type:'qcm', prompt:'Sur quelle lettre peut-on mettre l’accent aigu ?', choices:['Seulement le E','Le A et le E','Le E et le I','Toutes les voyelles'], correct:'Seulement le E', defKey:'aigu' },
+        { type:'qcm', prompt:'Quel accent porte le mot « mère » ?', choices:AC_CHOICES_ACCENTS, correct:'accent grave', defKey:'grave' },
+        { type:'qcm', prompt:'Quel accent porte le mot « école » ?', choices:AC_CHOICES_ACCENTS, correct:'accent aigu', defKey:'aigu' },
+        { type:'qcm', prompt:'Quel accent porte le mot « tête » ?', choices:AC_CHOICES_ACCENTS, correct:'accent circonflexe', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quel accent porte le mot « maïs » ?', choices:AC_CHOICES_ACCENTS, correct:'tréma', defKey:'trema' },
+        { type:'qcm', prompt:'À quoi sert le tréma ?', choices:['À dire que la lettre disparaissait avant','À prononcer les deux voyelles séparément','À distinguer deux mots','À rendre le c en s'], correct:'À prononcer les deux voyelles séparément', defKey:'trema' },
+        { type:'qcm', prompt:'À quoi sert la cédille ( ç ) ?', choices:['À prononcer le C comme [s]','À prononcer le C comme [k]','À distinguer deux mots','À mettre l’accent'], correct:'À prononcer le C comme [s]', defKey:'cedille' },
+        { type:'qcm', prompt:'Devant quelles lettres met-on la cédille ?', choices:['A, O, U','E, I','Toutes les voyelles','Seulement A'], correct:'A, O, U', defKey:'cedille' },
 
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ecole','\u00e9cole','\u00e8cole','\u00eacole'], correct:'\u00e9cole', defKey:'aigu' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['pere','p\u00e8re','p\u00e9re','p\u00eare'], correct:'p\u00e8re', defKey:'grave' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mere','m\u00e9re','m\u00e8re','m\u00eare'], correct:'m\u00e8re', defKey:'grave' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['tete','t\u00e8te','t\u00e9te','t\u00eate'], correct:'t\u00eate', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hopital','h\u00f4pital','h\u00f3pital','h\u00f2pital'], correct:'h\u00f4pital', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ile','\u00eele','\u00ecle','\u00edle'], correct:'\u00eele', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['noel','no\u00ebl','no\u00e8l','no\u00eal'], correct:'no\u00ebl', defKey:'trema' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mais','ma\u00efs','m\u00e2is','m\u00e0is'], correct:'ma\u00efs', defKey:'trema' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['garcon','gar\u00e7on','garson','garss\u00e7on'], correct:'gar\u00e7on', defKey:'cedille' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['lecon','le\u00e7on','lesson','l\u00e9\u00e7on'], correct:'le\u00e7on', defKey:'cedille' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['francais','fran\u00e7ais','francaise','franssais'], correct:'fran\u00e7ais', defKey:'cedille' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ete','\u00e9t\u00e9','et\u00e9','\u00e9te'], correct:'\u00e9t\u00e9', defKey:'aigu' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['cafe','caf\u00e9','c\u00e2fe','c\u00e0fe'], correct:'caf\u00e9', defKey:'aigu' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['fenetre','f\u00e9n\u00eatre','fen\u00eatre','fen\u00e8tre'], correct:'fen\u00eatre', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['foret','f\u00f4ret','for\u00eat','for\u00e8t'], correct:'for\u00eat', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['recu','re\u00e7u','ressu','r\u00e9cu'], correct:'re\u00e7u', defKey:'cedille' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['flute','fl\u00fbte','fl\u00f9te','fl\u00f8te'], correct:'fl\u00fbte', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['age','\u00e2ge','\u00e0ge','\u00e9ge'], correct:'\u00e2ge', defKey:'circonflexe' },
-        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hair','ha\u00efr','ha\u00ear','h\u00e2ir'], correct:'ha\u00efr', defKey:'trema' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ecole','école','ècole','êcole'], correct:'école', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['pere','père','pére','pêre'], correct:'père', defKey:'grave' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mere','mére','mère','mêre'], correct:'mère', defKey:'grave' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['tete','tète','téte','tête'], correct:'tête', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hopital','hôpital','hópital','hòpital'], correct:'hôpital', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ile','île','ìle','íle'], correct:'île', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['noel','noël','noèl','noêl'], correct:'noël', defKey:'trema' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['mais','maïs','mâis','màis'], correct:'maïs', defKey:'trema' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['garcon','garçon','garson','garssçon'], correct:'garçon', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['lecon','leçon','lesson','léçon'], correct:'leçon', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['francais','français','francaise','franssais'], correct:'français', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['ete','été','eté','éte'], correct:'été', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['cafe','café','câfe','càfe'], correct:'café', defKey:'aigu' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['fenetre','fénêtre','fenêtre','fenètre'], correct:'fenêtre', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['foret','fôret','forêt','forèt'], correct:'forêt', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['recu','reçu','ressu','récu'], correct:'reçu', defKey:'cedille' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['flute','flûte','flùte','fløte'], correct:'flûte', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['age','âge','àge','ége'], correct:'âge', defKey:'circonflexe' },
+        { type:'qcm', prompt:'Quelle est la bonne orthographe ?', choices:['hair','haïr','haêr','hâir'], correct:'haïr', defKey:'trema' },
 
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Le chien ___ trois pattes. \u00bb (verbe avoir)', choices:['a','\u00e0','as','\u00e2'], correct:'a', defKey:'homophones' },
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Je vais ___ Paris. \u00bb (direction)', choices:['a','\u00e0','as','\u00e2'], correct:'\u00e0', defKey:'homophones' },
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab ___ habites-tu ? \u00bb (lieu)', choices:['ou','o\u00f9','out','o\u00fb'], correct:'o\u00f9', defKey:'homophones' },
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Pomme ___ poire ? \u00bb (choix)', choices:['ou','o\u00f9','o\u00fb','o\u00f2'], correct:'ou', defKey:'homophones' },
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab Pose ton sac ___ . \u00bb (lieu)', choices:['la','l\u00e0','l\u00e2','las'], correct:'l\u00e0', defKey:'homophones' },
-        { type:'qcm', prompt:'Compl\u00e8te : \u00ab J\u2019aime ___ tarte aux pommes. \u00bb (article)', choices:['la','l\u00e0','l\u00e2','las'], correct:'la', defKey:'homophones' }
+        { type:'qcm', prompt:'Complète : « Le chien ___ trois pattes. » (verbe avoir)', choices:['a','à','as','â'], correct:'a', defKey:'homophones' },
+        { type:'qcm', prompt:'Complète : « Je vais ___ Paris. » (direction)', choices:['a','à','as','â'], correct:'à', defKey:'homophones' },
+        { type:'qcm', prompt:'Complète : « ___ habites-tu ? » (lieu)', choices:['ou','où','out','oû'], correct:'où', defKey:'homophones' },
+        { type:'qcm', prompt:'Complète : « Pomme ___ poire ? » (choix)', choices:['ou','où','oû','oò'], correct:'ou', defKey:'homophones' },
+        { type:'qcm', prompt:'Complète : « Pose ton sac ___ . » (lieu)', choices:['la','là','lâ','las'], correct:'là', defKey:'homophones' },
+        { type:'qcm', prompt:'Complète : « J’aime ___ tarte aux pommes. » (article)', choices:['la','là','lâ','las'], correct:'la', defKey:'homophones' }
+    ];
+
+    // ====================================================================
+    // Passé composé (mode "passe_compose") — réutilise l'infra grammaire
+    // Règles : auxiliaire (être/avoir au présent) + participe passé.
+    // ====================================================================
+
+    const pcDefinitions = {
+        regle_generale: {
+            title: 'Le passé composé : la règle générale',
+            text: 'Le passé composé sert à raconter une action TERMINÉE dans le passé. Il se forme en DEUX morceaux : 1) l’AUXILIAIRE (être ou avoir) conjugué au PRÉSENT, + 2) le PARTICIPE PASSÉ du verbe. Exemple : « j’ai mangé » = avoir (j’ai) + participe passé (mangé).',
+            example: 'Exemples : J’ai mangé une pomme. — Tu es parti. — Nous avons joué. — Elle est tombée.'
+        },
+        choix_auxiliaire: {
+            title: 'Choisir entre être ou avoir',
+            text: 'La plupart des verbes se conjuguent avec AVOIR (manger, jouer, voir, finir, dire…). Quelques verbes utilisent ÊTRE : aller, venir, partir, arriver, entrer, sortir, monter, descendre, tomber, rester, naître, mourir, devenir, retourner… Astuce : les verbes de DÉPLACEMENT et de CHANGEMENT D’ÉTAT prennent ÊTRE. Tous les verbes pronominaux (se laver, se promener…) prennent aussi ÊTRE.',
+            example: 'Avec AVOIR : J’ai chanté. — Nous avons fini. — Avec ÊTRE : Je suis parti. — Elle est née. — Ils se sont lavés.'
+        },
+        auxiliaire_avoir: {
+            title: 'Le passé composé avec avoir',
+            text: 'On utilise AVOIR comme auxiliaire pour la PLUPART des verbes. On le conjugue au présent : j’ai, tu as, il a, nous avons, vous avez, ils ont. Avec AVOIR, le participe passé NE s’accorde PAS avec le sujet : il reste invariable.',
+            example: 'Exemples : J’ai mangé. — Tu as fini. — Elle a chanté. — Nous avons joué. — Vous avez vu. — Ils ont compris.'
+        },
+        auxiliaire_etre: {
+            title: 'Le passé composé avec être',
+            text: 'Avec ÊTRE, le participe passé S’ACCORDE avec le SUJET (en genre et en nombre, comme un adjectif). Auxiliaire être au présent : je suis, tu es, il est, nous sommes, vous êtes, ils sont.',
+            example: 'Exemples : Il est parti. — Elle est partie. — Ils sont partis. — Elles sont parties.'
+        },
+        participe_passe: {
+            title: 'Comment former le participe passé',
+            text: 'Verbes en -ER → participe en -É (manger → mangé, jouer → joué). Verbes en -IR (2e groupe) → participe en -I (finir → fini, choisir → choisi). Les autres verbes (3e groupe) sont IRRÉGULIERS, il faut les apprendre par cœur : avoir → eu, être → été, faire → fait, prendre → pris, voir → vu, venir → venu, aller → allé, dire → dit, mettre → mis, écrire → écrit.',
+            example: 'Exemples : chanter → chanté ; finir → fini ; prendre → pris ; faire → fait ; voir → vu.'
+        },
+        accord_etre: {
+            title: 'L’accord du participe passé avec « être »',
+            text: 'Avec ÊTRE, le participe passé fait comme un adjectif : il s’accorde avec le SUJET. Masculin singulier : pas de marque. Féminin singulier : on ajoute -E. Masculin pluriel : on ajoute -S. Féminin pluriel : on ajoute -ES.',
+            example: 'Exemples : Il est tombé. — Elle est tombée. — Ils sont tombés. — Elles sont tombées.'
+        }
+    };
+
+    const pcQuestions = [
+        // -- Règle générale -------------------------------------------------
+        { type:'qcm', prompt:'À quoi sert le passé composé ?', choices:['À raconter une action terminée dans le passé','À parler du futur','À donner un ordre','À décrire un objet'], correct:'À raconter une action terminée dans le passé', defKey:'regle_generale' },
+        { type:'qcm', prompt:'De quoi est composé le passé composé ?', choices:['Auxiliaire (être/avoir) + participe passé','Sujet + verbe','Article + nom','Verbe seul'], correct:'Auxiliaire (être/avoir) + participe passé', defKey:'regle_generale' },
+        { type:'qcm', prompt:'À quel temps est l’auxiliaire au passé composé ?', choices:['Au présent','Au futur','À l’imparfait','À l’infinitif'], correct:'Au présent', defKey:'regle_generale' },
+
+        // -- Choix de l’auxiliaire -------------------------------------------
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « manger » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'avoir', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « partir » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « aller » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « jouer » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'avoir', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « tomber » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « finir » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'avoir', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « arriver » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « voir » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'avoir', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « venir » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « chanter » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'avoir', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour le verbe « naître » au passé composé ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+        { type:'qcm', prompt:'Quel auxiliaire pour « se laver » (pronominal) ?', choices:['avoir','être','les deux','aucun'], correct:'être', defKey:'choix_auxiliaire' },
+
+        // -- Participe passé -------------------------------------------------
+        { type:'qcm', prompt:'Quel est le participe passé de « manger » ?', choices:['mangé','mangeait','manger','mangeant'], correct:'mangé', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « finir » ?', choices:['finir','fini','finissait','finissant'], correct:'fini', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « faire » ?', choices:['faisé','faisait','fait','faire'], correct:'fait', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « prendre » ?', choices:['prendu','pris','prenait','prendant'], correct:'pris', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « voir » ?', choices:['voyu','vu','voyé','voir'], correct:'vu', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « avoir » ?', choices:['eu','avu','avait','ayant'], correct:'eu', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « être » ?', choices:['étu','été','étant','est'], correct:'été', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « aller » ?', choices:['allé','allait','allu','allant'], correct:'allé', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « dire » ?', choices:['disu','disait','dit','dire'], correct:'dit', defKey:'participe_passe' },
+        { type:'qcm', prompt:'Quel est le participe passé de « jouer » ?', choices:['jouait','joué','jouant','jouer'], correct:'joué', defKey:'participe_passe' },
+
+        // -- Compléter une phrase (AVOIR) ----------------------------------
+        { type:'qcm', prompt:'Complète : « J’___ mangé une pomme. »', choices:['ai','suis','as','est'], correct:'ai', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Tu ___ fini ton travail. »', choices:['as','es','a','est'], correct:'as', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Elle ___ chanté une chanson. »', choices:['a','est','as','es'], correct:'a', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Nous ___ joué dans le jardin. »', choices:['avons','sommes','avez','êtes'], correct:'avons', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Vous ___ vu le film. »', choices:['avez','êtes','avons','sommes'], correct:'avez', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Ils ___ pris le bus. »', choices:['ont','sont','avons','sommes'], correct:'ont', defKey:'auxiliaire_avoir' },
+
+        // -- Compléter une phrase (ÊTRE) -----------------------------------
+        { type:'qcm', prompt:'Complète : « Je ___ parti en vacances. »', choices:['suis','ai','es','as'], correct:'suis', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Complète : « Tu ___ venu très tôt. »', choices:['es','as','est','a'], correct:'es', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Complète : « Il ___ tombé dans l’escalier. »', choices:['est','a','es','as'], correct:'est', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Complète : « Nous ___ arrivés à l’école. »', choices:['sommes','avons','êtes','avez'], correct:'sommes', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Complète : « Vous ___ allés au parc. »', choices:['êtes','avez','sommes','avons'], correct:'êtes', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Complète : « Elles ___ rentrées à la maison. »', choices:['sont','ont','est','a'], correct:'sont', defKey:'auxiliaire_etre' },
+
+        // -- Forme complète (auxiliaire + participe) ------------------------
+        { type:'qcm', prompt:'Quelle est la bonne forme : « Hier, Lila ___ une lettre. » (écrire)', choices:['a écrit','est écrit','a écrite','est écrite'], correct:'a écrit', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Quelle est la bonne forme : « Ce matin, Tom ___ à l’école. » (aller)', choices:['est allé','a allé','est allée','a allée'], correct:'est allé', defKey:'auxiliaire_etre' },
+        { type:'qcm', prompt:'Quelle est la bonne forme : « Marie ___ très vite. » (courir)', choices:['a couru','est couru','est courue','ont couru'], correct:'a couru', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Quelle est la bonne forme : « Le bébé ___ . » (naître)', choices:['est né','a né','a naissé','est naissé'], correct:'est né', defKey:'auxiliaire_etre' },
+
+        // -- Accord avec être ------------------------------------------------
+        { type:'qcm', prompt:'Avec « être », le participe passé s’accorde avec :', choices:['Le sujet','Le complément','Le verbe','Rien'], correct:'Le sujet', defKey:'accord_etre' },
+        { type:'qcm', prompt:'Avec « avoir », le participe passé s’accorde-t-il avec le sujet ?', choices:['Non, il reste invariable','Oui, toujours','Seulement avec « je »','Seulement au pluriel'], correct:'Non, il reste invariable', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Elle est ___ . » (partir)', choices:['parti','partie','partis','parties'], correct:'partie', defKey:'accord_etre' },
+        { type:'qcm', prompt:'Complète : « Ils sont ___ . » (arriver)', choices:['arrivé','arrivée','arrivés','arrivées'], correct:'arrivés', defKey:'accord_etre' },
+        { type:'qcm', prompt:'Complète : « Elles sont ___ . » (tomber)', choices:['tombé','tombée','tombés','tombées'], correct:'tombées', defKey:'accord_etre' },
+        { type:'qcm', prompt:'Complète : « Il est ___ . » (rester)', choices:['resté','restée','restés','restées'], correct:'resté', defKey:'accord_etre' },
+        { type:'qcm', prompt:'Complète : « Lila a ___ une pomme. » (manger — avec avoir, pas d’accord)', choices:['mangé','mangée','mangés','mangées'], correct:'mangé', defKey:'auxiliaire_avoir' },
+        { type:'qcm', prompt:'Complète : « Les enfants ont ___ leurs devoirs. » (finir — avec avoir)', choices:['fini','finie','finis','finies'], correct:'fini', defKey:'auxiliaire_avoir' },
+
+        // -- Reconnaître le passé composé -----------------------------------
+        { type:'qcm', prompt:'Quelle phrase est au passé composé ?', choices:['Je mange une pomme.','Je mangerai une pomme.','J’ai mangé une pomme.','Je mangeais une pomme.'], correct:'J’ai mangé une pomme.', defKey:'regle_generale' },
+        { type:'qcm', prompt:'Quelle phrase est au passé composé ?', choices:['Elle part au marché.','Elle est partie au marché.','Elle partira au marché.','Elle partait au marché.'], correct:'Elle est partie au marché.', defKey:'regle_generale' },
+        { type:'qcm', prompt:'Quel verbe est conjugué au passé composé ?', choices:['nous avons mangé','nous mangions','nous mangerons','nous mangeons'], correct:'nous avons mangé', defKey:'regle_generale' }
     ];
 
     function grSplitWords(sentence) {
-        const re = /([A-Za-z\u00C0-\u00FF\u2019']+|[.,!?;:])/g;
+        const re = /([A-Za-zÀ-ÿ’']+|[.,!?;:])/g;
         const tokens = [];
         let m;
         while ((m = re.exec(sentence)) !== null) tokens.push(m[0]);
@@ -3606,6 +3872,7 @@
         let pool = grQuestions;
         if (mode === 'complements') pool = cpQuestions;
         else if (mode === 'accents') pool = acQuestions;
+        else if (mode === 'passe_compose') pool = pcQuestions;
         grCurrentQuestion = pick(pool);
         grDefinitionViewed = true;
         grQuestionEl.textContent = grCurrentQuestion.prompt;
@@ -3615,7 +3882,7 @@
         btnNextGrArea.classList.add('d-none');
         btnNextGr.disabled = false;
         btnGrLu.disabled = false;
-        btnGrLu.textContent = 'J\u2019ai lu la d\u00e9finition \u2705';
+        btnGrLu.textContent = 'J’ai lu la définition ✅';
         btnValidateGrArea.classList.add('d-none');
         btnValidateGr.disabled = true;
         btnValidateGr.className = 'btn btn-primary w-100';
@@ -3751,7 +4018,7 @@
         if (timeout) {
             grFeedbackEl.className = 'text-center feedback feedback-wrong';
             const repTo = Array.isArray(grCurrentQuestion.correct) ? grCurrentQuestion.correct.join(' ') : grCurrentQuestion.correct;
-            grFeedbackEl.textContent = 'Temps \u00e9coul\u00e9 ! R\u00e9ponse : ' + repTo;
+            grFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + repTo;
             if (grCurrentQuestion.type === 'word' || grCurrentQuestion.type === 'multiword') {
                 const correctSet = Array.isArray(grCurrentQuestion.correct) ? new Set(grCurrentQuestion.correct) : new Set([grCurrentQuestion.correct]);
                 grSentenceEl.querySelectorAll('.gr-word').forEach(w => {
@@ -3770,16 +4037,17 @@
             }
         } else if (correct) {
             grFeedbackEl.className = 'text-center feedback feedback-correct';
-            grFeedbackEl.textContent = 'Bravo ! \u2705';
+            grFeedbackEl.textContent = 'Bravo ! ✅';
         } else {
             grFeedbackEl.className = 'text-center feedback feedback-wrong';
             const reponse = Array.isArray(grCurrentQuestion.correct) ? grCurrentQuestion.correct.join(' ') : grCurrentQuestion.correct;
-            grFeedbackEl.textContent = 'Rat\u00e9 ! R\u00e9ponse : ' + reponse + ' \u274C';
+            grFeedbackEl.textContent = 'Raté ! Réponse : ' + reponse + ' ❌';
         }
         if (!correct) {
             let defMap = grDefinitions;
             if (mode === 'complements') defMap = cpDefinitions;
             else if (mode === 'accents') defMap = acDefinitions;
+            else if (mode === 'passe_compose') defMap = pcDefinitions;
             const def = defMap[grCurrentQuestion.defKey];
             if (def) {
                 grDefText.innerHTML = '<strong>' + def.title + '</strong> &mdash; ' + def.text;
@@ -3797,7 +4065,7 @@
         grDefinitionViewed = true;
         btnNextGr.disabled = false;
         btnGrLu.disabled = true;
-        btnGrLu.textContent = 'D\u00e9finition lue \u2705';
+        btnGrLu.textContent = 'Définition lue ✅';
         btnNextGr.focus();
     });
 
@@ -3832,12 +4100,12 @@
             generateFrancais();
         } else if (mode === 'pluriels') {
             generatePluriel();
-        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents') {
+        } else if (mode === 'grammaire' || mode === 'complements' || mode === 'accents' || mode === 'passe_compose') {
             generateGrammaire();
         } else {
             // Keypad modes
             userAnswer = '';
-            elAnswer.textContent = '\u00A0';
+            elAnswer.textContent = ' ';
             elFeedback.textContent = '';
             elFeedback.className = 'text-center feedback';
             btnValidate.disabled = true;
