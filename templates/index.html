@@ -1512,17 +1512,32 @@
     function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
 
     // ===================== NIVEAUX D'EXERCICE =====================
-    // Le niveau d'exercice EST le niveau du profil (sélecteur en haut à droite).
-    // Quand l'utilisateur change le niveau dans le menu, on rappelle showMode()
-    // pour basculer le pool d'exercices.
+    // Pour chaque mode, l'ensemble des niveaux qui disposent d'un pool
+    // d'exercices spécifique. Mode strict : si un niveau n'est pas listé,
+    // le mode est masqué dans le menu pour ce niveau.
     const LEVEL_ORDER = ['CP', 'CE1', 'CE2', 'CM1', 'CM2'];
 
-    // Pour chaque mode, l'ensemble des niveaux qui ont un pool d'exercices spécifique.
-    // Quand le niveau du profil n'apparaît pas, on retombe sur le pool ≤ le plus haut disponible (CE2 par défaut).
-    const MODE_LEVEL_PACKS = {
-        proportionnalite: new Set(['CE2', 'CM1', 'CM2'])
+    const MODE_LEVELS = {
+        addition:               new Set(['CE2']),
+        soustraction:           new Set(['CE2']),
+        multiplication:         new Set(['CE2']),
+        calcul_ligne:           new Set(['CE2']),
+        addition_colonne:       new Set(['CE2']),
+        soustraction_colonne:   new Set(['CE2']),
+        multiplication_colonne: new Set(['CE2']),
+        conversions:            new Set(['CE2']),
+        fractions:              new Set(['CE2']),
+        problemes:              new Set(['CE2']),
+        proportionnalite:       new Set(['CE2', 'CM1', 'CM2']),
+        diagrammes:             new Set(['CE2']),
+        geometrie:              new Set(['CE2']),
+        francais:               new Set(['CE2']),
+        passe_compose:          new Set(['CE2']),
+        pluriels:               new Set(['CE2']),
+        grammaire:              new Set(['CE2']),
+        complements:            new Set(['CE2']),
+        accents:                new Set(['CE2'])
     };
-    const DEFAULT_PACK_LEVEL = 'CE2';
 
     function profileLevel() {
         try {
@@ -1531,28 +1546,65 @@
         } catch (_) { return 'CE2'; }
     }
 
-    function packLevelFor(modeKey, chosenLevel) {
-        const packs = MODE_LEVEL_PACKS[modeKey];
-        if (!packs) return DEFAULT_PACK_LEVEL;
-        const idx = LEVEL_ORDER.indexOf(chosenLevel);
-        for (let i = idx; i >= 0; i--) {
-            if (packs.has(LEVEL_ORDER[i])) return LEVEL_ORDER[i];
-        }
-        return DEFAULT_PACK_LEVEL;
+    function modeHasLevel(modeKey, lvl) {
+        const s = MODE_LEVELS[modeKey];
+        return !!(s && s.has(lvl));
     }
 
-    // Niveau d'exercice = niveau du profil, raccourci pour les anciens appels.
+    // Niveau d'exercice = niveau du profil. Pas de retombée sur un niveau inférieur :
+    // si le mode courant n'a pas le niveau, le menu masquera le mode et on bascule.
     let currentExerciseLevel = profileLevel();
+
+    // Filtre les items du menu Maths/Français selon le niveau courant.
+    // Affiche un placeholder "Aucun exercice [niveau]" si une catégorie est vide.
+    function refreshAvailableModes() {
+        const lvl = currentExerciseLevel;
+        document.querySelectorAll('[data-mode]').forEach(item => {
+            const m = item.dataset.mode;
+            if (modeHasLevel(m, lvl)) {
+                item.closest('li').classList.remove('d-none');
+            } else {
+                item.closest('li').classList.add('d-none');
+            }
+        });
+        // Pour chaque dropdown, vérifier s'il reste au moins un item visible ;
+        // sinon ajouter un placeholder.
+        document.querySelectorAll('#modeTabs .dropdown-menu').forEach(menu => {
+            // Retirer un ancien placeholder s'il existe
+            const old = menu.querySelector('.mode-empty-placeholder');
+            if (old) old.remove();
+            const visible = menu.querySelectorAll('li:not(.d-none) [data-mode]');
+            if (visible.length === 0) {
+                const li = document.createElement('li');
+                li.className = 'mode-empty-placeholder';
+                li.innerHTML = '<span class="dropdown-item-text text-muted small fst-italic">Aucun exercice ' + lvl + '<br>pour le moment</span>';
+                menu.appendChild(li);
+            }
+        });
+        // Si le mode courant n'est plus dispo, basculer sur le premier mode visible.
+        if (!modeHasLevel(mode, lvl)) {
+            const firstAvail = document.querySelector('#modeTabs [data-mode]:not(.d-none)');
+            // Recherche du premier data-mode dont le <li> parent n'est pas d-none
+            let candidate = null;
+            document.querySelectorAll('#modeTabs [data-mode]').forEach(el => {
+                if (candidate) return;
+                if (!el.closest('li').classList.contains('d-none')) candidate = el;
+            });
+            if (candidate) {
+                candidate.click();
+            }
+        }
+    }
 
     // Callback appelée quand le niveau change dans le menu en haut.
     window.melimathOnExerciseLevelChange = function (newLevel) {
         currentExerciseLevel = newLevel || 'CE2';
+        refreshAvailableModes();
         if (window.Rewards) window.Rewards.resetSession(mode);
         score = 0; total = 0;
         updateScore();
         newRound();
     };
-
 
     // ===================== TABS =====================
     function showMode() {
@@ -4442,6 +4494,7 @@
     }
 
     // --- Init ---
+    refreshAvailableModes();
     showMode();
     newRound();
 })();
