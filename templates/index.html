@@ -556,6 +556,13 @@
             margin-top: 0.75rem;
             width: 100%;
         }
+        /* Barre niveaux d'exercice */
+        #exerciseLevelBar { font-size: 0.95rem; }
+        #exerciseLevelBar .exlvl-label { font-weight: 600; color: #495057; }
+        #exerciseLevelChoices .btn { min-width: 56px; }
+        #exerciseLevelChoices .btn.active { background-color: #0d6efd; color: white; border-color: #0d6efd; font-weight: 700; }
+        #exerciseLevelChoices .btn.no-content { opacity: 0.6; font-style: italic; }
+        #exerciseLevelHint { font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -703,12 +710,19 @@
         </li>
     </ul>
 
+    <!-- Barre de sélection du niveau d'exercice (visible si plusieurs niveaux dispo) -->
+    <div id="exerciseLevelBar" class="d-none text-center mt-2">
+        <span class="exlvl-label">📚 Niveau des exercices :</span>
+        <div class="btn-group btn-group-sm ms-2" role="group" id="exerciseLevelChoices"></div>
+        <div class="exlvl-fallback small text-muted mt-1" id="exerciseLevelHint"></div>
+    </div>
+
     <!-- Bloc affiché quand le niveau du profil n'a pas encore d'exercices -->
     <div id="levelLockedMessage" class="d-none text-center py-5">
         <div style="font-size:4rem;">&#x1F512;</div>
         <h3 class="mt-3">Bient&ocirc;t disponible !</h3>
         <p class="text-muted">Les exercices pour le niveau <strong id="levelLockedName">CE1</strong> ne sont pas encore pr&ecirc;ts.<br>
-        Pour l'instant, seul le niveau <strong>CE2</strong> a des exercices.</p>
+        Pour l'instant, les niveaux <strong>CE2, CM1 et CM2</strong> ont des exercices.</p>
         <p class="small text-muted">Tu peux changer de niveau dans le bandeau bleu en haut, ou cr&eacute;er un autre profil.</p>
     </div>
 
@@ -1282,7 +1296,7 @@
     window.melimathProfile = function () { return activeProfile; };
 
     // ── Gate par niveau : pour l'instant, seul CE2 a des exercices ───────
-    const LEVELS_WITH_EXERCISES = new Set(['CE2']);
+    const LEVELS_WITH_EXERCISES = new Set(['CE2', 'CM1', 'CM2']);
 
     function applyLevelGate() {
         const level = activeProfile ? activeProfile.level : null;
@@ -1307,6 +1321,13 @@
     // Hook appelé par le sélecteur de niveau (déjà câblé plus haut)
     window.melimathOnLevelChange = function (newLevel) {
         applyLevelGate();
+        // Reset le niveau d'exercice quand on change le niveau du profil
+        try {
+            if (typeof refreshExerciseLevelBar === 'function') {
+                currentExerciseLevel = newLevel;
+                refreshExerciseLevelBar();
+            }
+        } catch (_) {}
     };
 
     // Appliquer aussi après login
@@ -1502,8 +1523,111 @@
     }
     function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
 
+    // ===================== NIVEAUX D'EXERCICE =====================
+    // Liste ordonnée des niveaux primaires.
+    const LEVEL_ORDER = ['CP', 'CE1', 'CE2', 'CM1', 'CM2'];
+
+    // Pour chaque mode, l'ensemble des niveaux qui ont un pool d'exercices spécifique.
+    // Quand un niveau choisi n'apparait pas, on retombe sur le pool ≤ disponible le plus haut (CE2 par défaut).
+    const MODE_LEVEL_PACKS = {
+        proportionnalite: new Set(['CE2', 'CM1', 'CM2'])
+    };
+    // Niveau par défaut quand un mode n'a pas de pack adapté.
+    const DEFAULT_PACK_LEVEL = 'CE2';
+
+    // Niveau d'exercice actuellement choisi (défaut = niveau du profil).
+    let currentExerciseLevel = 'CE2';
+
+    function packLevelFor(modeKey, chosenLevel) {
+        const packs = MODE_LEVEL_PACKS[modeKey];
+        if (!packs) return DEFAULT_PACK_LEVEL;
+        const idx = LEVEL_ORDER.indexOf(chosenLevel);
+        for (let i = idx; i >= 0; i--) {
+            if (packs.has(LEVEL_ORDER[i])) return LEVEL_ORDER[i];
+        }
+        return DEFAULT_PACK_LEVEL;
+    }
+
+    function profileLevel() {
+        try {
+            const p = window.melimathProfile && window.melimathProfile();
+            return (p && p.level) || 'CE2';
+        } catch (_) { return 'CE2'; }
+    }
+
+    function refreshExerciseLevelBar() {
+        const bar = document.getElementById('exerciseLevelBar');
+        const choices = document.getElementById('exerciseLevelChoices');
+        const hint = document.getElementById('exerciseLevelHint');
+        if (!bar || !choices) return;
+        const profLvl = profileLevel();
+        const profIdx = LEVEL_ORDER.indexOf(profLvl);
+        // Niveaux disponibles : tous les niveaux ≤ profLvl qui ont au moins un mode avec contenu.
+        // Pour rester honnête : on n'affiche pas CP/CE1 tant qu'aucun mode n'a de contenu pour eux.
+        const haveAnyContent = new Set();
+        Object.values(MODE_LEVEL_PACKS).forEach(s => s.forEach(l => haveAnyContent.add(l)));
+        // CE2 est toujours disponible (pool par défaut implicite)
+        haveAnyContent.add('CE2');
+        const available = LEVEL_ORDER.slice(0, profIdx + 1).filter(l => haveAnyContent.has(l));
+
+        // Si un seul niveau disponible, on masque la barre.
+        if (available.length <= 1) {
+            bar.classList.add('d-none');
+            currentExerciseLevel = available[0] || 'CE2';
+            return;
+        }
+
+        // Si currentExerciseLevel n'est plus disponible (changement de profil), recalibrer.
+        if (!available.includes(currentExerciseLevel)) {
+            currentExerciseLevel = profLvl;
+        }
+
+        // Rendu des puces
+        choices.innerHTML = '';
+        available.forEach(lvl => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isActive = lvl === currentExerciseLevel;
+            btn.className = 'btn btn-outline-primary' + (isActive ? ' active' : '');
+            // Indiquer si ce niveau a un contenu spécifique pour le mode courant
+            const packs = MODE_LEVEL_PACKS[mode];
+            if (packs && !packs.has(lvl)) {
+                btn.classList.add('no-content');
+                btn.title = "Pas d'exercices spécifiques " + lvl + " pour ce mode — exercices " + packLevelFor(mode, lvl) + " utilisés.";
+            } else {
+                btn.title = 'Exercices ' + lvl;
+            }
+            btn.textContent = lvl;
+            btn.addEventListener('click', () => {
+                if (lvl === currentExerciseLevel) return;
+                currentExerciseLevel = lvl;
+                refreshExerciseLevelBar();
+                if (window.Rewards) window.Rewards.resetSession(mode);
+                score = 0; total = 0;
+                updateScore();
+                newRound();
+            });
+            choices.appendChild(btn);
+        });
+
+        // Affichage d'un hint sur le pack utilisé pour le mode courant
+        const effective = packLevelFor(mode, currentExerciseLevel);
+        if (effective !== currentExerciseLevel) {
+            hint.textContent = "Niveau " + currentExerciseLevel + " : pas encore d'exercices spécifiques pour ce mode — exercices " + effective + " utilisés.";
+        } else {
+            hint.textContent = '';
+        }
+
+        bar.classList.remove('d-none');
+    }
+
+    // Initialiser currentExerciseLevel sur le niveau du profil au démarrage.
+    currentExerciseLevel = profileLevel();
+
+
     // ===================== TABS =====================
     function showMode() {
+        refreshExerciseLevelBar();
         keypadMode.classList.add('d-none');
         fractionsMode.classList.add('d-none');
         diagrammesMode.classList.add('d-none');
@@ -1714,10 +1838,14 @@
 
     function generateProportionnalite() {
         // ============================================================
-        // PROPORTIONNALITE (CE2)
-        // Regle simple : "Si X coute Y, alors n*X coute n*Y".
+        // PROPORTIONNALITE : 3 packs (CE2 / CM1 / CM2)
+        // CE2 : multiplication entiere simple, valeur unitaire.
+        // CM1 : decimaux simples, divisions, echelles simples,
+        //       pourcentages ronds (50, 25, 10%).
+        // CM2 : decimaux plus larges, pourcentages varies,
+        //       echelles cartes, vitesses moyennes.
         // ============================================================
-        const templates = [
+        const templatesCE2 = [
             {
                 build: () => {
                     const objet = pick(['un croissant','un crayon','un cahier','une gomme','une bille']);
@@ -1824,6 +1952,275 @@
                 }
             }
         ];
+
+        // Helper : formate un nombre decimal a une virgule francaise (2 decimales max).
+        function fmt(n) {
+            if (Number.isInteger(n)) return String(n);
+            return n.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+        }
+        // Helper : valide une reponse decimale (accepte . ou ,)
+        // Note : le keypad numerique ne gere pas la virgule, donc on garde
+        // des reponses ENTIERES pour les exercices CM1/CM2 aussi.
+
+        const templatesCM1 = [
+            {
+                build: () => {
+                    // Echelle simple : 1 cm -> n km
+                    const km = randInt(2, 10);
+                    const cm = randInt(3, 8);
+                    return {
+                        text: `Sur une carte, 1 cm represente ${km} km dans la realite.`,
+                        q: `Combien de km represente ${cm} cm sur la carte ?`,
+                        answer: km * cm
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Pourcentage simple : 50%, 25%, 10%
+                    const cases = [
+                        { p: 50, label: '50 %', total: pick([20, 40, 60, 80, 100, 120, 200]) },
+                        { p: 25, label: '25 %', total: pick([20, 40, 80, 100, 200, 400]) },
+                        { p: 10, label: '10 %', total: pick([20, 50, 80, 100, 150, 200, 300, 500]) }
+                    ];
+                    const c = pick(cases);
+                    return {
+                        text: `Dans une classe, il y a ${c.total} eleves.`,
+                        q: `Combien d'eleves cela fait-il si on prend ${c.label} d'entre eux ?`,
+                        answer: Math.round(c.total * c.p / 100)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Vitesse km/h plus grande, distance sur plusieurs heures
+                    const v = pick([40, 50, 60, 70, 80, 90]);
+                    const t = randInt(2, 6);
+                    return {
+                        text: `Une voiture roule a ${v} km/h pendant ${t} heures (vitesse constante).`,
+                        q: `Quelle distance a-t-elle parcourue ? (en km)`,
+                        answer: v * t
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Quatrieme proportionnelle entiere : "3 kg -> 12 €, 5 kg -> ?"
+                    const u = randInt(2, 8);
+                    const n1 = randInt(2, 5);
+                    const n2 = n1 + randInt(1, 4);
+                    return {
+                        text: `${n1} kg de cerises coutent ${u * n1} €.`,
+                        q: `Combien coutent ${n2} kg de cerises ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Division pour trouver le prix unitaire
+                    const u = randInt(3, 12);
+                    const n = randInt(4, 10);
+                    return {
+                        text: `${n} livres identiques coutent ${u * n} € au total.`,
+                        q: `Combien coute 1 livre ? (en €)`,
+                        answer: u
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Conversion vitesse / temps
+                    const km = randInt(3, 10);
+                    const min = pick([15, 20, 30, 60]);
+                    const totalMin = min * randInt(2, 4);
+                    return {
+                        text: `Un coureur parcourt ${km} km en ${min} minutes (allure constante).`,
+                        q: `Combien de km parcourra-t-il en ${totalMin} minutes ?`,
+                        answer: Math.round(km * totalMin / min)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Recette plus grande
+                    const ing = pick([
+                        { nom: 'oeufs', base: 3, p: 4 },
+                        { nom: 'cl de lait', base: 25, p: 4 },
+                        { nom: 'g de sucre', base: 50, p: 4 },
+                        { nom: 'pommes', base: 6, p: 8 }
+                    ]);
+                    const k = randInt(2, 5);
+                    return {
+                        text: `Pour ${ing.p} personnes, il faut ${ing.base} ${ing.nom}.`,
+                        q: `Combien faut-il pour ${ing.p * k} personnes ?`,
+                        answer: ing.base * k
+                    };
+                }
+            }
+        ];
+
+        const templatesCM2 = [
+            {
+                build: () => {
+                    // Pourcentages varies (10, 15, 20, 25, 30, 50, 75, 80)
+                    const cases = [
+                        { p: 15, totals: [100, 200, 300, 400, 500, 600, 800, 1000] },
+                        { p: 20, totals: [50, 100, 150, 200, 250, 300, 400, 500] },
+                        { p: 30, totals: [100, 200, 300, 400, 500, 600, 800] },
+                        { p: 75, totals: [40, 80, 100, 120, 160, 200, 400] },
+                        { p: 80, totals: [50, 100, 150, 200, 250, 300, 500] }
+                    ];
+                    const c = pick(cases);
+                    const total = pick(c.totals);
+                    return {
+                        text: `Dans un magasin, un article coute ${total} €.`,
+                        q: `Quel est le prix apres une remise de ${c.p} % ? (en €)`,
+                        answer: Math.round(total - total * c.p / 100)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Pourcentages : "n % de M = ?"
+                    const cases = [
+                        { p: 15, totals: [100, 200, 400, 600, 800, 1000] },
+                        { p: 25, totals: [80, 120, 200, 400, 800] },
+                        { p: 30, totals: [100, 200, 500, 800, 1000] },
+                        { p: 40, totals: [50, 100, 200, 500] },
+                        { p: 75, totals: [40, 80, 200, 400] }
+                    ];
+                    const c = pick(cases);
+                    const total = pick(c.totals);
+                    return {
+                        text: `Une classe compte ${total} eleves.`,
+                        q: `Combien d'eleves font ${c.p} % de la classe ?`,
+                        answer: Math.round(total * c.p / 100)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Echelle de carte
+                    const ech = pick([
+                        { mot: '1 / 1 000', kmPerCm: 0.01, hint: '1 cm = 10 m' },
+                        { mot: '1 / 10 000', kmPerCm: 0.1, hint: '1 cm = 100 m' },
+                        { mot: '1 / 100 000', kmPerCm: 1, hint: '1 cm = 1 km' },
+                        { mot: '1 / 1 000 000', kmPerCm: 10, hint: '1 cm = 10 km' }
+                    ]);
+                    // On force des km entiers
+                    let cm;
+                    if (ech.kmPerCm < 1) {
+                        // map mesure -> m. Trop complexe, on reste sur echelle 100000 et 1000000
+                        ech.mot = '1 / 100 000';
+                        ech.kmPerCm = 1;
+                        ech.hint = '1 cm = 1 km';
+                    }
+                    cm = randInt(3, 20);
+                    return {
+                        text: `Une carte est a l'echelle ${ech.mot} (${ech.hint}).`,
+                        q: `Combien de km represente ${cm} cm sur la carte ?`,
+                        answer: Math.round(cm * ech.kmPerCm)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Vitesse moyenne sur un temps + retour aux km/h
+                    const v = pick([50, 60, 70, 80, 90, 100, 110, 120]);
+                    const t = randInt(2, 6);
+                    return {
+                        text: `Un train roule a la vitesse moyenne de ${v} km/h pendant ${t} h.`,
+                        q: `Quelle distance parcourt-il ? (en km)`,
+                        answer: v * t
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Retrouver une vitesse a partir d'une distance et d'un temps
+                    const v = pick([50, 60, 70, 80, 90, 100, 120]);
+                    const t = randInt(2, 5);
+                    return {
+                        text: `Une voiture parcourt ${v * t} km en ${t} heures, a vitesse constante.`,
+                        q: `Quelle est sa vitesse moyenne ? (en km/h)`,
+                        answer: v
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Quatrieme proportionnelle avec retour a l'unite
+                    const u = randInt(3, 8);
+                    const n1 = randInt(3, 6);
+                    const n2 = randInt(7, 15);
+                    return {
+                        text: `${n1} kg de pommes coutent ${u * n1} €.`,
+                        q: `Combien coutent ${n2} kg de pommes ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Carburant : consommation moyenne
+                    const conso = pick([5, 6, 7, 8, 10]); // L / 100 km
+                    const km = pick([100, 200, 300, 400, 500, 600]);
+                    return {
+                        text: `Une voiture consomme ${conso} L d'essence aux 100 km.`,
+                        q: `Combien consomme-t-elle sur ${km} km ? (en litres)`,
+                        answer: Math.round(conso * km / 100)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Pourcentage augmentation
+                    const cases = [
+                        { p: 10 }, { p: 20 }, { p: 25 }, { p: 50 }
+                    ];
+                    const c = pick(cases);
+                    const total = pick([80, 100, 120, 200, 300, 400, 500, 800]);
+                    return {
+                        text: `Le prix d'un velo est de ${total} €. Il subit une hausse de ${c.p} %.`,
+                        q: `Quel est le nouveau prix ? (en €)`,
+                        answer: Math.round(total + total * c.p / 100)
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Production a l'heure
+                    const par = randInt(3, 12);
+                    const h = randInt(4, 10);
+                    return {
+                        text: `Une machine fabrique ${par} pieces a l'heure.`,
+                        q: `Combien de pieces produit-elle en ${h} heures ?`,
+                        answer: par * h
+                    };
+                }
+            },
+            {
+                build: () => {
+                    // Tableau de proportionnalite : trouver une valeur manquante
+                    const u = randInt(4, 12);
+                    const n1 = randInt(2, 4);
+                    const n2 = randInt(7, 12);
+                    return {
+                        text: `${n1} mois d'abonnement coutent ${u * n1} €.`,
+                        q: `Combien couteront ${n2} mois d'abonnement ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            }
+        ];
+
+        const lvl = (typeof currentExerciseLevel !== 'undefined' && currentExerciseLevel) || 'CE2';
+        let templates;
+        if (lvl === 'CM2') templates = templatesCM2;
+        else if (lvl === 'CM1') templates = templatesCM1;
+        else templates = templatesCE2;
+
         const built = pick(templates).build();
         correctAnswer = built.answer;
         problemText.innerHTML = '<p>' + built.text + '</p><p class="problem-question">' + built.q + '</p>';
