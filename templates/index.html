@@ -1825,6 +1825,22 @@
         // CM2 : decimaux plus larges, pourcentages varies,
         //       echelles cartes, vitesses moyennes.
         // ============================================================
+
+        // Helper : rend un tableau de proportionnalite a 2 lignes.
+        // spec = { label1, label2, cols: [{l1,l2}, ...] }
+        // une cellule de valeur '?' est mise en surbrillance (case a trouver).
+        function makeProportionTable(spec) {
+            const cell = (v) => (v === '?')
+                ? '<td style="background:#fff3cd;color:#a06600;font-weight:700;font-size:1.4em;">?</td>'
+                : '<td style="font-weight:600;">' + v + '</td>';
+            const row = (vals) => vals.map(cell).join('');
+            let h = '<table class="table table-bordered text-center" style="max-width:520px;margin:0.7em auto;">';
+            h += '<tr><th style="background:#e9ecef;">' + spec.label1 + '</th>' + row(spec.cols.map(c => c.l1)) + '</tr>';
+            h += '<tr><th style="background:#e9ecef;">' + spec.label2 + '</th>' + row(spec.cols.map(c => c.l2)) + '</tr>';
+            h += '</table>';
+            return h;
+        }
+
         const templatesCE2 = [
             {
                 build: () => {
@@ -2291,6 +2307,158 @@
                         text: `Un train roule a la vitesse moyenne de ${v} km/h pendant ${t} h.`,
                         q: `Quelle distance parcourt-il ? (en km)`,
                         answer: v * t
+                    };
+                }
+            },
+            // === Variantes "tableau de proportionnalite" (inspire PDF CM1) ===
+            {
+                // Tableau : seaux d'eau (PDF prop 1 collectif, version CM2)
+                build: () => {
+                    const par = pick([3, 4, 5]);
+                    const u = pick([6, 7, 8, 9, 11, 12]);
+                    const n2 = randInt(par + 2, par + 8);
+                    const html = makeProportionTable({
+                        label1: "Nombre de seaux",
+                        label2: "Quantite d'eau (en L)",
+                        cols: [{l1: par, l2: par * u}, {l1: n2, l2: '?'}]
+                    });
+                    return {
+                        text: `${par} seaux d'eau identiques contiennent ${par * u} L au total.` + html,
+                        q: `Quelle valeur manque dans le tableau ? (en L)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Tableau a 3 colonnes : elephants/feuilles
+                build: () => {
+                    const par = pick([3, 4]);
+                    const u = pick([90, 110, 130, 150]);
+                    const colA = randInt(par + 1, par + 3);
+                    const colB = randInt(colA + 2, colA + 5);
+                    const html = makeProportionTable({
+                        label1: "Nombre d'elephants",
+                        label2: "Masse de feuilles (en kg)",
+                        cols: [{l1: par, l2: par * u}, {l1: colA, l2: colA * u}, {l1: colB, l2: '?'}]
+                    });
+                    return {
+                        text: `Dans une reserve, ${par} elephants mangent ${par * u} kg de feuilles par jour.` + html,
+                        q: `Quelle valeur manque dans le tableau ? (en kg)`,
+                        answer: u * colB
+                    };
+                }
+            },
+            {
+                // Tableau : boites d'oeufs, valeur manquante en ligne 1 (sens inverse)
+                build: () => {
+                    const par = pick([4, 5, 6]);
+                    const u = pick([6, 8, 10, 12]);
+                    const colA = randInt(par + 1, par + 4);
+                    const cibleMult = randInt(par + 5, par + 12);
+                    const cibleOeufs = u * cibleMult;
+                    const html = makeProportionTable({
+                        label1: "Nombre de boites",
+                        label2: "Nombre d'oeufs",
+                        cols: [{l1: par, l2: par * u}, {l1: colA, l2: colA * u}, {l1: '?', l2: cibleOeufs}]
+                    });
+                    return {
+                        text: `${par} boites d'oeufs contiennent ${par * u} oeufs.` + html,
+                        q: `Combien de boites pour ${cibleOeufs} oeufs ?`,
+                        answer: cibleMult
+                    };
+                }
+            },
+            {
+                // Tableau : briques de jus (3 colonnes, valeur manquante au milieu)
+                build: () => {
+                    const par = pick([4, 6, 8]);
+                    const u = pick([2, 3, 4, 5]);
+                    const colA = randInt(par + 2, par + 6);
+                    const colB = randInt(colA + 2, colA + 6);
+                    const html = makeProportionTable({
+                        label1: "Nombre de briques",
+                        label2: "Contenance (en L)",
+                        cols: [{l1: par, l2: par * u}, {l1: colA, l2: '?'}, {l1: colB, l2: colB * u}]
+                    });
+                    return {
+                        text: `${par} briques de jus contiennent ${par * u} L au total.` + html,
+                        q: `Quelle valeur manque dans le tableau ? (en L)`,
+                        answer: u * colA
+                    };
+                }
+            },
+            {
+                // Tableau : arrosoirs avec colonne "1" (retour a l'unite explicite)
+                build: () => {
+                    const par = pick([5, 6, 8]);
+                    const u = pick([8, 11, 12, 15]);
+                    const colB = randInt(par + 4, par + 10);
+                    const html = makeProportionTable({
+                        label1: "Nombre d'arrosoirs",
+                        label2: "Contenance (en L)",
+                        cols: [{l1: par, l2: par * u}, {l1: 1, l2: u}, {l1: colB, l2: '?'}]
+                    });
+                    return {
+                        text: `${par} arrosoirs identiques remplissent un bac de ${par * u} L.` + html,
+                        q: `Quelle valeur manque dans le tableau ? (en L)`,
+                        answer: u * colB
+                    };
+                }
+            },
+            {
+                // Tableau : pommes/tartes
+                build: () => {
+                    const par = pick([3, 4, 5]);
+                    const pomPerTarte = pick([6, 8, 10, 12]);
+                    const colA = randInt(par + 2, par + 5);
+                    const colB = randInt(colA + 2, colA + 5);
+                    const html = makeProportionTable({
+                        label1: "Nombre de tartes",
+                        label2: "Nombre de pommes",
+                        cols: [{l1: par, l2: par * pomPerTarte}, {l1: colA, l2: colA * pomPerTarte}, {l1: colB, l2: '?'}]
+                    });
+                    return {
+                        text: `Avec ${par * pomPerTarte} pommes, un patissier prepare ${par} tartes identiques.` + html,
+                        q: `Quelle valeur manque dans le tableau ?`,
+                        answer: pomPerTarte * colB
+                    };
+                }
+            },
+            {
+                // Tableau : pains au chocolat / prix (sens inverse)
+                build: () => {
+                    const par = pick([3, 4, 5, 6]);
+                    const u = pick([2, 3, 4]);
+                    const colA = randInt(par + 2, par + 5);
+                    const cibleMult = randInt(par + 6, par + 12);
+                    const cibleEur = u * cibleMult;
+                    const html = makeProportionTable({
+                        label1: "Nombre de pains",
+                        label2: "Prix (en €)",
+                        cols: [{l1: par, l2: par * u}, {l1: colA, l2: colA * u}, {l1: '?', l2: cibleEur}]
+                    });
+                    return {
+                        text: `${par} pains au chocolat coutent ${par * u} €.` + html,
+                        q: `Combien de pains pour ${cibleEur} € ?`,
+                        answer: cibleMult
+                    };
+                }
+            },
+            {
+                // Tableau : steaks/masse avec colonne unitaire
+                build: () => {
+                    const par = pick([5, 8, 10]);
+                    const u = pick([110, 120, 130, 150]);
+                    const colA = randInt(par + 3, par + 8);
+                    const html = makeProportionTable({
+                        label1: "Nombre de steaks",
+                        label2: "Masse (en g)",
+                        cols: [{l1: par, l2: par * u}, {l1: 1, l2: u}, {l1: colA, l2: '?'}]
+                    });
+                    return {
+                        text: `Dans un sachet, ${par} steaks haches pesent ${par * u} g.` + html,
+                        q: `Quelle valeur manque dans le tableau ? (en g)`,
+                        answer: u * colA
                     };
                 }
             }
