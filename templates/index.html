@@ -2042,33 +2042,236 @@
 
         const templatesCM2 = [
             {
+                // Animaux : elephants/feuilles (inspire PDF proportionnalite 1)
                 build: () => {
-                    // Pourcentages varies (10, 15, 20, 25, 30, 50, 75, 80)
-                    const cases = [
-                        { p: 15, totals: [100, 200, 300, 400, 500, 600, 800, 1000] },
-                        { p: 20, totals: [50, 100, 150, 200, 250, 300, 400, 500] },
-                        { p: 30, totals: [100, 200, 300, 400, 500, 600, 800] },
-                        { p: 75, totals: [40, 80, 100, 120, 160, 200, 400] },
-                        { p: 80, totals: [50, 100, 150, 200, 250, 300, 500] }
-                    ];
-                    const c = pick(cases);
-                    const total = pick(c.totals);
+                    const par = randInt(3, 5);
+                    const n2 = randInt(par + 2, par + 7);
+                    const u = pick([90, 110, 120, 130, 150, 180]);
                     return {
-                        text: `Dans un magasin, un article coute ${total} €.`,
-                        q: `Quel est le prix apres une remise de ${c.p} % ? (en €)`,
-                        answer: Math.round(total - total * c.p / 100)
+                        text: `Dans une reserve, ${par} elephants mangent ${u * par} kg de feuilles par jour.`,
+                        q: `Quelle masse de feuilles mangent ${n2} elephants en 1 jour ? (en kg)`,
+                        answer: u * n2
                     };
                 }
             },
             {
+                // Pots de peinture / surface couverte (inspire PDF prop 1, exo 2 crepi)
                 build: () => {
-                    // Pourcentages : "n % de M = ?"
+                    const par = pick([3, 4, 5]);
+                    const surfPerPot = pick([12, 15, 18, 25, 30, 35]);
+                    const n2 = randInt(par + 2, 12);
+                    return {
+                        text: `Avec ${par} pots de peinture identiques, on peut couvrir ${par * surfPerPot} m².`,
+                        q: `Quelle surface peut-on couvrir avec ${n2} pots ? (en m²)`,
+                        answer: surfPerPot * n2
+                    };
+                }
+            },
+            {
+                // Lot de livres / prix (inspire PDF prop 1, exo 3)
+                build: () => {
+                    const par = randInt(3, 6);
+                    const u = pick([7, 9, 11, 12, 13, 14, 15]);
+                    const n2 = randInt(par + 2, 12);
+                    return {
+                        text: `Un lot de ${par} livres est vendu ${u * par} €.`,
+                        q: `Combien coutent ${n2} livres ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Pots de miel / masse (inspire PDF prop 1, exo 4 confitures)
+                build: () => {
+                    const par = pick([4, 5, 6]);
+                    const u = pick([220, 240, 260, 280, 320, 350, 400, 450]);
+                    const n2 = randInt(par + 3, par + 7);
+                    return {
+                        text: `${par} pots de miel pesent ${par * u} g au total.`,
+                        q: `Quelle est la masse de ${n2} pots ? (en g)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Briques de jus / contenance (inspire PDF prop 2, exo 1)
+                build: () => {
+                    const par = pick([4, 6, 8]);
+                    const u = pick([2, 3, 4, 5]);
+                    const n2 = randInt(par + 2, par + 10);
+                    return {
+                        text: `Un lot de ${par} briques de jus contient ${par * u} L.`,
+                        q: `Quelle est la contenance de ${n2} briques ? (en L)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Correction de copies / temps (inspire PDF prop 2, exo 2)
+                build: () => {
+                    const par = pick([4, 5, 6]);
+                    const u = pick([8, 9, 11, 12, 13]);
+                    const n2 = randInt(par + 2, par + 6);
+                    return {
+                        text: `Un professeur corrige ${par} copies en ${par * u} minutes.`,
+                        q: `Combien de minutes lui faut-il pour corriger ${n2} copies ?`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Arrosoirs / contenance, sens inverse (inspire PDF prop 2 et 3)
+                build: () => {
+                    const par = pick([5, 6, 8]);
+                    const u = pick([8, 11, 12, 15]);
+                    const mult = randInt(par + 3, par + 10);
+                    const cible = u * mult;
+                    return {
+                        text: `${par} arrosoirs identiques remplissent un bac de ${par * u} L.`,
+                        q: `Combien d'arrosoirs faut-il pour remplir un reservoir de ${cible} L ?`,
+                        answer: mult
+                    };
+                }
+            },
+            {
+                // Pommes / tartes (inspire PDF prop 3, exo 2)
+                build: () => {
+                    const par = pick([3, 4, 5]);
+                    const pomPerTarte = pick([6, 8, 10, 12]);
+                    const totalTartes = randInt(par + 3, par + 8);
+                    return {
+                        text: `Avec ${par * pomPerTarte} pommes, un patissier prepare ${par} tartes identiques.`,
+                        q: `Combien de pommes lui faut-il pour preparer ${totalTartes} tartes ?`,
+                        answer: pomPerTarte * totalTartes
+                    };
+                }
+            },
+            {
+                // Pains au chocolat / prix, sens inverse (inspire PDF prop 2/3)
+                build: () => {
+                    const par = pick([3, 4, 5, 6]);
+                    const u = pick([2, 3, 4, 5]);
+                    const mult = randInt(par + 2, par + 8);
+                    const cibleEur = u * mult;
+                    return {
+                        text: `${par} pains au chocolat coutent ${par * u} €.`,
+                        q: `Combien de pains au chocolat puis-je acheter avec ${cibleEur} € ?`,
+                        answer: mult
+                    };
+                }
+            },
+            {
+                // Bouteilles eau minerale (inspire PDF prop 3, exo 4)
+                build: () => {
+                    const par = pick([4, 5, 6, 8]);
+                    const u = pick([2, 3, 4]);
+                    const n2 = randInt(par + 3, par + 10);
+                    return {
+                        text: `Un pack de ${par} bouteilles d'eau contient ${par * u} L.`,
+                        q: `Quelle est la contenance de ${n2} bouteilles ? (en L)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Huile d'olive / prix (inspire PDF prop 6, exo a)
+                build: () => {
+                    const par = pick([4, 5, 6, 8]);
+                    const u = pick([8, 9, 11, 12, 14]);
+                    const n2 = randInt(par + 2, par + 8);
+                    return {
+                        text: `${par} L d'huile d'olive coutent ${par * u} €.`,
+                        q: `Quel est le prix de ${n2} L d'huile ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Kilos de pommes / prix (inspire PDF prop 6, exo b)
+                build: () => {
+                    const par = pick([3, 4, 5, 6]);
+                    const u = pick([2, 3, 4]);
+                    const n2 = randInt(par + 3, par + 12);
+                    return {
+                        text: `${par} kg de pommes coutent ${par * u} €.`,
+                        q: `Quel est le prix de ${n2} kg de pommes ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Panda et bambou (inspire PDF prop 6, exo c)
+                build: () => {
+                    const par = pick([3, 4, 5]);
+                    const u = pick([12, 15, 18, 20, 25]);
+                    const n2 = randInt(par + 2, par + 8);
+                    return {
+                        text: `Un panda mange ${par * u} kg de bambou en ${par} jours.`,
+                        q: `Quelle masse de bambou mangera-t-il en ${n2} jours ? (en kg)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Chaises (inspire PDF prop 6, exo d)
+                build: () => {
+                    const par = pick([3, 4, 5, 6]);
+                    const u = pick([22, 25, 28, 32, 35, 40]);
+                    const n2 = randInt(par + 2, par + 9);
+                    return {
+                        text: `Chez Assise, ${par} chaises identiques coutent ${par * u} €.`,
+                        q: `Combien paiera-t-on pour ${n2} chaises ? (en €)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Colliers et perles (inspire PDF prop 5, exo a)
+                build: () => {
+                    const par = pick([4, 5, 6]);
+                    const u = pick([8, 12, 14, 16, 18, 20]);
+                    const n2 = randInt(par + 2, par + 8);
+                    return {
+                        text: `Pour fabriquer ${par} bracelets identiques, on utilise ${par * u} perles.`,
+                        q: `Combien de perles faut-il pour ${n2} bracelets ?`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Steaks / masse (inspire PDF prop 4, exo a)
+                build: () => {
+                    const par = pick([5, 8, 10]);
+                    const u = pick([110, 120, 130, 150]);
+                    const n2 = randInt(par + 2, par + 8);
+                    return {
+                        text: `Dans un sachet, ${par} steaks haches pesent ${par * u} g.`,
+                        q: `Quelle masse pesent ${n2} steaks ? (en g)`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Craies par semaine (inspire PDF prop 4, exo c)
+                build: () => {
+                    const par = pick([3, 4, 5]);
+                    const u = pick([6, 8, 9, 12]);
+                    const n2 = randInt(par + 2, par + 8);
+                    return {
+                        text: `Dans une ecole, on utilise ${par * u} craies en ${par} semaines.`,
+                        q: `Combien de craies utilise-t-on en ${n2} semaines ?`,
+                        answer: u * n2
+                    };
+                }
+            },
+            {
+                // Pourcentage : n % d'une classe (conserve pour variete CM2)
+                build: () => {
                     const cases = [
-                        { p: 15, totals: [100, 200, 400, 600, 800, 1000] },
                         { p: 25, totals: [80, 120, 200, 400, 800] },
-                        { p: 30, totals: [100, 200, 500, 800, 1000] },
-                        { p: 40, totals: [50, 100, 200, 500] },
-                        { p: 75, totals: [40, 80, 200, 400] }
+                        { p: 50, totals: [60, 100, 140, 200, 300] },
+                        { p: 75, totals: [40, 80, 120, 200, 400] },
+                        { p: 20, totals: [50, 100, 200, 300, 500] }
                     ];
                     const c = pick(cases);
                     const total = pick(c.totals);
@@ -2080,116 +2283,14 @@
                 }
             },
             {
+                // Vitesse moyenne (conserve pour variete CM2)
                 build: () => {
-                    // Echelle de carte
-                    const ech = pick([
-                        { mot: '1 / 1 000', kmPerCm: 0.01, hint: '1 cm = 10 m' },
-                        { mot: '1 / 10 000', kmPerCm: 0.1, hint: '1 cm = 100 m' },
-                        { mot: '1 / 100 000', kmPerCm: 1, hint: '1 cm = 1 km' },
-                        { mot: '1 / 1 000 000', kmPerCm: 10, hint: '1 cm = 10 km' }
-                    ]);
-                    // On force des km entiers
-                    let cm;
-                    if (ech.kmPerCm < 1) {
-                        // map mesure -> m. Trop complexe, on reste sur echelle 100000 et 1000000
-                        ech.mot = '1 / 100 000';
-                        ech.kmPerCm = 1;
-                        ech.hint = '1 cm = 1 km';
-                    }
-                    cm = randInt(3, 20);
-                    return {
-                        text: `Une carte est a l'echelle ${ech.mot} (${ech.hint}).`,
-                        q: `Combien de km represente ${cm} cm sur la carte ?`,
-                        answer: Math.round(cm * ech.kmPerCm)
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Vitesse moyenne sur un temps + retour aux km/h
-                    const v = pick([50, 60, 70, 80, 90, 100, 110, 120]);
+                    const v = pick([60, 70, 80, 90, 100, 110, 120]);
                     const t = randInt(2, 6);
                     return {
                         text: `Un train roule a la vitesse moyenne de ${v} km/h pendant ${t} h.`,
                         q: `Quelle distance parcourt-il ? (en km)`,
                         answer: v * t
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Retrouver une vitesse a partir d'une distance et d'un temps
-                    const v = pick([50, 60, 70, 80, 90, 100, 120]);
-                    const t = randInt(2, 5);
-                    return {
-                        text: `Une voiture parcourt ${v * t} km en ${t} heures, a vitesse constante.`,
-                        q: `Quelle est sa vitesse moyenne ? (en km/h)`,
-                        answer: v
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Quatrieme proportionnelle avec retour a l'unite
-                    const u = randInt(3, 8);
-                    const n1 = randInt(3, 6);
-                    const n2 = randInt(7, 15);
-                    return {
-                        text: `${n1} kg de pommes coutent ${u * n1} €.`,
-                        q: `Combien coutent ${n2} kg de pommes ? (en €)`,
-                        answer: u * n2
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Carburant : consommation moyenne
-                    const conso = pick([5, 6, 7, 8, 10]); // L / 100 km
-                    const km = pick([100, 200, 300, 400, 500, 600]);
-                    return {
-                        text: `Une voiture consomme ${conso} L d'essence aux 100 km.`,
-                        q: `Combien consomme-t-elle sur ${km} km ? (en litres)`,
-                        answer: Math.round(conso * km / 100)
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Pourcentage augmentation
-                    const cases = [
-                        { p: 10 }, { p: 20 }, { p: 25 }, { p: 50 }
-                    ];
-                    const c = pick(cases);
-                    const total = pick([80, 100, 120, 200, 300, 400, 500, 800]);
-                    return {
-                        text: `Le prix d'un velo est de ${total} €. Il subit une hausse de ${c.p} %.`,
-                        q: `Quel est le nouveau prix ? (en €)`,
-                        answer: Math.round(total + total * c.p / 100)
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Production a l'heure
-                    const par = randInt(3, 12);
-                    const h = randInt(4, 10);
-                    return {
-                        text: `Une machine fabrique ${par} pieces a l'heure.`,
-                        q: `Combien de pieces produit-elle en ${h} heures ?`,
-                        answer: par * h
-                    };
-                }
-            },
-            {
-                build: () => {
-                    // Tableau de proportionnalite : trouver une valeur manquante
-                    const u = randInt(4, 12);
-                    const n1 = randInt(2, 4);
-                    const n2 = randInt(7, 12);
-                    return {
-                        text: `${n1} mois d'abonnement coutent ${u * n1} €.`,
-                        q: `Combien couteront ${n2} mois d'abonnement ? (en €)`,
-                        answer: u * n2
                     };
                 }
             }
