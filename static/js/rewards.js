@@ -494,6 +494,9 @@
   function setTimerEnabled(enabled) {
     state.timerEnabled = !!enabled;
     save();
+    // Bypass le debounce de 1500ms : on push immédiatement au serveur
+    // pour que le réglage survive à un F5 rapide.
+    serverSave();
     flashToast(enabled ? "Timer active" : "Timer desactive", "level");
   }
 
