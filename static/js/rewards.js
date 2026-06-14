@@ -210,6 +210,7 @@
     sessionTotal: 0,
     sessionMode: null,
     theme: "default",
+    timerEnabled: true,
     history: [],
     updatedAt: null,
   };
@@ -469,6 +470,12 @@
               Object.keys(THEMES).map(k => '<option value="' + k + '"' + (state.theme === k ? ' selected' : '') + '>' + THEMES[k].hudIcon + ' ' + THEMES[k].label + '</option>').join("") +
       '      </select>' +
       '    </div>' +
+      '    <div class="rw-timer-toggle" style="margin-top:0.5rem;">' +
+      '      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">' +
+      '        <input type="checkbox" id="rw-timer-toggle"' + (state.timerEnabled === false ? '' : ' checked') + ' />' +
+      '        <span>Activer le timer (compte a rebours sur les exercices)</span>' +
+      '      </label>' +
+      '    </div>' +
       '    <h4 class="mt-3">Badges (' + unlocked.length + ' / ' + badges.length + ')</h4>' +
       '    <div class="rw-badges-grid">' + items + '</div>' +
       '    <h4 class="mt-3">Progression par mode</h4>' +
@@ -479,7 +486,15 @@
     document.getElementById("rw-modal-close").addEventListener("click", closeBadgesModal);
     const sel = document.getElementById("rw-theme-select");
     if (sel) sel.addEventListener("change", function (e) { setTheme(e.target.value); });
+    const tgl = document.getElementById("rw-timer-toggle");
+    if (tgl) tgl.addEventListener("change", function (e) { setTimerEnabled(e.target.checked); });
     bg.addEventListener("click", e => { if (e.target === bg) closeBadgesModal(); });
+  }
+
+  function setTimerEnabled(enabled) {
+    state.timerEnabled = !!enabled;
+    save();
+    flashToast(enabled ? "Timer active" : "Timer desactive", "level");
   }
 
   function setTheme(themeId) {
@@ -609,6 +624,8 @@
       return Object.keys(THEMES).map(k => ({ id: k, label: THEMES[k].label, icon: THEMES[k].hudIcon }));
     },
     getState: getState,
+    isTimerEnabled: function () { return state.timerEnabled !== false; },
+    setTimerEnabled: setTimerEnabled,
   };
 
   if (document.readyState === "loading") {

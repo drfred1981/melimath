@@ -1692,6 +1692,16 @@
 
     // ===================== TIMER =====================
     function startTimer() {
+        // Préférence utilisateur : si timer désactivé dans les paramètres (modal Rewards),
+        // on n'arme pas l'intervalle et on cache visuellement la barre.
+        const timerEnabled = !window.Rewards || window.Rewards.isTimerEnabled !== undefined
+            ? (window.Rewards ? window.Rewards.isTimerEnabled() : true)
+            : true;
+        if (!timerEnabled) {
+            if (timerInterval) clearInterval(timerInterval);
+            elTimerBar.style.width = '0%';
+            return;
+        }
         timerRemaining = timerDuration;
         elTimerBar.style.width = '100%';
         elTimerBar.style.background = '#0d6efd';
