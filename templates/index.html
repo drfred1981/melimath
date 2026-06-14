@@ -1691,14 +1691,15 @@
     });
 
     // ===================== TIMER =====================
+    function _timerEnabledPref() {
+        // Lecture defensive : si la fonction n'existe pas (très anciens
+        // builds en cache), on suppose timer activé.
+        if (!window.Rewards || typeof window.Rewards.isTimerEnabled !== 'function') return true;
+        return window.Rewards.isTimerEnabled() !== false;
+    }
     function startTimer() {
-        // Préférence utilisateur : si timer désactivé dans les paramètres (modal Rewards),
-        // on n'arme pas l'intervalle et on cache visuellement la barre.
-        const timerEnabled = !window.Rewards || window.Rewards.isTimerEnabled !== undefined
-            ? (window.Rewards ? window.Rewards.isTimerEnabled() : true)
-            : true;
-        if (!timerEnabled) {
-            if (timerInterval) clearInterval(timerInterval);
+        if (timerInterval) clearInterval(timerInterval);
+        if (!_timerEnabledPref()) {
             elTimerBar.style.width = '0%';
             return;
         }
@@ -1707,6 +1708,14 @@
         elTimerBar.style.background = '#0d6efd';
         const startTime = Date.now();
         timerInterval = setInterval(() => {
+            // Re-check à chaque tick : si la pref passe à false (après que
+            // serverLoad() async a rapatrié la vraie valeur, ou si l'utilisateur
+            // décoche en cours d'exercice), on stoppe sans déclencher timeUp.
+            if (!_timerEnabledPref()) {
+                clearInterval(timerInterval);
+                elTimerBar.style.width = '0%';
+                return;
+            }
             const elapsed = (Date.now() - startTime) / 1000;
             timerRemaining = timerDuration - elapsed;
             if (timerRemaining <= 0) {
