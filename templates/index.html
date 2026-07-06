@@ -703,6 +703,35 @@
         </li>
     </ul>
 
+    <!-- Bouton Mode Révision (hors menu normal) -->
+    <div class="text-center mt-2" id="revisionBtnArea">
+        <button class="btn btn-warning fw-bold px-4" id="btnRevision" style="border-radius:20px;font-size:1.05rem;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+            &#x1F3B2; Mode R&eacute;vision
+        </button>
+    </div>
+
+    <!-- Panneau de configuration révision (remplace le game-area le temps de la sélection) -->
+    <div id="revisionSetupPanel" class="d-none mt-3">
+        <div class="card border-warning" style="max-width:500px;margin:0 auto;">
+            <div class="card-header bg-warning fw-bold fs-5">&#x1F3B2; Mode R&eacute;vision &mdash; Choisir les exercices</div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Coche les exercices &agrave; inclure. Tous sont coch&eacute;s par d&eacute;faut !</p>
+                <div class="mb-3">
+                    <div class="fw-bold text-primary mb-2">&#x1F9EE; Maths</div>
+                    <div id="revChecksMaths" class="d-flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="fw-bold text-success mb-2">&#x1F4D6; Fran&ccedil;ais</div>
+                    <div id="revChecksFr" class="d-flex flex-wrap gap-2"></div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-warning fw-bold flex-grow-1 btn-validate" id="btnRevStart">Commencer &#x1F680;</button>
+                    <button class="btn btn-outline-secondary btn-validate" id="btnRevCancel">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bloc affiché quand le niveau du profil n'a pas encore d'exercices -->
     <div id="levelLockedMessage" class="d-none text-center py-5">
         <div style="font-size:4rem;">&#x1F512;</div>
@@ -713,6 +742,12 @@
     </div>
 
     <div class="game-area mt-3">
+        <!-- Bandeau révision active -->
+        <div id="revisionHeader" class="d-none alert alert-warning d-flex justify-content-between align-items-center mb-2 py-2 px-3">
+            <span>&#x1F3B2; R&eacute;vision &mdash; <strong id="revCurrentMode">Addition</strong></span>
+            <button class="btn btn-sm btn-outline-danger" id="btnRevStop">Arr&ecirc;ter</button>
+        </div>
+
         <!-- Score -->
         <div class="score-bar d-flex justify-content-between mb-2 px-1">
             <span>Score : <span id="score">0</span> / <span id="total">0</span></span>
@@ -1341,6 +1376,25 @@
     let timerInterval = null;
     let answered = false;
 
+    // Révision state
+    let revisionActive = false;
+    let revisionModes = [];
+
+    const MODE_LABELS = {
+        addition: 'Addition', soustraction: 'Soustraction', multiplication: 'Multiplication',
+        calcul_ligne: 'Calcul en ligne', addition_colonne: 'Addition posée',
+        soustraction_colonne: 'Soustraction posée', multiplication_colonne: 'Multiplication posée',
+        conversions: 'Conversions', fractions: 'Fractions', problemes: 'Problèmes',
+        proportionnalite: 'Proportionnalité', diagrammes: 'Diagrammes', geometrie: 'Géométrie',
+        francais: 'Conjugaison (imparfait)', passe_compose: 'Passé composé',
+        pluriels: 'Pluriels', grammaire: 'Grammaire', complements: 'Compléments du verbe',
+        accents: 'Accents'
+    };
+    const MATHS_MODES = ['addition', 'soustraction', 'multiplication', 'calcul_ligne',
+        'addition_colonne', 'soustraction_colonne', 'multiplication_colonne',
+        'conversions', 'fractions', 'problemes', 'proportionnalite', 'diagrammes', 'geometrie'];
+    const FRANCAIS_MODES = ['francais', 'passe_compose', 'pluriels', 'grammaire', 'complements', 'accents'];
+
     // Fractions state
     let fractionType = '';    // 'colored', 'whole', 'numberline'
     let fractionCorrect = null; // true/false for vrai/faux, or {num, den} for input
@@ -1688,6 +1742,86 @@
             showMode();
             newRound();
         });
+    });
+
+    // ===================== RÉVISION =====================
+    const revBtnRevision = document.getElementById('btnRevision');
+    const revSetupPanel = document.getElementById('revisionSetupPanel');
+    const revHeaderEl = document.getElementById('revisionHeader');
+    const revGameArea = document.querySelector('.game-area');
+
+    function buildRevisionCheckboxes() {
+        const lvl = currentExerciseLevel;
+        [['Maths', MATHS_MODES], ['Fr', FRANCAIS_MODES]].forEach(([cat, modes]) => {
+            const container = document.getElementById('revChecks' + cat);
+            container.innerHTML = '';
+            modes.forEach(m => {
+                if (!modeHasLevel(m, lvl)) return;
+                const label = document.createElement('label');
+                label.className = 'btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mb-1';
+                label.style.cursor = 'pointer';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = m;
+                cb.checked = true;
+                cb.className = 'form-check-input mt-0 me-1';
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(MODE_LABELS[m] || m));
+                container.appendChild(label);
+            });
+        });
+    }
+
+    revBtnRevision.addEventListener('click', () => {
+        buildRevisionCheckboxes();
+        revSetupPanel.classList.remove('d-none');
+        revGameArea.classList.add('d-none');
+    });
+
+    document.getElementById('btnRevCancel').addEventListener('click', () => {
+        revSetupPanel.classList.add('d-none');
+        revGameArea.classList.remove('d-none');
+    });
+
+    document.getElementById('btnRevStart').addEventListener('click', () => {
+        const sel = [];
+        revSetupPanel.querySelectorAll('input[type=checkbox]:checked').forEach(cb => sel.push(cb.value));
+        if (sel.length === 0) return;
+        revSetupPanel.classList.add('d-none');
+        revGameArea.classList.remove('d-none');
+        revisionModes = sel;
+        revisionActive = true;
+        revHeaderEl.classList.remove('d-none');
+        if (window.Rewards) window.Rewards.resetSession('revision');
+        score = 0; total = 0;
+        updateScore();
+        mode = pick(revisionModes);
+        showMode();
+        document.getElementById('revCurrentMode').textContent = MODE_LABELS[mode] || mode;
+        newRound();
+    });
+
+    document.getElementById('btnRevStop').addEventListener('click', () => {
+        revisionActive = false;
+        revisionModes = [];
+        revHeaderEl.classList.add('d-none');
+        let firstVisible = null;
+        document.querySelectorAll('#modeTabs [data-mode]').forEach(el => {
+            if (!firstVisible && !el.closest('li').classList.contains('d-none')) firstVisible = el;
+        });
+        if (firstVisible) {
+            mode = firstVisible.dataset.mode;
+            document.querySelectorAll('[data-mode]').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link.dropdown-toggle').forEach(t => t.classList.remove('active'));
+            firstVisible.classList.add('active');
+            const dd = firstVisible.closest('.dropdown');
+            if (dd) { const tog = dd.querySelector('.nav-link.dropdown-toggle'); if (tog) tog.classList.add('active'); }
+        }
+        if (window.Rewards) window.Rewards.resetSession(mode);
+        score = 0; total = 0;
+        updateScore();
+        showMode();
+        newRound();
     });
 
     // ===================== TIMER =====================
@@ -4748,6 +4882,13 @@
     function newRound() {
         answered = false;
         stopTimer();
+
+        if (revisionActive && revisionModes.length > 0) {
+            mode = pick(revisionModes);
+            showMode();
+            const revLabel = document.getElementById('revCurrentMode');
+            if (revLabel) revLabel.textContent = MODE_LABELS[mode] || mode;
+        }
 
         if (mode === 'fractions') {
             generateFraction();
