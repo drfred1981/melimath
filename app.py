@@ -20,6 +20,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 
+import urllib.parse
+import urllib.request
+
 from flask import Flask, abort, jsonify, render_template, request
 
 app = Flask(__name__)
@@ -107,6 +110,32 @@ def _public_summary(name: str, prof: dict) -> dict:
         "level": prof.get("level", "CE2"),
         "has_pin": bool(prof.get("pin_hash")),
     }
+
+
+# ---- Calendrier scolaire (cache journalier) ----------------------------------
+
+_school_period_cache: dict = {}  # {"YYYY-MM-DD": bool}
+
+
+def _is_vacation(today: str) -> bool:
+    """Interroge l'API data.education.gouv.fr pour savoir si aujourd'hui est vacances."""
+    if today in _school_period_cache:
+        return _school_period_cache[today]
+    try:
+        url = "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records"
+        params = urllib.parse.urlencode({
+            "where": f"start_date<='{today}' and end_date>='{today}'",
+            "limit": 1,
+            "select": "description",
+        })
+        with urllib.request.urlopen(f"{url}?{params}", timeout=6) as r:
+            data = json.load(r)
+        result = data.get("total_count", 0) > 0
+    except Exception:
+        result = False  # en cas d'erreur réseau, on suppose période scolaire
+    _school_period_cache.clear()  # on ne garde qu'une date à la fois
+    _school_period_cache[today] = result
+    return result
 
 
 # ---- Routes -----------------------------------------------------------------
@@ -199,6 +228,18 @@ def update_profile(name):
     prof["updated_at"] = _now_iso()
     _save_profiles_file(data)
     return jsonify({"ok": True, "profile": _public_summary(name, prof)})
+
+
+@app.route("/api/school-period")
+def school_period():
+    from datetime import date
+    today = date.today().isoformat()
+    vacation = _is_vacation(today)
+    return jsonify({
+        "vacation": vacation,
+        "grace_days": 7 if vacation else 2,
+        "date": today,
+    })
 
 
 @app.route("/api/health")

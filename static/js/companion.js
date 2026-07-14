@@ -3,7 +3,7 @@
 
     var STORAGE_PREFIX = 'melimath_companion_';
     var HEALTH_MAX = 100;
-    var GRACE_DAYS = 2;
+    var GRACE_DAYS = 2;  // mis à jour via /api/school-period
     var POINTS_CORRECT = 4;
     var POINTS_WRONG = -1;
     var POINTS_PER_ABSENT_DAY = -20;
@@ -102,6 +102,25 @@
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    function loadGracePeriod(callback) {
+        var today = todayStr();
+        try {
+            var raw = localStorage.getItem('melimath_school_period');
+            if (raw) {
+                var obj = JSON.parse(raw);
+                if (obj && obj.date === today) { callback(obj.grace_days); return; }
+            }
+        } catch(e) {}
+        fetch('/api/school-period')
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(sp) {
+                var gd = (sp && typeof sp.grace_days === 'number') ? sp.grace_days : 2;
+                try { localStorage.setItem('melimath_school_period', JSON.stringify({date: today, grace_days: gd})); } catch(e) {}
+                callback(gd);
+            })
+            .catch(function() { callback(2); });
+    }
+
     function getMsgEl() { return document.getElementById('companionMsg'); }
     function getBarEl() { return document.getElementById('companionBar'); }
     function getWidget() { return document.getElementById('companionWidget'); }
@@ -196,14 +215,20 @@
         init: function(theme) {
             currentTheme = theme || 'default';
             data = loadData(currentTheme);
-            applyInactivityPenalty();
-            buildWidget();
+            loadGracePeriod(function(gd) {
+                GRACE_DAYS = gd;
+                applyInactivityPenalty();
+                buildWidget();
+            });
         },
         setTheme: function(theme) {
             currentTheme = theme || 'default';
             data = loadData(currentTheme);
-            applyInactivityPenalty();
-            buildWidget();
+            loadGracePeriod(function(gd) {
+                GRACE_DAYS = gd;
+                applyInactivityPenalty();
+                buildWidget();
+            });
         },
         onAnswer: function(correct) {
             if (!data) return;
