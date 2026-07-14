@@ -6,6 +6,7 @@
     <title>MeliMath</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/rewards.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/companion.css') }}" rel="stylesheet">
     <style>
         :root {
             --timer-color: #0d6efd;
@@ -741,6 +742,8 @@
         <p class="small text-muted">Tu peux changer de niveau dans le bandeau bleu en haut, ou cr&eacute;er un autre profil.</p>
     </div>
 
+    <div id="companion-container"></div>
+
     <div class="game-area mt-3">
         <!-- Bandeau révision active -->
         <div id="revisionHeader" class="d-none alert alert-warning d-flex justify-content-between align-items-center mb-2 py-2 px-3">
@@ -1168,6 +1171,10 @@
             updateHeader();
             if (window.Rewards && window.Rewards.setProfile) {
                 window.Rewards.setProfile({ name: activeProfile.name, pin: activeProfile.pin });
+            }
+            if (window.Companion) {
+                var cTheme = (window.Rewards && window.Rewards.getState) ? (window.Rewards.getState().theme || 'default') : 'default';
+                window.Companion.setTheme(cTheme);
             }
             hideOverlay();
         }).catch(() => {
@@ -2680,6 +2687,7 @@
 
     function showFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             elFeedback.className = 'text-center feedback feedback-wrong';
             elFeedback.textContent = 'Temps écoulé ! Réponse : ' + correctAnswer;
@@ -2862,6 +2870,7 @@
 
     function showFractionFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             fractionFeedback.className = 'text-center feedback feedback-wrong';
             if (fractionType === 'colored') {
@@ -3005,6 +3014,7 @@
 
     function showDiagramFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             diagramFeedbackEl.className = 'text-center feedback feedback-wrong';
             diagramFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + correctAnswer;
@@ -3193,6 +3203,7 @@
 
     function showAddColFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             addColFeedback.className = 'text-center feedback feedback-wrong';
             addColFeedback.textContent = 'Temps écoulé ! Réponse : ' + colAnswer;
@@ -3393,6 +3404,7 @@
 
     function showSubColFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             subColFeedback.className = 'text-center feedback feedback-wrong';
             subColFeedback.textContent = 'Temps écoulé ! Réponse : ' + subColAnswer;
@@ -3507,6 +3519,7 @@
 
     function showConversionFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             conversionFeedbackEl.className = 'text-center feedback feedback-wrong';
             conversionFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + conversionCorrectAnswer;
@@ -3703,6 +3716,7 @@
 
     function showGeoFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             geoFeedbackEl.className = 'text-center feedback feedback-wrong';
             const ans = geoQuestionType === 'qcm' ? geoCorrectAnswer : (geoCorrectAnswer ? 'Vrai' : 'Faux');
@@ -3965,6 +3979,7 @@
 
     function showFrFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             frFeedbackEl.className = 'text-center feedback feedback-wrong';
             if (frSubMode === 'terminaison') {
@@ -4230,6 +4245,7 @@
 
     function showPlFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             plFeedbackEl.className = 'text-center feedback feedback-wrong';
             plFeedbackEl.textContent = 'Temps écoulé ! Réponse : ' + plCorrectAnswer;
@@ -4814,6 +4830,7 @@
 
     function showGrFeedback(correct, timeout) {
         if (window.Rewards) window.Rewards.onAnswer(mode, correct);
+        if (window.Companion) window.Companion.onAnswer(correct);
         if (timeout) {
             grFeedbackEl.className = 'text-center feedback feedback-wrong';
             const repTo = Array.isArray(grCurrentQuestion.correct) ? grCurrentQuestion.correct.join(' ') : grCurrentQuestion.correct;
@@ -4928,5 +4945,6 @@
     newRound();
 })();
 </script>
+<script src="{{ url_for('static', filename='js/companion.js') }}"></script>
 </body>
 </html>

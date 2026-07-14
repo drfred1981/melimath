@@ -1,0 +1,141 @@
+/* ================================================================
+   companion.css — Compagnon virtuel mélimath
+   ================================================================ */
+
+/* ===== Widget principal ===== */
+.companion-widget {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 18px;
+    padding: 10px 14px;
+    max-width: 500px;
+    margin: 0 auto 14px auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+.companion-widget.state-sad      { border-color: #fd7e14; }
+.companion-widget.state-sick     { border-color: #dc3545; }
+.companion-widget.state-critical { border-color: #dc3545; box-shadow: 0 0 0 3px rgba(220,53,69,.2); }
+
+/* ===== Zone personnage ===== */
+.companion-char {
+    flex-shrink: 0;
+    width: 76px;
+    height: 76px;
+    position: relative;
+}
+.companion-svg-area {
+    width: 76px;
+    height: 76px;
+    position: relative;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.companion-svg-area svg {
+    width: 76px;
+    height: 76px;
+    overflow: visible;
+}
+
+/* ===== Infos ===== */
+.companion-info {
+    flex: 1;
+    min-width: 0;
+}
+.companion-name {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 4px;
+}
+.companion-health-wrap {
+    background: #e9ecef;
+    border-radius: 6px;
+    height: 9px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+.companion-health-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease, background 0.4s ease;
+}
+.companion-health-bar.h-happy    { background: #198754; }
+.companion-health-bar.h-sad      { background: #fd7e14; }
+.companion-health-bar.h-sick     { background: #dc3545; }
+.companion-health-bar.h-critical {
+    background: #9c27b0;
+    animation: cmp-pulse-bar 0.9s ease-in-out infinite;
+}
+@keyframes cmp-pulse-bar {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+.companion-message {
+    font-size: 0.82rem;
+    color: #666;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== Cadeau flottant ===== */
+.companion-reward {
+    position: absolute;
+    top: 8px;
+    left: 38px;
+    font-size: 1.7rem;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 20;
+    animation: cmp-float 1.5s ease-out forwards;
+}
+@keyframes cmp-float {
+    0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+    15%  { opacity: 1; transform: translateY(0) scale(1.2); }
+    85%  { opacity: 1; transform: translateY(-48px) scale(1); }
+    100% { opacity: 0; transform: translateY(-56px) scale(0.8); }
+}
+
+/* ===== Alerte santé basse ===== */
+.companion-alert {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 400px;
+    width: 90%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    z-index: 9999;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    animation: cmp-slide-in 0.35s ease-out;
+}
+@keyframes cmp-slide-in {
+    from { transform: translateX(-50%) translateY(24px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+.companion-alert.alert-sick     { background:#fff3cd; border:2px solid #ffc107; color:#7d5800; }
+.companion-alert.alert-critical { background:#f8d7da; border:2px solid #dc3545; color:#7d1520; }
+.companion-alert button {
+    background:none; border:none; font-size:1.1rem;
+    cursor:pointer; opacity:.65; flex-shrink:0; padding:0;
+}
+.companion-alert button:hover { opacity:1; }
+
+/* ===== Loading ===== */
+.companion-loading { font-size:2rem; text-align:center; line-height:76px; }

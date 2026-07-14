@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><style>
+    .char{transform-box:fill-box;transform-origin:center;}
+    .companion-widget.state-happy .char{animation:etoile-h 1s ease-in-out infinite alternate;}
+    .companion-widget.state-sad   .char{animation:etoile-s 2.5s ease-in-out infinite;filter:saturate(.45);}
+    .companion-widget.state-sick  .char{animation:etoile-k 3s ease-in-out infinite;filter:saturate(.1) brightness(.7);}
+    .companion-widget.state-critical .char{animation:etoile-c .8s ease-in-out infinite;filter:saturate(0) brightness(.45);}
+    @keyframes etoile-h{from{transform:translateY(0) scale(1);}to{transform:translateY(-5px) scale(1.06);}}
+    @keyframes etoile-s{0%,100%{transform:rotate(-8deg) translateY(3px);}50%{transform:rotate(8deg) translateY(3px);}}
+    @keyframes etoile-k{0%,100%{transform:scale(.91) translateY(4px);}50%{transform:scale(.87) translateY(7px);}}
+    @keyframes etoile-c{0%,100%{opacity:1;transform:scale(.87);}50%{opacity:.28;transform:scale(.82);}}
+  </style></defs>
+  <g class="char">
+    <circle cx="50" cy="50" r="44" fill="#FFF8DC" opacity=".55"/>
+    <polygon points="50,10 60,36 88,38 66,55 74,82 50,67 26,82 34,55 12,38 40,36" fill="#FFD700" stroke="#F59E00" stroke-width="2.2" stroke-linejoin="round"/>
+    <polygon points="50,17 58,37 82,39 64,53 71,77 50,63 29,77 36,53 18,39 42,37" fill="#FFE870" opacity=".55"/>
+    <!-- eyes -->
+    <circle cx="42" cy="44" r="4.8" fill="#2C1A00"/>
+    <circle cx="58" cy="44" r="4.8" fill="#2C1A00"/>
+    <circle cx="43.7" cy="42.3" r="1.8" fill="white"/>
+    <circle cx="59.7" cy="42.3" r="1.8" fill="white"/>
+    <!-- blush -->
+    <ellipse cx="36" cy="52" rx="5" ry="3.5" fill="#FF8888" opacity=".55"/>
+    <ellipse cx="64" cy="52" rx="5" ry="3.5" fill="#FF8888" opacity=".55"/>
+    <!-- smile -->
+    <path d="M41,53 Q50,62 59,53" stroke="#2C1A00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- sparkles: 4-pointed diamond shapes -->
+    <polygon points="20,15 21.5,12 23,15 21.5,18" fill="#FFD700"/>
+    <polygon points="79,11 80.5,8 82,11 80.5,14" fill="#FFD700"/>
+    <polygon points="85,70 86.5,67 88,70 86.5,73" fill="#FFB800"/>
+    <polygon points="13,68 14.5,65 16,68 14.5,71" fill="#FFB800"/>
+    <circle cx="21.5" cy="15" r="1.2" fill="#FFF0A0"/>
+    <circle cx="80.5" cy="11" r="1.2" fill="#FFF0A0"/>
+  </g>
+</svg>

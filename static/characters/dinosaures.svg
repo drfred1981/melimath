@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><style>
+    .char{transform-box:fill-box;transform-origin:center;}
+    .companion-widget.state-happy .char{animation:rex-h 1s ease-in-out infinite alternate;}
+    .companion-widget.state-sad   .char{animation:rex-s 2.5s ease-in-out infinite;filter:saturate(.45);}
+    .companion-widget.state-sick  .char{animation:rex-k 3s ease-in-out infinite;filter:saturate(.1) brightness(.7);}
+    .companion-widget.state-critical .char{animation:rex-c .8s ease-in-out infinite;filter:saturate(0) brightness(.45);}
+    @keyframes rex-h{from{transform:translateY(0) scale(1);}to{transform:translateY(-5px) scale(1.06);}}
+    @keyframes rex-s{0%,100%{transform:rotate(-8deg) translateY(3px);}50%{transform:rotate(8deg) translateY(3px);}}
+    @keyframes rex-k{0%,100%{transform:scale(.91) translateY(4px);}50%{transform:scale(.87) translateY(7px);}}
+    @keyframes rex-c{0%,100%{opacity:1;transform:scale(.87);}50%{opacity:.28;transform:scale(.82);}}
+  </style></defs>
+  <g class="char">
+    <!-- tail -->
+    <path d="M65,80 Q80,70 88,60 Q90,55 86,52 Q82,50 78,56 Q74,66 60,75 Z" fill="#2E8B22" stroke="#1A6010" stroke-width="1.2"/>
+    <!-- body -->
+    <ellipse cx="50" cy="78" rx="22" ry="18" fill="#3AAA2C" stroke="#2A8A1C" stroke-width="1.8"/>
+    <!-- legs -->
+    <ellipse cx="40" cy="92" rx="7" ry="5" fill="#2A8A1C" stroke="#1A6010" stroke-width="1.2"/>
+    <ellipse cx="58" cy="92" rx="7" ry="5" fill="#2A8A1C" stroke="#1A6010" stroke-width="1.2"/>
+    <!-- claws on feet -->
+    <path d="M36,93 L35,97 M40,94 L40,98 M44,93 L45,97" stroke="#1A5010" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M54,93 L53,97 M58,94 L58,98 M62,93 L63,97" stroke="#1A5010" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- spots on body -->
+    <circle cx="46" cy="74" r="3.5" fill="#228B22" opacity=".7"/>
+    <circle cx="56" cy="78" r="4" fill="#228B22" opacity=".7"/>
+    <circle cx="44" cy="84" r="2.5" fill="#228B22" opacity=".7"/>
+    <!-- tiny arms -->
+    <path d="M34,65 Q25,62 24,68 Q23,72 28,73" stroke="#2A8A1C" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M28,73 L26,76 M28,73 L30,77" stroke="#1A6010" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- head -->
+    <ellipse cx="50" cy="44" rx="28" ry="24" fill="#3AAA2C" stroke="#2A8A1C" stroke-width="2"/>
+    <!-- back spikes -->
+    <polygon points="25,36 20,24 30,34" fill="#228B22" stroke="#1A6010" stroke-width="1"/>
+    <polygon points="32,28 30,14 38,26" fill="#228B22" stroke="#1A6010" stroke-width="1"/>
+    <polygon points="42,24 43,10 50,22" fill="#228B22" stroke="#1A6010" stroke-width="1"/>
+    <polygon points="55,24 58,10 62,22" fill="#1A9010" stroke="#1A6010" stroke-width="1"/>
+    <!-- brow ridge -->
+    <ellipse cx="50" cy="30" rx="22" ry="6" fill="#2A9A1C"/>
+    <!-- eyes -->
+    <circle cx="38" cy="38" r="8" fill="white" stroke="#1A6010" stroke-width="1.5"/>
+    <circle cx="62" cy="38" r="8" fill="white" stroke="#1A6010" stroke-width="1.5"/>
+    <circle cx="39" cy="39" r="5" fill="#1A3300"/>
+    <circle cx="63" cy="39" r="5" fill="#1A3300"/>
+    <circle cx="37" cy="37" r="2" fill="white"/>
+    <circle cx="61" cy="37" r="2" fill="white"/>
+    <!-- snout -->
+    <ellipse cx="50" cy="56" rx="16" ry="10" fill="#4ABB3C" stroke="#2A9A1C" stroke-width="1.5"/>
+    <!-- nostrils -->
+    <ellipse cx="45" cy="53" rx="2.5" ry="1.5" fill="#1A6010"/>
+    <ellipse cx="55" cy="53" rx="2.5" ry="1.5" fill="#1A6010"/>
+    <!-- teeth / smile -->
+    <path d="M34,60 Q42,68 50,60 Q58,68 66,60" stroke="#1A6010" stroke-width="2" fill="none"/>
+    <rect x="38" y="60" width="4" height="5" rx="1" fill="white"/>
+    <rect x="46" y="60" width="4" height="5" rx="1" fill="white"/>
+    <rect x="52" y="60" width="4" height="5" rx="1" fill="white"/>
+    <rect x="60" y="60" width="4" height="5" rx="1" fill="white"/>
+  </g>
+</svg>

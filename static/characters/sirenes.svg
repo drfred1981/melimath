@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><style>
+    .char{transform-box:fill-box;transform-origin:center;}
+    .companion-widget.state-happy .char{animation:marina-h 1s ease-in-out infinite alternate;}
+    .companion-widget.state-sad   .char{animation:marina-s 2.5s ease-in-out infinite;filter:saturate(.45);}
+    .companion-widget.state-sick  .char{animation:marina-k 3s ease-in-out infinite;filter:saturate(.1) brightness(.7);}
+    .companion-widget.state-critical .char{animation:marina-c .8s ease-in-out infinite;filter:saturate(0) brightness(.45);}
+    @keyframes marina-h{from{transform:translateY(0) scale(1);}to{transform:translateY(-5px) scale(1.06);}}
+    @keyframes marina-s{0%,100%{transform:rotate(-8deg) translateY(3px);}50%{transform:rotate(8deg) translateY(3px);}}
+    @keyframes marina-k{0%,100%{transform:scale(.91) translateY(4px);}50%{transform:scale(.87) translateY(7px);}}
+    @keyframes marina-c{0%,100%{opacity:1;transform:scale(.87);}50%{opacity:.28;transform:scale(.82);}}
+  </style></defs>
+  <g class="char">
+    <!-- tail -->
+    <ellipse cx="50" cy="80" rx="18" ry="16" fill="#00CED1" stroke="#009999" stroke-width="1.5"/>
+    <path d="M35,82 Q50,100 65,82" fill="#00A5AA" stroke="#007788" stroke-width="1.2"/>
+    <!-- tail fin -->
+    <path d="M36,88 Q30,100 44,95 Q50,98 56,95 Q70,100 64,88" fill="#00B8C1" stroke="#007788" stroke-width="1.2"/>
+    <!-- scales pattern -->
+    <path d="M40,75 Q44,72 48,75 Q52,72 56,75 Q60,72 64,75" stroke="#00A0A8" stroke-width="1.2" fill="none"/>
+    <path d="M38,81 Q42,78 46,81 Q50,78 54,81 Q58,78 62,81" stroke="#00A0A8" stroke-width="1.2" fill="none"/>
+    <!-- torso / shell top -->
+    <ellipse cx="50" cy="62" rx="14" ry="8" fill="#FF7F50" stroke="#DD5525" stroke-width="1.2"/>
+    <!-- hair left -->
+    <path d="M25,38 Q18,55 20,72" stroke="#FF6B35" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M27,40 Q22,58 24,74" stroke="#FF8C55" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- hair right -->
+    <path d="M75,38 Q82,55 80,72" stroke="#FF6B35" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M73,40 Q78,58 76,74" stroke="#FF8C55" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- hair top -->
+    <ellipse cx="50" cy="22" rx="22" ry="10" fill="#FF6B35"/>
+    <!-- head -->
+    <circle cx="50" cy="36" r="20" fill="#FFDDB8" stroke="#E8B898" stroke-width="1.5"/>
+    <!-- starfish in hair -->
+    <polygon points="50,14 51.5,18 55.5,18 52.5,20.5 53.7,24.5 50,22 46.3,24.5 47.5,20.5 44.5,18 48.5,18" fill="#FF5555" opacity=".9"/>
+    <!-- eyes -->
+    <ellipse cx="43" cy="36" rx="4.5" ry="5" fill="white"/>
+    <ellipse cx="57" cy="36" rx="4.5" ry="5" fill="white"/>
+    <circle cx="43" cy="37" r="3" fill="#006688"/>
+    <circle cx="57" cy="37" r="3" fill="#006688"/>
+    <circle cx="44" cy="35.5" r="1.2" fill="white"/>
+    <circle cx="58" cy="35.5" r="1.2" fill="white"/>
+    <!-- lashes -->
+    <path d="M39,32 Q41,29 43,31" stroke="#333" stroke-width="1.2" fill="none"/>
+    <path d="M57,31 Q59,29 61,32" stroke="#333" stroke-width="1.2" fill="none"/>
+    <!-- blush -->
+    <ellipse cx="36" cy="42" rx="5" ry="3" fill="#FF9999" opacity=".5"/>
+    <ellipse cx="64" cy="42" rx="5" ry="3" fill="#FF9999" opacity=".5"/>
+    <!-- nose -->
+    <ellipse cx="50" cy="42" rx="2" ry="1.5" fill="#E8B898"/>
+    <!-- smile -->
+    <path d="M43,47 Q50,54 57,47" stroke="#CC6644" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- bubbles -->
+    <circle cx="80" cy="50" r="4" fill="none" stroke="#88DDEE" stroke-width="1.5" opacity=".8"/>
+    <circle cx="86" cy="40" r="2.5" fill="none" stroke="#88DDEE" stroke-width="1.2" opacity=".7"/>
+    <circle cx="18" cy="52" r="3" fill="none" stroke="#88DDEE" stroke-width="1.2" opacity=".7"/>
+    <circle cx="14" cy="42" r="2" fill="none" stroke="#88DDEE" stroke-width="1.2" opacity=".6"/>
+  </g>
+</svg>

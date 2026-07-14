@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><style>
+    .char{transform-box:fill-box;transform-origin:center;}
+    .companion-widget.state-happy .char{animation:mimi-h 1s ease-in-out infinite alternate;}
+    .companion-widget.state-sad   .char{animation:mimi-s 2.5s ease-in-out infinite;filter:saturate(.45);}
+    .companion-widget.state-sick  .char{animation:mimi-k 3s ease-in-out infinite;filter:saturate(.1) brightness(.7);}
+    .companion-widget.state-critical .char{animation:mimi-c .8s ease-in-out infinite;filter:saturate(0) brightness(.45);}
+    @keyframes mimi-h{from{transform:translateY(0) scale(1);}to{transform:translateY(-5px) scale(1.06);}}
+    @keyframes mimi-s{0%,100%{transform:rotate(-8deg) translateY(3px);}50%{transform:rotate(8deg) translateY(3px);}}
+    @keyframes mimi-k{0%,100%{transform:scale(.91) translateY(4px);}50%{transform:scale(.87) translateY(7px);}}
+    @keyframes mimi-c{0%,100%{opacity:1;transform:scale(.87);}50%{opacity:.28;transform:scale(.82);}}
+  </style></defs>
+  <g class="char">
+    <!-- tail -->
+    <path d="M68,82 Q88,74 90,60 Q88,48 80,50 Q74,52 76,62 Q72,72 62,78 Z" fill="#FF8C00" stroke="#CC6600" stroke-width="1.5"/>
+    <path d="M80,52 Q86,58 84,66" stroke="#E07A00" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/>
+    <!-- body -->
+    <ellipse cx="50" cy="78" rx="24" ry="18" fill="#FFA020" stroke="#CC6600" stroke-width="1.8"/>
+    <!-- belly -->
+    <ellipse cx="50" cy="80" rx="14" ry="11" fill="#FFD080" opacity=".8"/>
+    <!-- stripes on body -->
+    <path d="M34,70 Q38,74 34,80" stroke="#CC6600" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".65"/>
+    <path d="M66,70 Q62,74 66,80" stroke="#CC6600" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".65"/>
+    <!-- front paws -->
+    <ellipse cx="37" cy="92" rx="7" ry="5" fill="#FFA020" stroke="#CC6600" stroke-width="1.2"/>
+    <ellipse cx="63" cy="92" rx="7" ry="5" fill="#FFA020" stroke="#CC6600" stroke-width="1.2"/>
+    <!-- paw toes -->
+    <circle cx="34" cy="94" r="2" fill="#FF8800" opacity=".7"/>
+    <circle cx="37" cy="95" r="2" fill="#FF8800" opacity=".7"/>
+    <circle cx="40" cy="94" r="2" fill="#FF8800" opacity=".7"/>
+    <circle cx="60" cy="94" r="2" fill="#FF8800" opacity=".7"/>
+    <circle cx="63" cy="95" r="2" fill="#FF8800" opacity=".7"/>
+    <circle cx="66" cy="94" r="2" fill="#FF8800" opacity=".7"/>
+    <!-- head -->
+    <circle cx="50" cy="42" r="26" fill="#FFA020" stroke="#CC6600" stroke-width="2"/>
+    <!-- ears -->
+    <polygon points="22,20 26,5 36,22" fill="#FFA020" stroke="#CC6600" stroke-width="1.5"/>
+    <polygon points="78,20 74,5 64,22" fill="#FFA020" stroke="#CC6600" stroke-width="1.5"/>
+    <!-- inner ears -->
+    <polygon points="24,18 27,9 34,20" fill="#FF7799" opacity=".8"/>
+    <polygon points="76,18 73,9 66,20" fill="#FF7799" opacity=".8"/>
+    <!-- fur stripes on head -->
+    <path d="M37,20 Q40,24 38,30" stroke="#CC6600" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>
+    <path d="M50,18 Q50,22 50,28" stroke="#CC6600" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>
+    <path d="M63,20 Q60,24 62,30" stroke="#CC6600" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>
+    <!-- eyes -->
+    <ellipse cx="40" cy="40" rx="7" ry="8" fill="#CCEEAA" stroke="#446600" stroke-width="1.5"/>
+    <ellipse cx="60" cy="40" rx="7" ry="8" fill="#CCEEAA" stroke="#446600" stroke-width="1.5"/>
+    <!-- pupils (vertical) -->
+    <ellipse cx="40" cy="41" rx="3" ry="6" fill="#1A1A00"/>
+    <ellipse cx="60" cy="41" rx="3" ry="6" fill="#1A1A00"/>
+    <circle cx="38" cy="38" r="1.8" fill="white"/>
+    <circle cx="58" cy="38" r="1.8" fill="white"/>
+    <!-- nose -->
+    <polygon points="50,52 47,56 53,56" fill="#FF6699"/>
+    <!-- mouth -->
+    <path d="M47,56 Q50,60 53,56" stroke="#CC4466" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M44,59 Q47,62 50,59" stroke="#CC4466" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M50,59 Q53,62 56,59" stroke="#CC4466" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- whiskers -->
+    <line x1="14" y1="50" x2="42" y2="53" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <line x1="14" y1="55" x2="42" y2="55" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <line x1="14" y1="60" x2="42" y2="57" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <line x1="58" y1="53" x2="86" y2="50" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <line x1="58" y1="55" x2="86" y2="55" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <line x1="58" y1="57" x2="86" y2="60" stroke="#CC6600" stroke-width="1.2" opacity=".8"/>
+    <!-- blush -->
+    <ellipse cx="33" cy="52" rx="5" ry="3" fill="#FF8888" opacity=".5"/>
+    <ellipse cx="67" cy="52" rx="5" ry="3" fill="#FF8888" opacity=".5"/>
+  </g>
+</svg>
