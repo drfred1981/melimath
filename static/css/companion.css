@@ -139,3 +139,36 @@
 
 /* ===== Loading ===== */
 .companion-loading { font-size:2rem; text-align:center; line-height:76px; }
+
+/* ===== Événement aléatoire — alerte ===== */
+.companion-alert.alert-event {
+    background: #fff0f3;
+    border: 2px solid #e85d04;
+    color: #7b2d00;
+}
+.companion-alert.alert-cured {
+    background: #d1fae5;
+    border: 2px solid #059669;
+    color: #064e3b;
+}
+
+/* ===== Badge de guérison (mode cure actif) ===== */
+.companion-cure-badge {
+    position: absolute;
+    top: -10px;
+    right: -4px;
+    background: #e85d04;
+    color: #fff;
+    font-size: 0.70rem;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(232,93,4,0.4);
+    animation: cmp-pulse-badge 0.9s ease-in-out infinite;
+}
+@keyframes cmp-pulse-badge {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.07); }
+}

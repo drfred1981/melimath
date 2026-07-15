@@ -3,10 +3,16 @@
 
     var STORAGE_PREFIX = 'melimath_companion_';
     var HEALTH_MAX = 100;
-    var GRACE_DAYS = 2;  // mis à jour via /api/school-period
+    var GRACE_DAYS = 2;
     var POINTS_CORRECT = 4;
     var POINTS_WRONG = -1;
     var POINTS_PER_ABSENT_DAY = -20;
+
+    // Événements aléatoires
+    var STREAK_EVENT_THRESHOLD = 15;  // réponses correctes sans perte avant déclenchement possible
+    var EVENT_CHANCE = 0.20;          // 20% par bonne réponse au-dessus du seuil
+    var CURE_ANSWERS = 5;             // réponses correctes pour guérir
+    var POINTS_CORRECT_CURE = 8;      // points doublés pendant la guérison
 
     var CHAR_NAMES = {
         default: 'Étoile',
@@ -51,8 +57,37 @@
         ]
     };
 
+    var EVENT_MESSAGES = {
+        virus: [
+            "🦠 {name} a attrapé un virus ! Réponds vite pour le soigner !",
+            "🤒 Un virus attaque {name} ! Trouve l'antidote en répondant !"
+        ],
+        vol: [
+            "💸 Un voleur a dérobé l'énergie de {name} ! Réponds vite pour récupérer !",
+            "🦹 Quelqu'un a volé la force de {name} ! Défends-le vite !"
+        ],
+        cure: [
+            "💊 Encore {n} bonne(s) réponse(s) pour soigner {name} !",
+            "🛡️ Plus que {n} réponse(s) pour sauver {name} !"
+        ],
+        cured_virus: [
+            "💊 {name} est guéri ! Tu as vaincu le virus, bravo !",
+            "✨ Fantastique ! {name} se sent beaucoup mieux grâce à toi !"
+        ],
+        cured_vol: [
+            "⚡ {name} a récupéré son énergie ! Tu es un vrai héros !",
+            "🦸 Le voleur est parti ! {name} est sauvé grâce à toi !"
+        ]
+    };
+
     var currentTheme = 'default';
     var data = null;
+
+    // État des événements (non persisté, réinitialisé à chaque session)
+    var correctStreakNoPenalty = 0;
+    var inCureMode = false;
+    var cureAnswersLeft = 0;
+    var lastEventType = null;
 
     function todayStr() {
         var d = new Date();
@@ -102,6 +137,10 @@
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    function charName() {
+        return CHAR_NAMES[currentTheme] || 'Ami';
+    }
+
     function loadGracePeriod(callback) {
         var today = todayStr();
         try {
@@ -128,7 +167,7 @@
     function buildWidget() {
         var container = document.getElementById('companion-container');
         if (!container) return;
-        var name = CHAR_NAMES[currentTheme] || 'Ami';
+        var name = charName();
         var state = getState();
         container.innerHTML =
             '<div class="companion-widget state-' + state + '" id="companionWidget">' +
@@ -146,6 +185,7 @@
                 '</div>' +
             '</div>';
         loadSVG();
+        if (inCureMode) updateCureBadge();
         if (state === 'sick' || state === 'critical') {
             setTimeout(showHealthAlert, 900);
         }
@@ -199,6 +239,69 @@
         setTimeout(function() { if (el.parentNode) el.remove(); }, 6000);
     }
 
+    function showEventAlert(type) {
+        var existing = document.getElementById('companionAlert');
+        if (existing) existing.remove();
+        var msgs = EVENT_MESSAGES[type] || EVENT_MESSAGES.virus;
+        var msg = pick(msgs).replace('{name}', charName());
+        var el = document.createElement('div');
+        el.id = 'companionAlert';
+        el.className = 'companion-alert alert-event';
+        el.innerHTML = '<span>' + escHtml(msg) + '</span><button onclick="var a=document.getElementById(\'companionAlert\');if(a)a.remove();" title="Fermer">✕</button>';
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.remove(); }, 8000);
+    }
+
+    function showEventCuredAlert() {
+        var existing = document.getElementById('companionAlert');
+        if (existing) existing.remove();
+        var key = 'cured_' + (lastEventType || 'virus');
+        var msgs = EVENT_MESSAGES[key] || EVENT_MESSAGES.cured_virus;
+        var msg = pick(msgs).replace('{name}', charName());
+        var el = document.createElement('div');
+        el.id = 'companionAlert';
+        el.className = 'companion-alert alert-cured';
+        el.innerHTML = '<span>' + escHtml(msg) + '</span><button onclick="var a=document.getElementById(\'companionAlert\');if(a)a.remove();" title="Fermer">✕</button>';
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.remove(); }, 5000);
+    }
+
+    function updateCureBadge() {
+        var w = getWidget();
+        if (!w) return;
+        var badge = document.getElementById('companionCureBadge');
+        var icon = lastEventType === 'vol' ? '💸' : '🦠';
+        var label = icon + ' ' + cureAnswersLeft + ' réponse' + (cureAnswersLeft > 1 ? 's' : '') + ' pour guérir';
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'companionCureBadge';
+            badge.className = 'companion-cure-badge';
+            w.appendChild(badge);
+        }
+        badge.textContent = label;
+    }
+
+    function removeCureBadge() {
+        var badge = document.getElementById('companionCureBadge');
+        if (badge) badge.remove();
+    }
+
+    function triggerRandomEvent() {
+        lastEventType = Math.random() < 0.5 ? 'virus' : 'vol';
+        data.health = Math.max(1, Math.floor(data.health * 0.5));
+        correctStreakNoPenalty = 0;
+        inCureMode = true;
+        cureAnswersLeft = CURE_ANSWERS;
+        saveData();
+        updateWidget();
+        updateCureBadge();
+        showEventAlert(lastEventType);
+        var cureMsg = pick(EVENT_MESSAGES.cure)
+            .replace('{n}', cureAnswersLeft)
+            .replace('{name}', charName());
+        setMessage(cureMsg);
+    }
+
     function setMessage(msg, thenResetDelay) {
         var el = getMsgEl();
         if (!el) return;
@@ -224,6 +327,10 @@
         setTheme: function(theme) {
             currentTheme = theme || 'default';
             data = loadData(currentTheme);
+            correctStreakNoPenalty = 0;
+            inCureMode = false;
+            cureAnswersLeft = 0;
+            lastEventType = null;
             loadGracePeriod(function(gd) {
                 GRACE_DAYS = gd;
                 applyInactivityPenalty();
@@ -233,21 +340,48 @@
         onAnswer: function(correct) {
             if (!data) return;
             if (correct) {
-                data.health = Math.min(HEALTH_MAX, data.health + POINTS_CORRECT);
+                var pts = inCureMode ? POINTS_CORRECT_CURE : POINTS_CORRECT;
+                data.health = Math.min(HEALTH_MAX, data.health + pts);
                 data.totalCorrect = (data.totalCorrect || 0) + 1;
+                correctStreakNoPenalty++;
+
+                if (inCureMode) {
+                    cureAnswersLeft--;
+                    saveData();
+                    updateWidget();
+                    if (cureAnswersLeft <= 0) {
+                        inCureMode = false;
+                        removeCureBadge();
+                        showEventCuredAlert();
+                        setMessage(pick(MESSAGES.correct), 2200);
+                    } else {
+                        updateCureBadge();
+                        var cureMsg = pick(EVENT_MESSAGES.cure)
+                            .replace('{n}', cureAnswersLeft)
+                            .replace('{name}', charName());
+                        setMessage(cureMsg, 2200);
+                        showReward();
+                    }
+                } else {
+                    saveData();
+                    updateWidget();
+                    showReward();
+                    setMessage(pick(MESSAGES.correct), 2200);
+                    // Vérifier si un événement aléatoire se déclenche (après l'animation de récompense)
+                    if (correctStreakNoPenalty >= STREAK_EVENT_THRESHOLD && Math.random() < EVENT_CHANCE) {
+                        setTimeout(triggerRandomEvent, 900);
+                    }
+                }
             } else {
                 data.health = Math.max(0, data.health + POINTS_WRONG);
                 data.totalWrong = (data.totalWrong || 0) + 1;
+                correctStreakNoPenalty = 0;
+                saveData();
+                updateWidget();
+                setMessage(pick(MESSAGES.wrong), 2200);
             }
             data.lastPlayedDate = todayStr();
             saveData();
-            updateWidget();
-            if (correct) {
-                showReward();
-                setMessage(pick(MESSAGES.correct), 2200);
-            } else {
-                setMessage(pick(MESSAGES.wrong), 2200);
-            }
             var state = getState();
             if (state === 'sick' || state === 'critical') showHealthAlert();
         }
