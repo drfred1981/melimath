@@ -1713,7 +1713,7 @@
             keypadMode.classList.remove('d-none');
             calculArea.classList.add('d-none');
             problemArea.classList.remove('d-none');
-            timerDuration = mode === 'proportionnalite' ? 70 : 60;
+            timerDuration = 70;
         } else if (mode === 'calcul_ligne') {
             keypadMode.classList.remove('d-none');
             timerDuration = 40;
@@ -1952,10 +1952,11 @@
 
     function generateProbleme() {
         const templates = [
+            // ── Problèmes paramétrés (aléatoires) ─────────────────────────────────
             { text: (a, b) => `${pick(['Marie','Lucas','Emma','Hugo'])} a ${a} billes. ${pick(['Son ami','Sa copine','Paul','Léa'])} lui donne ${b} billes de plus.`,
               q: 'Combien de billes a-t-il maintenant ?', op: '+', minA: 15, maxA: 80, minB: 10, maxB: 50 },
             { text: (a, b) => `Dans la classe, il y a ${a} élèves. ${b} élèves partent à la cantine.`,
-              q: 'Combien d\'élèves restent dans la classe ?', op: '-', minA: 20, maxA: 35, minB: 5, maxB: 15 },
+              q: "Combien d'élèves restent dans la classe ?", op: '-', minA: 20, maxA: 35, minB: 5, maxB: 15 },
             { text: (a, b) => `Un fermier récolte ${a} pommes le matin et ${b} pommes l'après-midi.`,
               q: 'Combien de pommes a-t-il récolté en tout ?', op: '+', minA: 30, maxA: 150, minB: 20, maxB: 100 },
             { text: (a, b) => `Un magasin a ${a} jouets. Il en vend ${b} pendant la journée.`,
@@ -1963,17 +1964,107 @@
             { text: (a, b) => `La bibliothèque reçoit ${a} nouveaux livres lundi et ${b} livres mardi.`,
               q: 'Combien de nouveaux livres en tout ?', op: '+', minA: 20, maxA: 120, minB: 15, maxB: 80 },
             { text: (a, b) => `${pick(['Léo','Manon','Jade','Nathan'])} avait ${a} images. Il en donne ${b} à son frère.`,
-              q: 'Combien d\'images lui reste-t-il ?', op: '-', minA: 30, maxA: 100, minB: 5, maxB: 40 },
+              q: "Combien d'images lui reste-t-il ?", op: '-', minA: 30, maxA: 100, minB: 5, maxB: 40 },
             { text: (a, b) => `Un car transporte ${a} passagers. Au prochain arrêt, ${b} passagers montent.`,
               q: 'Combien de passagers y a-t-il maintenant ?', op: '+', minA: 15, maxA: 45, minB: 5, maxB: 20 },
             { text: (a, b) => `Il y a ${a} gâteaux pour la fête. Les enfants en mangent ${b}.`,
               q: 'Combien de gâteaux reste-t-il ?', op: '-', minA: 20, maxA: 60, minB: 5, maxB: 30 },
+            // ── Addition ───────────────────────────────────────────────────────────
+            { text: () => `Ce matin, la boulangerie a vendu 145 croissants et 87 pains au chocolat.`,
+              q: 'Combien de viennoiseries ont été vendues en tout ?', answer: 232 },
+            { text: () => `La bibliothèque a reçu 238 livres en janvier et 175 livres en février.`,
+              q: 'Combien de livres a-t-elle reçus au total ?', answer: 413 },
+            { text: () => `Léa a 156 timbres. Sa grand-mère lui en donne 68.`,
+              q: 'Combien de timbres Léa a-t-elle maintenant ?', answer: 224 },
+            { text: () => `Un car transporte 32 élèves de CE2 et 28 élèves de CM1. Au prochain arrêt, 15 élèves de CE1 montent.`,
+              q: 'Combien de passagers y a-t-il dans le car ?', answer: 75 },
+            { text: () => `Tom a 47 billes bleues, 35 billes rouges et 18 billes vertes.`,
+              q: 'Combien de billes Tom a-t-il en tout ?', answer: 100 },
+            { text: () => `Au potager, il y a 64 plants de tomates et 89 plants de courgettes.`,
+              q: 'Combien de plants y a-t-il au total ?', answer: 153 },
+            { text: () => `Lundi, Inès a lu 34 pages. Mardi, elle a lu 42 pages. Mercredi, elle a lu 28 pages.`,
+              q: 'Combien de pages a-t-elle lues en trois jours ?', answer: 104 },
+            { text: () => `Dans une école, il y a 126 filles et 118 garçons.`,
+              q: "Combien d'élèves y a-t-il dans cette école ?", answer: 244 },
+            // ── Soustraction ───────────────────────────────────────────────────────
+            { text: () => `Léo a 253 images. Il en donne 87 à son ami.`,
+              q: "Combien d'images lui reste-t-il ?", answer: 166 },
+            { text: () => `Un réservoir contient 500 litres d'eau. On en utilise 175 litres.`,
+              q: 'Combien de litres reste-t-il ?', answer: 325 },
+            { text: () => `L'école A a 312 élèves. L'école B a 278 élèves.`,
+              q: "Combien d'élèves l'école A a-t-elle de plus que l'école B ?", answer: 34 },
+            { text: () => `Mia avait 95 €. Elle achète un livre à 12 € et un jeu à 23 €.`,
+              q: 'Combien lui reste-t-il (en €) ?', answer: 60 },
+            { text: () => `Un marathon fait 42 km. Un coureur a déjà parcouru 28 km.`,
+              q: 'Combien de km lui reste-t-il à parcourir ?', answer: 14 },
+            { text: () => `Un fermier avait 300 oeufs. Il en a vendu 148 au marché.`,
+              q: "Combien d'oeufs lui reste-t-il ?", answer: 152 },
+            { text: () => `Ce matin il faisait 8°C. Cet après-midi il fait 23°C.`,
+              q: 'De combien de degrés la température a-t-elle augmenté ?', answer: 15 },
+            { text: () => `Lors d'une course, 250 participants prennent le départ. 38 abandonnent.`,
+              q: "Combien arrivent à la ligne d'arrivée ?", answer: 212 },
+            // ── Multiplication ─────────────────────────────────────────────────────
+            { text: () => `Un paquet contient 8 gâteaux. La maîtresse achète 6 paquets pour la classe.`,
+              q: 'Combien de gâteaux y a-t-il en tout ?', answer: 48 },
+            { text: () => `Dans un cinéma, il y a 9 rangées de 12 sièges.`,
+              q: 'Combien de places y a-t-il ?', answer: 108 },
+            { text: () => `Un casier contient 6 bouteilles. Le magasin a 25 casiers.`,
+              q: 'Combien de bouteilles en tout ?', answer: 150 },
+            { text: () => `Un cahier coûte 3 €. La maîtresse en achète 7.`,
+              q: 'Combien la maîtresse dépense-t-elle (en €) ?', answer: 21 },
+            { text: () => `Chaque enfant reçoit 5 autocollants. Il y a 24 enfants.`,
+              q: "Combien d'autocollants faut-il en tout ?", answer: 120 },
+            { text: () => `Un mur mesure 8 carreaux de large et 6 carreaux de haut.`,
+              q: 'Combien de carreaux faut-il pour le couvrir ?', answer: 48 },
+            // ── Division ──────────────────────────────────────────────────────────
+            { text: () => `48 bonbons sont partagés entre 6 enfants.`,
+              q: 'Combien de bonbons chaque enfant reçoit-il ?', answer: 8 },
+            { text: () => `Le professeur de sport veut faire des équipes de 5 avec 32 élèves.`,
+              q: "Combien d'équipes complètes peut-il former ?", answer: 6 },
+            { text: () => `Le fermier a 84 oeufs. Chaque boîte contient 6 oeufs.`,
+              q: 'Combien de boîtes peut-il remplir ?', answer: 14 },
+            { text: () => `Un ruban de 72 cm est découpé en morceaux de 9 cm.`,
+              q: 'Combien de morceaux obtient-on ?', answer: 8 },
+            { text: () => `On a 50 photos à coller dans un album. Chaque page peut contenir 4 photos.`,
+              q: 'De combien de pages a-t-on besoin pour coller toutes les photos ?', answer: 13 },
+            { text: () => `La maîtresse a 100 feuilles à distribuer à 8 groupes.`,
+              q: 'Combien de feuilles chaque groupe reçoit-il ?', answer: 12 },
+            // ── Mesures ───────────────────────────────────────────────────────────
+            { text: () => `Un jardin rectangulaire mesure 12 m de long et 8 m de large. Papa veut mettre une clôture tout autour.`,
+              q: 'Quelle longueur de clôture faut-il (en mètres) ?', answer: 40 },
+            { text: () => `Un chemin fait 2 400 m. Lucas a déjà marché 800 m.`,
+              q: 'Combien de mètres lui reste-t-il à parcourir ?', answer: 1600 },
+            { text: () => `Une bouteille contient 1 500 mL. On remplit 6 verres de 200 mL.`,
+              q: 'Combien de mL reste-t-il dans la bouteille ?', answer: 300 },
+            { text: () => `Une couturière a un rouleau de 300 cm de tissu. Elle découpe 5 morceaux de 45 cm.`,
+              q: 'Combien de centimètres de tissu reste-t-il ?', answer: 75 },
+            // ── Durées (en minutes) ───────────────────────────────────────────────
+            { text: () => `Le bus part à 8 h 15 et arrive à 9 h 40.`,
+              q: 'Combien de minutes dure le trajet ?', answer: 85 },
+            { text: () => `La classe commence à 8 h 30. La récréation est à 10 h 15.`,
+              q: 'Combien de minutes les élèves travaillent-ils avant la récréation ?', answer: 105 },
+            { text: () => `L'école commence à 8 h 30 et finit à 16 h 30. La pause déjeuner dure 90 minutes.`,
+              q: 'Combien de minutes les élèves sont-ils en classe ?', answer: 390 },
+            // ── Mélangés ─────────────────────────────────────────────────────────
+            { text: () => `Au marché, un kilo de pommes coûte 3 €. Papa achète 4 kg de pommes et un melon à 5 €.`,
+              q: 'Combien papa dépense-t-il en tout (en €) ?', answer: 17 },
+            { text: () => `Un car scolaire transporte 54 élèves. À un arrêt, 12 élèves descendent et 8 montent.`,
+              q: "Combien d'élèves y a-t-il maintenant dans le car ?", answer: 50 },
+            { text: () => `Le photographe doit tirer 3 photos par élève. Il y a 28 élèves. Il a déjà tiré 50 photos.`,
+              q: 'Combien de photos reste-t-il à tirer ?', answer: 34 },
+            { text: () => `Maman a fait 36 cookies. 4 cookies sont cassés. Elle répartit les cookies entiers dans 4 boîtes.`,
+              q: 'Combien de cookies entiers y a-t-il par boîte ?', answer: 8 },
         ];
         const t = pick(templates);
-        a = randInt(t.minA, t.maxA);
-        b = randInt(t.minB, Math.min(t.maxB, t.op === '-' ? a - 1 : t.maxB));
-        correctAnswer = t.op === '+' ? a + b : a - b;
-        problemText.innerHTML = '<p>' + t.text(a, b) + '</p><p class="problem-question">' + t.q + '</p>';
+        if (t.answer !== undefined) {
+            correctAnswer = t.answer;
+            problemText.innerHTML = '<p>' + t.text() + '</p><p class="problem-question">' + t.q + '</p>';
+        } else {
+            a = randInt(t.minA, t.maxA);
+            b = randInt(t.minB, Math.min(t.maxB, t.op === '-' ? a - 1 : t.maxB));
+            correctAnswer = t.op === '+' ? a + b : a - b;
+            problemText.innerHTML = '<p>' + t.text(a, b) + '</p><p class="problem-question">' + t.q + '</p>';
+        }
     }
 
     function generateProportionnalite() {
