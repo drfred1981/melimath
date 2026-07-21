@@ -287,6 +287,28 @@
             text-align: center;
             margin: 0 2px;
         }
+        .column-add .carry-row input {
+            width: 42px;
+            height: 22px;
+            text-align: center;
+            margin: 0 2px;
+            border: none;
+            border-bottom: 1px dashed #ccc;
+            background: transparent;
+            font-size: 0.9rem;
+            color: #e85d04;
+            font-weight: 700;
+            outline: none;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .column-add .carry-row input:focus {
+            border-bottom-color: #0d6efd;
+        }
+        .column-add .carry-row input:disabled {
+            color: #e85d04;
+            border-bottom-color: transparent;
+        }
         .borrow-indicator {
             font-size: 0.45em;
             font-weight: 700;
@@ -3161,12 +3183,16 @@
         const padA = aStr.padStart(colDigits, ' ');
         const padB = bStr.padStart(colDigits, ' ');
 
-        // Build carry row
+        // Build carry row (cases de retenues saisissables par l'élève)
         carryRow.innerHTML = '';
         for (let i = 0; i < colDigits; i++) {
-            const sp = document.createElement('span');
-            sp.textContent = '';
-            carryRow.appendChild(sp);
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 1;
+            inp.inputMode = 'numeric';
+            inp.autocomplete = 'off';
+            inp.dataset.pos = i;
+            carryRow.appendChild(inp);
         }
 
         // Build number rows
@@ -3273,23 +3299,35 @@
             }
         });
 
-        // Retenues : applicables uniquement à l'addition (la multiplication posée
-        // à 1 chiffre génère des retenues internes qu'on ne représente pas ici).
+        // Retenues : afficher les bonnes valeurs dans les cases de retenues
+        _fillCarryRow();
+
+        showAddColFeedback(isCorrect, false);
+    }
+
+    function _fillCarryRow() {
+        const aStr = String(colA).padStart(colDigits, '0');
+        const carries = new Array(colDigits).fill('');
         if (mode !== 'multiplication_colonne') {
-            const aStr = String(colA).padStart(colDigits, '0');
             const bStr = String(colB).padStart(colDigits, '0');
             let carry = 0;
-            const carries = new Array(colDigits).fill('');
             for (let i = colDigits - 1; i >= 0; i--) {
                 const sum = parseInt(aStr[i]) + parseInt(bStr[i]) + carry;
                 carry = sum >= 10 ? 1 : 0;
                 if (carry && i > 0) carries[i - 1] = '1';
             }
-            const carrySpans = carryRow.querySelectorAll('span');
-            carrySpans.forEach((sp, i) => { sp.textContent = carries[i]; });
+        } else {
+            let carry = 0;
+            for (let i = colDigits - 1; i >= 0; i--) {
+                const product = parseInt(aStr[i]) * colB + carry;
+                carry = Math.floor(product / 10);
+                if (carry > 0 && i > 0) carries[i - 1] = String(carry);
+            }
         }
-
-        showAddColFeedback(isCorrect, false);
+        carryRow.querySelectorAll('input').forEach(function(inp, i) {
+            if (!inp.value) inp.value = carries[i];
+            inp.disabled = true;
+        });
     }
 
     function showAddColFeedback(correct, timeout) {
@@ -3302,6 +3340,7 @@
             const inputs = answerRowCol.querySelectorAll('input');
             const ansStr = String(colAnswer);
             inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
+            _fillCarryRow();
         } else if (correct) {
             addColFeedback.className = 'text-center feedback feedback-correct';
             addColFeedback.textContent = 'Bravo ! ✅';
@@ -3344,12 +3383,16 @@
         const padA = aStr.padStart(subColDigits, ' ');
         const padB = bStr.padStart(subColDigits, ' ');
 
-        // Build borrow row (emprunts)
+        // Build borrow row (cases d'emprunts saisissables par l'élève)
         borrowRow.innerHTML = '';
         for (let i = 0; i < subColDigits; i++) {
-            const sp = document.createElement('span');
-            sp.textContent = '';
-            borrowRow.appendChild(sp);
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.maxLength = 1;
+            inp.inputMode = 'numeric';
+            inp.autocomplete = 'off';
+            inp.dataset.pos = i;
+            borrowRow.appendChild(inp);
         }
 
         // Build number rows
@@ -3490,7 +3533,32 @@
             }
         });
 
+        _fillBorrowRow(borrowAt);
         showSubColFeedback(isCorrect, false);
+    }
+
+    function _fillBorrowRow(borrowAt) {
+        const borrows = new Array(subColDigits).fill('');
+        if (borrowAt) {
+            borrowAt.forEach(function(b, i) {
+                if (b && i >= 1) borrows[i - 1] = '1';
+            });
+        } else {
+            const aStr = String(subColA).padStart(subColDigits, '0');
+            const bStr = String(subColB).padStart(subColDigits, '0');
+            const aDigits = aStr.split('').map(Number);
+            for (let i = subColDigits - 1; i >= 1; i--) {
+                if (aDigits[i] < parseInt(bStr[i])) {
+                    borrows[i - 1] = '1';
+                    aDigits[i] += 10;
+                    aDigits[i - 1] -= 1;
+                }
+            }
+        }
+        borrowRow.querySelectorAll('input').forEach(function(inp, i) {
+            if (!inp.value) inp.value = borrows[i];
+            inp.disabled = true;
+        });
     }
 
     function showSubColFeedback(correct, timeout) {
@@ -3502,6 +3570,7 @@
             const inputs = answerRowSub.querySelectorAll('input');
             const ansStr = String(subColAnswer).padStart(subColDigits, '0');
             inputs.forEach((inp, i) => { inp.value = ansStr[i]; inp.disabled = true; inp.classList.add('wrong-digit'); });
+            _fillBorrowRow(null);
         } else if (correct) {
             subColFeedback.className = 'text-center feedback feedback-correct';
             subColFeedback.textContent = 'Bravo ! ✅';
